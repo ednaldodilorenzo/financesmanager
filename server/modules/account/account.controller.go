@@ -10,13 +10,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetRoutes() (string, func(router fiber.Router)) {
-	accountController := NewAccountController()
+func GetRoutes(controller AccountController) (string, func(router fiber.Router)) {
 	return "/accounts", func(router fiber.Router) {
-		router.Get("/", middleware.DeserializeUser, accountController.GetAll)
-		router.Get("/:id", middleware.DeserializeUser, accountController.GetOne)
-		router.Post("/", middleware.DeserializeUser, accountController.Post)
-		router.Patch("/:id", middleware.DeserializeUser, accountController.Patch)
+		router.Get("/", middleware.DeserializeUser, controller.GetAll)
+		router.Get("/:id", middleware.DeserializeUser, controller.GetOne)
+		router.Post("/", middleware.DeserializeUser, controller.Post)
+		router.Patch("/:id", middleware.DeserializeUser, controller.Patch)
 	}
 }
 
@@ -30,17 +29,24 @@ type AccountUpdateSchema struct {
 	Type string `json:"type"`
 }
 
-type AccountController struct {
+type AccountController interface {
+	GetAll(c *fiber.Ctx) error
+	GetOne(c *fiber.Ctx) error
+	Post(c *fiber.Ctx) error
+	Patch(c *fiber.Ctx) error
+}
+
+type AccountControllerStruct struct {
 	generic.GenericService[model.Account]
 }
 
-func NewAccountController() *AccountController {
-	return &AccountController{
-		generic.NewGenericService[model.Account](),
+func NewAccountController(service generic.GenericService[model.Account]) AccountController {
+	return &AccountControllerStruct{
+		service,
 	}
 }
 
-func (cc *AccountController) GetAll(c *fiber.Ctx) error {
+func (cc *AccountControllerStruct) GetAll(c *fiber.Ctx) error {
 	accounts, err := cc.FindAll()
 
 	if err != nil {
@@ -50,7 +56,7 @@ func (cc *AccountController) GetAll(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(accounts), "items": accounts})
 }
 
-func (cc *AccountController) GetOne(c *fiber.Ctx) error {
+func (cc *AccountControllerStruct) GetOne(c *fiber.Ctx) error {
 
 	accountId, err := strconv.Atoi(c.Params("id"))
 
@@ -67,7 +73,7 @@ func (cc *AccountController) GetOne(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "item": account})
 }
 
-func (cc *AccountController) Post(c *fiber.Ctx) error {
+func (cc *AccountControllerStruct) Post(c *fiber.Ctx) error {
 	var payload *AccountSchema
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -93,7 +99,7 @@ func (cc *AccountController) Post(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
 }
 
-func (cc *AccountController) Patch(c *fiber.Ctx) error {
+func (cc *AccountControllerStruct) Patch(c *fiber.Ctx) error {
 	var payload *AccountUpdateSchema
 
 	if err := c.BodyParser(&payload); err != nil {

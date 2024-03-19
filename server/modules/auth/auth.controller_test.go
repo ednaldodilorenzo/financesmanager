@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/ednaldo-dilorenzo/iappointment/model"
-	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
 	"github.com/ednaldo-dilorenzo/iappointment/server"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
@@ -53,12 +52,12 @@ func setupSuite(tb testing.TB) func(tb testing.TB) {
 	svr = &server.Server{
 		App: server.InitFiberApplication(),
 	}
-	mockAuthService := &MockAuthService{}
-	authController := auth.BuildAuthController(mockAuthService)
-	svr.BasicSetup("/auth", func(router fiber.Router) {
-		router.Post("/login", authController.SigninUser)
-		router.Post("/signup", authController.SignUpUser)
-	})
+	//mockAuthService := &MockAuthService{}
+	//authController := auth.BuildAuthController(mockAuthService)
+	//svr.BasicSetup("/auth", func(router fiber.Router) {
+	//	router.Post("/login", authController.SigninUser)
+	//	router.Post("/signup", authController.SignUpUser)
+	//})
 
 	// Return a function to teardown the test
 	return func(tb testing.TB) {

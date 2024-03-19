@@ -17,9 +17,9 @@ type GenericServiceStruct[V interface{}] struct {
 	repository GenericRepository[V]
 }
 
-func NewGenericService[V interface{}]() GenericService[V] {
+func NewGenericService[V interface{}](repository GenericRepository[V]) GenericService[V] {
 	return &GenericServiceStruct[V]{
-		repository: NewGenericRepository[V](),
+		repository: repository,
 	}
 }
 

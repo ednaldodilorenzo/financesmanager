@@ -9,12 +9,38 @@ import (
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/account"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/routes"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/gofiber/fiber/v2"
+	"go.uber.org/dig"
 )
 
 type Server struct {
 	App *fiber.App
+}
+
+type ServerDependencies struct {
+	dig.In
+	AuthController        auth.AuthController
+	CategoryController    category.CategoryController
+	AccountController     account.AccountController
+	TransactionController transaction.TransactionController
+}
+
+func NewServer(deps ServerDependencies) *Server {
+	server := &Server{
+		App: InitFiberApplication(),
+	}
+
+	api := server.App.Group("/api")
+	api.Route(auth.GetRoutes(deps.AuthController))
+	api.Route(category.GetRoutes(deps.CategoryController))
+	api.Route(account.GetRoutes(deps.AccountController))
+	api.Route(transaction.GetRoutes(deps.TransactionController))
+	return server
 }
 
 func (s *Server) Setup() {

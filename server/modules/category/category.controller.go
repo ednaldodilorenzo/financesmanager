@@ -10,13 +10,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetRoutes() (string, func(router fiber.Router)) {
-	categoryController := NewCategoryController()
+func GetRoutes(controller CategoryController) (string, func(router fiber.Router)) {
 	return "/categories", func(router fiber.Router) {
-		router.Get("/", middleware.DeserializeUser, categoryController.GetAll)
-		router.Get("/:id", middleware.DeserializeUser, categoryController.GetOne)
-		router.Post("/", middleware.DeserializeUser, categoryController.Post)
-		router.Patch("/:id", middleware.DeserializeUser, categoryController.Patch)
+		router.Get("/", middleware.DeserializeUser, controller.GetAll)
+		router.Get("/:id", middleware.DeserializeUser, controller.GetOne)
+		router.Post("/", middleware.DeserializeUser, controller.Post)
+		router.Patch("/:id", middleware.DeserializeUser, controller.Patch)
 	}
 }
 
@@ -30,17 +29,24 @@ type CategoryUpdateSchema struct {
 	Type string `json:"type"`
 }
 
-type CategoryController struct {
+type CategoryController interface {
+	GetAll(c *fiber.Ctx) error
+	GetOne(c *fiber.Ctx) error
+	Post(c *fiber.Ctx) error
+	Patch(c *fiber.Ctx) error
+}
+
+type CategoryControllerStruct struct {
 	generic.GenericService[model.Category]
 }
 
-func NewCategoryController() *CategoryController {
-	return &CategoryController{
-		generic.NewGenericService[model.Category](),
+func NewCategoryController(service generic.GenericService[model.Category]) CategoryController {
+	return &CategoryControllerStruct{
+		service,
 	}
 }
 
-func (cc *CategoryController) GetAll(c *fiber.Ctx) error {
+func (cc *CategoryControllerStruct) GetAll(c *fiber.Ctx) error {
 	categories, err := cc.FindAll()
 
 	if err != nil {
@@ -50,7 +56,7 @@ func (cc *CategoryController) GetAll(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(categories), "items": categories})
 }
 
-func (cc *CategoryController) GetOne(c *fiber.Ctx) error {
+func (cc *CategoryControllerStruct) GetOne(c *fiber.Ctx) error {
 
 	categoryId, err := strconv.Atoi(c.Params("id"))
 
@@ -67,7 +73,7 @@ func (cc *CategoryController) GetOne(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "item": category})
 }
 
-func (cc *CategoryController) Post(c *fiber.Ctx) error {
+func (cc *CategoryControllerStruct) Post(c *fiber.Ctx) error {
 	var payload *CategorySchema
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -93,7 +99,7 @@ func (cc *CategoryController) Post(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
 }
 
-func (cc *CategoryController) Patch(c *fiber.Ctx) error {
+func (cc *CategoryControllerStruct) Patch(c *fiber.Ctx) error {
 	var payload *CategoryUpdateSchema
 
 	if err := c.BodyParser(&payload); err != nil {

@@ -12,13 +12,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetRoutes() (string, func(router fiber.Router)) {
-	transactionController := NewTransactionController()
+func GetRoutes(controller TransactionController) (string, func(router fiber.Router)) {
 	return "/transactions", func(router fiber.Router) {
-		router.Get("/", middleware.DeserializeUser, transactionController.GetAll)
-		router.Get("/:id", middleware.DeserializeUser, transactionController.GetOne)
-		router.Post("/", middleware.DeserializeUser, transactionController.Post)
-		router.Patch("/:id", middleware.DeserializeUser, transactionController.Patch)
+		router.Get("/", middleware.DeserializeUser, controller.GetAll)
+		router.Get("/:id", middleware.DeserializeUser, controller.GetOne)
+		router.Post("/", middleware.DeserializeUser, controller.Post)
+		router.Patch("/:id", middleware.DeserializeUser, controller.Patch)
 	}
 }
 
@@ -40,17 +39,24 @@ type TransactionUpdateSchema struct {
 	IdInvoice   *string    `json:"invoiceId"`
 }
 
-type TransactionController struct {
-	TransactionService
+type TransactionController interface {
+	GetAll(c *fiber.Ctx) error
+	GetOne(c *fiber.Ctx) error
+	Post(c *fiber.Ctx) error
+	Patch(c *fiber.Ctx) error
 }
 
-func NewTransactionController() *TransactionController {
-	return &TransactionController{
-		generic.NewGenericService[model.Transaction](),
+type TransactionControllerStruct struct {
+	generic.GenericService[model.Transaction]
+}
+
+func NewTransactionController(service generic.GenericService[model.Transaction]) TransactionController {
+	return &TransactionControllerStruct{
+		service,
 	}
 }
 
-func (cc *TransactionController) GetAll(c *fiber.Ctx) error {
+func (cc *TransactionControllerStruct) GetAll(c *fiber.Ctx) error {
 	accounts, err := cc.FindAll()
 
 	if err != nil {
@@ -60,7 +66,7 @@ func (cc *TransactionController) GetAll(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(accounts), "items": accounts})
 }
 
-func (cc *TransactionController) GetOne(c *fiber.Ctx) error {
+func (cc *TransactionControllerStruct) GetOne(c *fiber.Ctx) error {
 
 	accountId, err := strconv.Atoi(c.Params("id"))
 
@@ -82,7 +88,7 @@ func (cc *TransactionController) GetOne(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "item": account})
 }
 
-func (cc *TransactionController) Post(c *fiber.Ctx) error {
+func (cc *TransactionControllerStruct) Post(c *fiber.Ctx) error {
 	var payload *TransactionSchema
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -112,7 +118,7 @@ func (cc *TransactionController) Post(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
 }
 
-func (cc *TransactionController) Patch(c *fiber.Ctx) error {
+func (cc *TransactionControllerStruct) Patch(c *fiber.Ctx) error {
 	var payload *TransactionUpdateSchema
 
 	if err := c.BodyParser(&payload); err != nil {

@@ -12,12 +12,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GetRoutes() (string, func(router fiber.Router)) {
-	authController := NewAuthController()
+func GetRoutes(controller AuthController) (string, func(router fiber.Router)) {
 	return "/auth", func(router fiber.Router) {
-		router.Post("/login", authController.SigninUser)
-		router.Post("/signup", authController.SignUpUser)
-		router.Get("/logout", middleware.DeserializeUser, LogoutUser)
+		router.Post("/login", controller.SigninUser)
+		router.Post("/signup", controller.SignUpUser)
+		router.Get("/logout", middleware.DeserializeUser, controller.LogoutUser)
 	}
 }
 
@@ -39,23 +38,29 @@ type SignInResponse struct {
 	Token string `json:"token,omitempty"`
 }
 
-type AuthController struct {
+type AuthController interface {
+	SigninUser(c *fiber.Ctx) error
+	SignUpUser(c *fiber.Ctx) error
+	LogoutUser(c *fiber.Ctx) error
+}
+
+type AuthControllerStruct struct {
 	authService AuthService
 }
 
-func NewAuthController() *AuthController {
-	return &AuthController{
-		authService: NewAuthService(),
+func NewAuthController(authService AuthService) AuthController {
+	return &AuthControllerStruct{
+		authService: authService,
 	}
 }
 
-func BuildAuthController(service AuthService) *AuthController {
-	return &AuthController{
-		authService: service,
-	}
-}
+//func BuildAuthController(service AuthService) *AuthController {
+//	return &AuthController{
+//		authService: service,
+//	}
+//}
 
-func (a *AuthController) SigninUser(c *fiber.Ctx) error {
+func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 
 	var payload *SignInInput
 
@@ -99,7 +104,7 @@ func (a *AuthController) SigninUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func (a *AuthController) SignUpUser(c *fiber.Ctx) error {
+func (a *AuthControllerStruct) SignUpUser(c *fiber.Ctx) error {
 	var payload *SignUpInput
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -135,7 +140,7 @@ func (a *AuthController) SignUpUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
 }
 
-func LogoutUser(c *fiber.Ctx) error {
+func (a *AuthControllerStruct) LogoutUser(c *fiber.Ctx) error {
 	expired := time.Now().Add(-time.Hour * 24)
 	c.Cookie(&fiber.Cookie{
 		Name:    "token",
