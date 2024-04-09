@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
+	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/account"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/routes"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/gofiber/fiber/v2"
@@ -25,9 +27,9 @@ type Server struct {
 type ServerDependencies struct {
 	dig.In
 	AuthController        auth.AuthController
-	CategoryController    category.CategoryController
-	AccountController     account.AccountController
+	AccountController     generic.GenericController[*model.Account]
 	TransactionController transaction.TransactionController
+	CategoryController    generic.GenericController[*model.Category]
 }
 
 func NewServer(deps ServerDependencies) *Server {

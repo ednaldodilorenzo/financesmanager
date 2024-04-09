@@ -3,21 +3,22 @@ package generic
 import (
 	"strings"
 
+	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
 )
 
-type GenericService[V interface{}] interface {
+type GenericService[V model.IUserDependent] interface {
 	FindAll() ([]V, error)
 	Create(*V) error
-	Update(int, map[string]interface{}) error
+	Update(id int, item *V) error
 	FindById(id int) (*V, error)
 }
 
-type GenericServiceStruct[V interface{}] struct {
+type GenericServiceStruct[V model.IUserDependent] struct {
 	repository GenericRepository[V]
 }
 
-func NewGenericService[V interface{}](repository GenericRepository[V]) GenericService[V] {
+func NewGenericService[V model.IUserDependent](repository GenericRepository[V]) GenericService[V] {
 	return &GenericServiceStruct[V]{
 		repository: repository,
 	}
@@ -45,15 +46,9 @@ func (c *GenericServiceStruct[V]) Create(item *V) error {
 	return c.repository.Create(item)
 }
 
-func (c *GenericServiceStruct[V]) Update(id int, data map[string]interface{}) error {
+func (c *GenericServiceStruct[V]) Update(id int, item *V) error {
 
-	currentItem, err := c.repository.FindById(id)
-
-	if err != nil {
-		return &util.ItemNotFoundError{Message: "Item not found!"}
-	}
-
-	if err := c.repository.Update(currentItem, data); err != nil {
+	if err := c.repository.Update(id, item); err != nil {
 		return err
 	}
 
