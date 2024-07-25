@@ -7,11 +7,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetRoutes(controller generic.GenericController[*model.Category]) (string, func(router fiber.Router)) {
+func GetRoutes(controller generic.GenericController[*model.Category], desializer *middleware.Deserializer) (string, func(router fiber.Router)) {
 	return "/categories", func(router fiber.Router) {
-		router.Get("/", middleware.DeserializeUser, controller.GetAll)
-		router.Get("/:id", middleware.DeserializeUser, controller.GetOne)
-		router.Post("/", middleware.DeserializeUser, controller.Post)
-		router.Patch("/:id", middleware.DeserializeUser, controller.Patch)
+		router.Get("/", desializer.DeserializeUser, controller.GetAll)
+		router.Get("/:id", desializer.DeserializeUser, controller.GetOne)
+		router.Post("/", desializer.DeserializeUser, controller.Post)
+		router.Patch("/:id", desializer.DeserializeUser, controller.Patch)
 	}
 }

@@ -10,12 +10,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func GetRoutes(controller TransactionController) (string, func(router fiber.Router)) {
+func GetRoutes(controller TransactionController, deserializer *middleware.Deserializer) (string, func(router fiber.Router)) {
 	return "/transactions", func(router fiber.Router) {
-		router.Get("/", middleware.DeserializeUser, controller.GetAllWithRelationships)
-		router.Get("/:id", middleware.DeserializeUser, controller.GetOne)
-		router.Post("/", middleware.DeserializeUser, controller.Post)
-		router.Patch("/:id", middleware.DeserializeUser, controller.Patch)
+		router.Get("/", deserializer.DeserializeUser, controller.GetAllWithRelationships)
+		router.Get("/:id", deserializer.DeserializeUser, controller.GetOne)
+		router.Post("/", deserializer.DeserializeUser, controller.Post)
+		router.Patch("/:id", deserializer.DeserializeUser, controller.Patch)
 	}
 }
 

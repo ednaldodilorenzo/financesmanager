@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/ednaldo-dilorenzo/iappointment/config"
+	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
@@ -14,6 +16,8 @@ import (
 func BuildContainer() *dig.Container {
 	container := dig.New()
 
+	container.Provide(config.NewDatabase)
+	container.Provide(middleware.NewDeserializer)
 	container.Provide(auth.NewAuthRepository)
 	container.Provide(auth.NewAuthService)
 	container.Provide(auth.NewAuthController)

@@ -43,7 +43,9 @@ func (c *GenericServiceStruct[V]) FindById(id int) (*V, error) {
 }
 
 func (c *GenericServiceStruct[V]) Create(item *V) error {
-	return c.repository.Create(item)
+	return c.repository.Transaction(func(repo GenericRepository[V]) error {
+		return repo.Create(item)
+	})
 }
 
 func (c *GenericServiceStruct[V]) Update(id int, item *V) error {

@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 
-	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -43,31 +42,30 @@ func (a *AuthServiceStruct) ExecuteAuthentication(username string, password stri
 }
 
 func (a *AuthServiceStruct) RegisterUser(user *model.User) error {
-	return config.TxWrapper(func() error {
-		currentUser, err := a.repository.FindUserByEmail(user.Email)
 
-		if err != nil {
-			return err
-		}
+	currentUser, err := a.repository.FindUserByEmail(user.Email)
 
-		if currentUser != nil {
-			return errors.New("duplicate key value violates unique")
-		}
+	if err != nil {
+		return err
+	}
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if currentUser != nil {
+		return errors.New("duplicate key value violates unique")
+	}
 
-		if err != nil {
-			return err
-		}
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 
-		user.Password = string(hashedPassword)
+	if err != nil {
+		return err
+	}
 
-		err = a.repository.Create(user)
+	user.Password = string(hashedPassword)
 
-		if err != nil {
-			return err
-		}
+	err = a.repository.Create(user)
 
-		return nil
-	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

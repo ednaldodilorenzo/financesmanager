@@ -12,11 +12,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GetRoutes(controller AuthController) (string, func(router fiber.Router)) {
+func GetRoutes(controller AuthController, deserializer *middleware.Deserializer) (string, func(router fiber.Router)) {
 	return "/auth", func(router fiber.Router) {
 		router.Post("/login", controller.SigninUser)
 		router.Post("/signup", controller.SignUpUser)
-		router.Get("/logout", middleware.DeserializeUser, controller.LogoutUser)
+		router.Get("/logout", deserializer.DeserializeUser, controller.LogoutUser)
 	}
 }
 

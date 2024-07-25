@@ -11,7 +11,17 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func DeserializeUser(c *fiber.Ctx) error {
+type Deserializer struct {
+	dbConfig *config.Database
+}
+
+func NewDeserializer(database *config.Database) *Deserializer {
+	return &Deserializer{
+		dbConfig: database,
+	}
+}
+
+func (d *Deserializer) DeserializeUser(c *fiber.Ctx) error {
 	var tokenString string
 	authorization := c.Get("Authorization")
 
@@ -44,7 +54,7 @@ func DeserializeUser(c *fiber.Ctx) error {
 	}
 
 	var user model.User
-	config.Database.First(&user, "id = ?", fmt.Sprint(claims["sub"]))
+	d.dbConfig.DB.First(&user, "id = ?", fmt.Sprint(claims["sub"]))
 
 	if strconv.FormatUint(user.ID, 10) != fmt.Sprint(claims["sub"]) {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"status": "fail", "message": "the user belonging to this token no logger exists"})

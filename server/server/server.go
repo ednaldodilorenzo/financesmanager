@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
+	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/account"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
@@ -22,6 +23,7 @@ import (
 
 type Server struct {
 	App *fiber.App
+	db  *config.Database
 }
 
 type ServerDependencies struct {
@@ -30,18 +32,25 @@ type ServerDependencies struct {
 	AccountController     generic.GenericController[*model.Account]
 	TransactionController transaction.TransactionController
 	CategoryController    generic.GenericController[*model.Category]
+	DB                    config.Database
 }
 
-func NewServer(deps ServerDependencies) *Server {
+func NewServer(authController auth.AuthController,
+	accountController generic.GenericController[*model.Account],
+	transactionController transaction.TransactionController,
+	categoryController generic.GenericController[*model.Category],
+	deserializer *middleware.Deserializer,
+	db *config.Database) *Server {
 	server := &Server{
 		App: InitFiberApplication(),
+		db:  db,
 	}
 
 	api := server.App.Group("/api")
-	api.Route(auth.GetRoutes(deps.AuthController))
-	api.Route(category.GetRoutes(deps.CategoryController))
-	api.Route(account.GetRoutes(deps.AccountController))
-	api.Route(transaction.GetRoutes(deps.TransactionController))
+	api.Route(auth.GetRoutes(authController, deserializer))
+	api.Route(category.GetRoutes(categoryController, deserializer))
+	api.Route(account.GetRoutes(accountController, deserializer))
+	api.Route(transaction.GetRoutes(transactionController, deserializer))
 	return server
 }
 
@@ -52,7 +61,8 @@ func (s *Server) Setup() {
 
 	api := s.App.Group("/api")
 	routes.SetRoutes(&api)
-	config.Connect()
+	settings := config.ReadSettings()
+	s.db.Connect(&settings.Database)
 }
 
 func (s *Server) BasicSetup(prefix string, f func(router fiber.Router)) {

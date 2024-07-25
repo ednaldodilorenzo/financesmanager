@@ -1,7 +1,6 @@
 package generic
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/ednaldo-dilorenzo/iappointment/model"
@@ -66,8 +65,6 @@ func (cc *GenericControllerStruct[V]) Post(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 	payload.SetUserID(loggedUser.ID)
-
-	fmt.Print(loggedUser)
 
 	if err := cc.Create(&payload); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": err.Error()})

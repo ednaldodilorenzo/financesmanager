@@ -15,16 +15,19 @@ type AuthRepository interface {
 }
 
 type AuthRepositoryStruct struct {
+	dbConfig *config.Database
 }
 
-func NewAuthRepository() AuthRepository {
-	return &AuthRepositoryStruct{}
+func NewAuthRepository(database *config.Database) AuthRepository {
+	return &AuthRepositoryStruct{
+		dbConfig: database,
+	}
 }
 
 func (a *AuthRepositoryStruct) FindUserByEmail(email string) (*model.User, error) {
 	var user model.User
 
-	if err := config.Database.First(&user, "email = ?", strings.ToLower(email)).Error; err != nil {
+	if err := a.dbConfig.DB.First(&user, "email = ?", strings.ToLower(email)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {
@@ -36,7 +39,7 @@ func (a *AuthRepositoryStruct) FindUserByEmail(email string) (*model.User, error
 }
 
 func (a *AuthRepositoryStruct) Create(user *model.User) error {
-	result := config.Database.Create(&user)
+	result := a.dbConfig.DB.Create(&user)
 
 	if result.Error != nil {
 		return result.Error
