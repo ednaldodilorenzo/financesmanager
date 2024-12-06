@@ -15,31 +15,25 @@ func GetRoutes(controller TransactionController, deserializer *middleware.Deseri
 		router.Get("/", deserializer.DeserializeUser, controller.GetAllWithRelationships)
 		router.Get("/:id", deserializer.DeserializeUser, controller.GetOne)
 		router.Post("/", deserializer.DeserializeUser, controller.Post)
+		router.Post("/upload", deserializer.DeserializeUser, controller.UploadBatchFile)
 		router.Patch("/:id", deserializer.DeserializeUser, controller.Patch)
 	}
 }
 
-type TransactionSchema struct {
-	IdCategory  uint64    `json:"categoryId" validate:"required"`
-	IdAccount   int       `json:"accountId" validate:"required"`
-	Description string    `json:"description" validate:"required"`
-	Value       float32   `json:"value" validate:"required"`
-	Date        time.Time `json:"date" validate:"required"`
-	IdInvoice   *string   `json:"invoiceId"`
-}
-
-type TransactionUpdateSchema struct {
-	IdCategory  *uint64    `json:"categoryId"`
-	IdAccount   *int       `json:"accountId"`
-	Description *string    `json:"description"`
-	Value       *float32   `json:"value"`
-	Date        *time.Time `json:"date"`
-	IdInvoice   *string    `json:"invoiceId"`
+type TransactionUploadSchema struct {
+	CategoryId      uint32    `json:"categoryId" validate:"required"`
+	AccountId       uint32    `json:"accountId" validate:"required"`
+	Description     string    `json:"description" validate:"required"`
+	Value           int32     `json:"value" validate:"required"`
+	PaymentDate     time.Time `json:"paymentDate" validate:"required"`
+	TransactionDate time.Time `json:"transactionDate" validate:"required"`
+	Duplicated      bool      `json:"duplicated" validate:"required"`
 }
 
 type TransactionController interface {
 	generic.GenericController[*model.Transaction]
 	GetAllWithRelationships(c *fiber.Ctx) error
+	UploadBatchFile(c *fiber.Ctx) error
 }
 
 type TransactionControllerStruct struct {
@@ -81,4 +75,26 @@ func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) err
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(items), "items": items})
+}
+
+func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
+	// Get the uploaded file
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Failed to get the file")
+	}
+
+	// Open the file
+	fileReader, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to open the file")
+	}
+	defer fileReader.Close()
+
+	transactions, err := cc.TransactionService.PrepareFileImport(fileReader)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to open the file")
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(transactions), "items": transactions})
 }

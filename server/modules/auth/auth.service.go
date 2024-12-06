@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"golang.org/x/crypto/bcrypt"
@@ -33,6 +34,9 @@ func (a *AuthServiceStruct) ExecuteAuthentication(username string, password stri
 	if user == nil {
 		return nil, errors.New("invalid username or password")
 	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	fmt.Print(string(hashedPassword))
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return nil, errors.New("password does not match")

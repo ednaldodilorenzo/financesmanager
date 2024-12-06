@@ -6,7 +6,9 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/account"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/ednaldo-dilorenzo/iappointment/server"
@@ -28,9 +30,13 @@ func BuildContainer() *dig.Container {
 	container.Provide(generic.NewGenericService[*model.Account])
 	container.Provide(generic.NewGenericController[*model.Account])
 	container.Provide(generic.NewGenericRepository[*model.Transaction])
+	container.Provide(transaction.NewTransactionRepository)
 	container.Provide(generic.NewGenericService[*model.Transaction])
 	container.Provide(generic.NewGenericController[*model.Transaction])
-	container.Provide(transaction.NewTransactionRepository)
+	container.Provide(account.NewAccountRepository)
+	container.Provide(account.NewAccountService)
+	container.Provide(category.NewAccountRepository)
+	container.Provide(category.NewAccountService)
 	container.Provide(transaction.NewTransactionService)
 	container.Provide(transaction.NewTransactionController)
 	container.Provide(server.NewServer)

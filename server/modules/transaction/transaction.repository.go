@@ -1,40 +1,45 @@
 package transaction
 
 import (
+	"errors"
+	"time"
+
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
+	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"gorm.io/gorm"
 )
 
 type TransactionRepository interface {
 	generic.GenericRepository[*model.Transaction]
 	FindAllWithRelationships(*int, *int) ([]model.Transaction, error)
+	FindOneByValueAndPaymentDate(value float32, paymentDate time.Time) (*model.Transaction, error)
 }
 
 type TransactionRespositoryStruct struct {
 	generic.GenericRepository[*model.Transaction]
-	db *gorm.DB
+	dbConfig *config.Database
 }
 
 func NewTransactionRepository(repository generic.GenericRepository[*model.Transaction], database *config.Database) TransactionRepository {
 	return &TransactionRespositoryStruct{
 		repository,
-		database.DB,
+		database,
 	}
 }
 
 func (tr *TransactionRespositoryStruct) FindAllWithRelationships(month *int, year *int) ([]model.Transaction, error) {
 	var items []model.Transaction
 
-	query := tr.db.Model(&items).Preload("Account").Preload("Category")
+	query := tr.dbConfig.DB.Model(&items).Preload("Account").Preload("Category")
 
 	if month != nil && year != nil {
-		query = query.Where("MONTH(date) = ? AND YEAR(date) = ?", *month, *year)
+		query = query.Where("EXTRACT(MONTH FROM payment_date) = ? AND EXTRACT(YEAR FROM payment_date) = ?", *month, *year)
 	} else if month != nil {
-		query = query.Where("MONTH(date) = ?", *month)
+		query = query.Where("EXTRACT(MONTH FROM payment_date) = ?", *month)
 	} else if year != nil {
-		query = query.Where("YEAR(date) = ?", *year)
+		query = query.Where("EXTRACT(YEAR FROM payment_date) = ?", *year)
 	}
 
 	if err := query.Find(&items).Error; err != nil {
@@ -42,4 +47,21 @@ func (tr *TransactionRespositoryStruct) FindAllWithRelationships(month *int, yea
 	}
 
 	return items, nil
+}
+
+func (tr *TransactionRespositoryStruct) FindOneByValueAndPaymentDate(value float32, paymentDate time.Time) (*model.Transaction, error) {
+	var result model.Transaction
+
+	err := tr.dbConfig.DB.First(&result, "value = ? AND payment_date = ?", value, paymentDate).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Handle the case where no record is found
+			return nil, nil
+		}
+		// Handle other errors (e.g., database connection issues)
+		return nil, util.NewRuntimeError("Error in database operation", err)
+	}
+
+	return &result, nil
+
 }

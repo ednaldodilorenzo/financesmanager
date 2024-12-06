@@ -1,5 +1,7 @@
 package config
 
+import "os"
+
 type DBSettings struct {
 	Username string `yaml:"user"`
 	Password string `yaml:"pass"`
@@ -15,11 +17,11 @@ type Settings struct {
 func ReadSettings() *Settings {
 	result := &Settings{
 		Database: DBSettings{
-			Username: "root",
-			Password: "secret",
-			Host:     "localhost",
-			Port:     "3306",
-			DBName:   "finances",
+			Username: os.Getenv("DB_USERNAME"),
+			Password: os.Getenv("DB_PASSWORD"),
+			Host:     os.Getenv("DB_HOST"),
+			Port:     os.Getenv("DB_PORT"),
+			DBName:   os.Getenv("DB_NAME"),
 		},
 	}
 

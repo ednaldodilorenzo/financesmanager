@@ -9,6 +9,7 @@ type Category struct {
 type RelatedCategory struct {
 	ID   uint64
 	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 func (Category) TableName() string {

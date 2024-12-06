@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -20,9 +20,9 @@ func NewDatabase() *Database {
 func (d *Database) Connect(settings *DBSettings) error {
 	var err error
 
-	dbUri := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", settings.Username, settings.Password, settings.Host, settings.Port, settings.DBName)
+	dbUri := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", settings.Host, settings.Username, settings.Password, settings.DBName, settings.Port)
 
-	d.DB, err = gorm.Open(mysql.Open(dbUri), &gorm.Config{
+	d.DB, err = gorm.Open(postgres.Open(dbUri), &gorm.Config{
 		SkipDefaultTransaction: true,
 		PrepareStmt:            true,
 		Logger:                 logger.Default.LogMode(logger.Info),
