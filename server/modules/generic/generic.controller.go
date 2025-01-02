@@ -12,7 +12,9 @@ type GenericController[V model.IUserDependent] interface {
 	GetAll(c *fiber.Ctx) error
 	GetOne(c *fiber.Ctx) error
 	Post(c *fiber.Ctx) error
+	PostAll(c *fiber.Ctx) error
 	Patch(c *fiber.Ctx) error
+	Delete(c *fiber.Ctx) error
 }
 
 type GenericControllerStruct[V model.IUserDependent] struct {
@@ -52,6 +54,23 @@ func (cc *GenericControllerStruct[V]) GetOne(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "item": item})
 }
 
+func (cc *GenericControllerStruct[V]) Delete(c *fiber.Ctx) error {
+
+	itemId, err := strconv.Atoi(c.Params("id"))
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
+	}
+
+	err = cc.DeleteRecord(itemId)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
+}
+
 func (cc *GenericControllerStruct[V]) Post(c *fiber.Ctx) error {
 	var payload V
 
@@ -67,6 +86,29 @@ func (cc *GenericControllerStruct[V]) Post(c *fiber.Ctx) error {
 	payload.SetUserID(loggedUser.ID)
 
 	if err := cc.Create(&payload); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
+}
+
+func (cc *GenericControllerStruct[V]) PostAll(c *fiber.Ctx) error {
+	var payload []V
+
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+	}
+
+	loggedUser := c.Locals("user").(model.User)
+	for _, value := range payload {
+		if errors := util.ValidateStruct(value); errors != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(errors)
+		} else {
+			value.SetUserID(loggedUser.ID)
+		}
+	}
+
+	if err := cc.CreateAll(payload); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": err.Error()})
 	}
 

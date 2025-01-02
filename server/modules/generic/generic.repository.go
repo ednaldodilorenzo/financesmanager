@@ -9,8 +9,10 @@ import (
 type GenericRepository[V model.IUserDependent] interface {
 	FindAll() ([]V, error)
 	Create(*V) error
+	CreateAll([]V) error
 	Update(id int, item *V) error
 	FindById(id int) (*V, error)
+	Delete(id int) error
 	Transaction(fn func(repo GenericRepository[V]) error) error //https://gist.github.com/IamNator/f1e9e6b1ae4d9e3eb66c73998f545f6c
 }
 
@@ -34,6 +36,16 @@ func (g *GenericRepositoryStruct[V]) FindById(id int) (*V, error) {
 	return &item, nil
 }
 
+func (g *GenericRepositoryStruct[V]) Delete(id int) error {
+	var item V
+
+	if err := g.dbConfig.DB.Delete(&item, id).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (g *GenericRepositoryStruct[V]) FindAll() ([]V, error) {
 	var items []V
 
@@ -46,6 +58,14 @@ func (g *GenericRepositoryStruct[V]) FindAll() ([]V, error) {
 
 func (g *GenericRepositoryStruct[V]) Create(item *V) error {
 	if err := g.dbConfig.DB.Create(item).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *GenericRepositoryStruct[V]) CreateAll(items []V) error {
+	if err := g.dbConfig.DB.Create(&items).Error; err != nil {
 		return err
 	}
 

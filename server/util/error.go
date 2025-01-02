@@ -32,6 +32,10 @@ func NewRuntimeError(msg string, err error) *RuntimeError {
 	}
 }
 
+const (
+	BE_INPUT_VALIDATION_ERROR int = iota
+)
+
 type BusinessError struct {
 	Message string
 	Err     error

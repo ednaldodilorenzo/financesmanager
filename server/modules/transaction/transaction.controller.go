@@ -15,19 +15,22 @@ func GetRoutes(controller TransactionController, deserializer *middleware.Deseri
 		router.Get("/", deserializer.DeserializeUser, controller.GetAllWithRelationships)
 		router.Get("/:id", deserializer.DeserializeUser, controller.GetOne)
 		router.Post("/", deserializer.DeserializeUser, controller.Post)
+		router.Post("/list", deserializer.DeserializeUser, controller.PostAll)
 		router.Post("/upload", deserializer.DeserializeUser, controller.UploadBatchFile)
 		router.Patch("/:id", deserializer.DeserializeUser, controller.Patch)
+		router.Delete("/:id", deserializer.DeserializeUser, controller.Delete)
 	}
 }
 
 type TransactionUploadSchema struct {
-	CategoryId      uint32    `json:"categoryId" validate:"required"`
+	CategoryId      *uint32   `json:"categoryId"`
 	AccountId       uint32    `json:"accountId" validate:"required"`
 	Description     string    `json:"description" validate:"required"`
 	Value           int32     `json:"value" validate:"required"`
 	PaymentDate     time.Time `json:"paymentDate" validate:"required"`
 	TransactionDate time.Time `json:"transactionDate" validate:"required"`
 	Duplicated      bool      `json:"duplicated" validate:"required"`
+	Detail          *string   `json:"detail"`
 }
 
 type TransactionController interface {
@@ -91,7 +94,27 @@ func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
 	}
 	defer fileReader.Close()
 
-	transactions, err := cc.TransactionService.PrepareFileImport(fileReader)
+	accountIDStr := c.FormValue("accountId")
+	var accountId int
+	if accountIDStr != "" {
+		accountId, err = strconv.Atoi(accountIDStr)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to get account id!")
+		}
+	}
+
+	var date time.Time
+	dateStr := c.FormValue("paymentDate")
+	if dateStr != "" {
+		date, err = time.Parse("2006-01-02", dateStr)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Failed to get account id!")
+		}
+	}
+
+	fileType := c.FormValue("fileType")
+
+	transactions, err := cc.TransactionService.PrepareFileImport(fileReader, uint32(accountId), &date, fileType)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to open the file")
 	}

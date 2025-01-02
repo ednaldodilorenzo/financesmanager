@@ -14,7 +14,7 @@ import (
 type TransactionRepository interface {
 	generic.GenericRepository[*model.Transaction]
 	FindAllWithRelationships(*int, *int) ([]model.Transaction, error)
-	FindOneByValueAndPaymentDate(value float32, paymentDate time.Time) (*model.Transaction, error)
+	FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time) (*model.Transaction, error)
 }
 
 type TransactionRespositoryStruct struct {
@@ -35,11 +35,11 @@ func (tr *TransactionRespositoryStruct) FindAllWithRelationships(month *int, yea
 	query := tr.dbConfig.DB.Model(&items).Preload("Account").Preload("Category")
 
 	if month != nil && year != nil {
-		query = query.Where("EXTRACT(MONTH FROM payment_date) = ? AND EXTRACT(YEAR FROM payment_date) = ?", *month, *year)
+		query = query.Where("EXTRACT(MONTH FROM payment_date) = ? AND EXTRACT(YEAR FROM payment_date) = ? ORDER BY payment_date DESC", *month, *year)
 	} else if month != nil {
-		query = query.Where("EXTRACT(MONTH FROM payment_date) = ?", *month)
+		query = query.Where("EXTRACT(MONTH FROM payment_date) = ? ORDER BY payment_date DESC", *month)
 	} else if year != nil {
-		query = query.Where("EXTRACT(YEAR FROM payment_date) = ?", *year)
+		query = query.Where("EXTRACT(YEAR FROM payment_date) = ? ORDER BY payment_date DESC", *year)
 	}
 
 	if err := query.Find(&items).Error; err != nil {
@@ -49,10 +49,10 @@ func (tr *TransactionRespositoryStruct) FindAllWithRelationships(month *int, yea
 	return items, nil
 }
 
-func (tr *TransactionRespositoryStruct) FindOneByValueAndPaymentDate(value float32, paymentDate time.Time) (*model.Transaction, error) {
+func (tr *TransactionRespositoryStruct) FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time) (*model.Transaction, error) {
 	var result model.Transaction
 
-	err := tr.dbConfig.DB.First(&result, "value = ? AND payment_date = ?", value, paymentDate).Error
+	err := tr.dbConfig.DB.First(&result, "value = ? AND payment_date = ? AND transaction_date = ?", value, paymentDate, transactionDate).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle the case where no record is found

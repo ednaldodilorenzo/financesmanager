@@ -1,10 +1,8 @@
 package transaction
 
 import (
-	"encoding/csv"
 	"errors"
 	"io"
-	"strconv"
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/model"
@@ -17,7 +15,7 @@ import (
 type TransactionService interface {
 	generic.GenericService[*model.Transaction]
 	FindAllRelated(*int, *int) ([]model.Transaction, error)
-	PrepareFileImport(fileReader io.Reader) ([]TransactionUploadSchema, error)
+	PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string) ([]TransactionUploadSchema, error)
 }
 
 type TransactionServiceStruct struct {
@@ -25,14 +23,18 @@ type TransactionServiceStruct struct {
 	repository      TransactionRepository
 	accountService  account.AccountService
 	categoryService category.CategoryService
+	parserFactory   *util.ParserFactory
 }
 
 func NewTransactionService(service generic.GenericService[*model.Transaction], repository TransactionRepository, accountService account.AccountService, categoryService category.CategoryService) TransactionService {
+	parserFactory := util.NewParserFactory()
+
 	return &TransactionServiceStruct{
 		service,
 		repository,
 		accountService,
 		categoryService,
+		parserFactory,
 	}
 }
 
@@ -40,85 +42,89 @@ func (ts *TransactionServiceStruct) FindAllRelated(month *int, year *int) ([]mod
 	return ts.repository.FindAllWithRelationships(month, year)
 }
 
-func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader) ([]TransactionUploadSchema, error) {
-	// Parse the CSV file
-	csvReader := csv.NewReader(fileReader)
-	csvReader.Comma = '\t'
-	records, err := csvReader.ReadAll()
+func (ts *TransactionServiceStruct) isDuplicated(value int32, paymentDate time.Time, transactionDate time.Time) (bool, error) {
+	transaction, err := ts.repository.FindOneByValuePaymentDateAndTransactionDate(value, paymentDate, transactionDate)
+	if err != nil {
+		var runtimeError *util.RuntimeError
+		if errors.As(err, &runtimeError) {
+			return false, runtimeError
+		}
+	}
+
+	duplicated := false
+	if transaction != nil {
+		duplicated = true
+	}
+
+	return duplicated, nil
+}
+
+func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string) ([]TransactionUploadSchema, error) {
+	var constFileType util.FileImportType
+	switch fileType {
+	case "BBCA":
+		constFileType = util.BBCA
+	case "C6CC":
+		constFileType = util.C6CC
+	default:
+		constFileType = util.CUAL
+	}
+
+	// Retrieve the parser from the factory
+	parser, err := ts.parserFactory.GetParser(constFileType)
+	if err != nil {
+		return nil, err
+	}
+	parsedData, err := parser(fileReader, date)
+
 	if err != nil {
 		return nil, err
 	}
 
-	var transactions []TransactionUploadSchema
-	// Iterate through the records and save them to the database
-	for _, record := range records {
-
-		value, err := strconv.ParseFloat(record[2], 32)
+	var transactionData []TransactionUploadSchema
+	for _, record := range parsedData {
+		duplicated, err := ts.isDuplicated(record.Value, record.PaymentDate, record.TransactionDate)
 		if err != nil {
 			return nil, err
 		}
 
-		paymentDate, err := time.Parse("02/01/2006", record[0]) // Adjust format as needed
-		if err != nil {
-			return nil, err
-		}
-
-		transactionDate, err := time.Parse("02/01/2006", record[5]) // Adjust format as needed
-		if err != nil {
-			return nil, err
-		}
-
-		transaction, err := ts.repository.FindOneByValueAndPaymentDate(float32(value*100), paymentDate)
-		if err != nil {
-			var runtimeError *util.RuntimeError
-			if errors.As(err, &runtimeError) {
-				return nil, runtimeError
+		var accountID uint32
+		if record.AccountName != nil {
+			account, err := ts.accountService.FindByName(*record.AccountName)
+			if err != nil {
+				return nil, err
 			}
-		}
 
-		duplicated := false
-		if transaction != nil {
-			duplicated = true
-		}
-
-		account, err := ts.accountService.FindByName(record[4])
-		if err != nil {
-			var runtimeError *util.RuntimeError
-			if errors.As(err, &runtimeError) {
-				return nil, runtimeError
-			}
-		}
-
-		category, err := ts.categoryService.FindByName(record[3])
-		if err != nil {
-			var runtimeError *util.RuntimeError
-			if errors.As(err, &runtimeError) {
-				return nil, runtimeError
-			}
-		}
-
-		var categoryId uint32
-
-		if category == nil {
-			categoryId = 0
+			accountID = account.ID
 		} else {
-			categoryId = category.ID
+			accountID = accountId
 		}
 
-		// Create a new Record instance
-		dbRecord := TransactionUploadSchema{
-			Description:     record[1],
-			AccountId:       account.ID,
-			CategoryId:      categoryId,
-			Value:           int32(value * 100),
-			PaymentDate:     paymentDate,
-			TransactionDate: transactionDate,
+		var categoryID uint32
+		if record.CategoryName != nil {
+			category, err := ts.categoryService.FindByName(*record.CategoryName)
+			if err != nil {
+				return nil, err
+			}
+			if category != nil {
+				categoryID = category.ID
+			}
+
+		} else {
+			categoryID = 0
+		}
+
+		newRecord := TransactionUploadSchema{
+			CategoryId:      &categoryID,
+			AccountId:       accountID,
+			Description:     record.Description,
+			Value:           record.Value,
+			PaymentDate:     record.PaymentDate,
+			TransactionDate: record.TransactionDate,
 			Duplicated:      duplicated,
 		}
 
-		transactions = append(transactions, dbRecord)
-
+		transactionData = append(transactionData, newRecord)
 	}
-
-	return transactions, nil
+	return transactionData, nil
 }

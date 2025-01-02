@@ -1,0 +1,58 @@
+version: '3.3'
+
+services:
+  api:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: finance-app
+    environment:
+      - DB_USERNAME=master
+      - DB_PASSWORD=secret
+      - DB_HOST= db
+      - DB_PORT=5432
+      - DB_NAME=finance
+      - WAIT_HOSTS=db:5432
+    depends_on:
+      - db
+      - migrate
+    expose:
+      - 5000
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: finance-client
+    ports:
+      - "443:443"
+    volumes:
+      - ./client:/app
+    depends_on:
+      - api
+
+  
+  migrate:
+    image: migrate/migrate:latest
+    container_name: migrate
+    depends_on:
+      - db
+    volumes:
+      - ./database/migrations:/migrations
+      - ./database/wait-for-it.sh:/wait-for-it.sh
+    entrypoint: ["sh", "/wait-for-it.sh", "db", "--", "migrate", "-path", "/migrations", "-database", "postgres://master:secret@db:5432/finance?sslmode=disable", "up"]
+
+  db:
+    image: postgres:16.3-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_PASSWORD: secret
+      POSTGRES_USER: master
+      POSTGRES_DB: finance      
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

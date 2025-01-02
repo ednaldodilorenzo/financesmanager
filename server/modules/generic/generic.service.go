@@ -10,8 +10,10 @@ import (
 type GenericService[V model.IUserDependent] interface {
 	FindAll() ([]V, error)
 	Create(*V) error
+	CreateAll([]V) error
 	Update(id int, item *V) error
 	FindById(id int) (*V, error)
+	DeleteRecord(id int) error
 }
 
 type GenericServiceStruct[V model.IUserDependent] struct {
@@ -26,6 +28,14 @@ func NewGenericService[V model.IUserDependent](repository GenericRepository[V]) 
 
 func (c *GenericServiceStruct[V]) FindAll() ([]V, error) {
 	return c.repository.FindAll()
+}
+
+func (c *GenericServiceStruct[V]) CreateAll(items []V) error {
+	return c.repository.CreateAll(items)
+}
+
+func (c *GenericServiceStruct[V]) DeleteRecord(id int) error {
+	return c.repository.Delete(id)
 }
 
 func (c *GenericServiceStruct[V]) FindById(id int) (*V, error) {
