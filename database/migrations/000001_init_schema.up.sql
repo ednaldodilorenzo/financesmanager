@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS public.category
     id bigserial NOT NULL,
     name character varying COLLATE pg_catalog."default" NOT NULL,
     type character(1) COLLATE pg_catalog."default" NOT NULL,
-    user_id bigint,
+    id_user bigint,
     CONSTRAINT category_pk PRIMARY KEY (id),
-    CONSTRAINT category_user_fk FOREIGN KEY (user_id)
+    CONSTRAINT category_user_fk FOREIGN KEY (id_user)
         REFERENCES public."user" (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
@@ -52,9 +52,9 @@ CREATE TABLE IF NOT EXISTS public.account
     name character varying COLLATE pg_catalog."default" NOT NULL,
     type character(1) COLLATE pg_catalog."default" NOT NULL,
     due_day integer,
-    user_id bigint NOT NULL,
+    id_user bigint NOT NULL,
     CONSTRAINT account_pk PRIMARY KEY (id),
-    CONSTRAINT account_user_fk FOREIGN KEY (user_id)
+    CONSTRAINT account_user_fk FOREIGN KEY (id_user)
         REFERENCES public."user" (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
