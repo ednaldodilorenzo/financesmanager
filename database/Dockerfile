@@ -1,23 +1,15 @@
-FROM debian:bullseye-slim
+# Use the migrate/migrate:latest image as the base
+FROM migrate/migrate:latest
 
-# Install necessary tools
-RUN apt-get update 
-   
-RUN apt-get install -y \
-    postgresql-client \
-    wget
-    
-RUN rm -rf /var/lib/apt/lists/*
+# Copy the wait-for-it.sh script into the container
+COPY ./wait-for-it.sh /wait-for-it.sh
 
-# Install migrate CLI
-RUN wget -qO- https://github.com/golang-migrate/migrate/releases/download/v4.18.1/migrate.linux-amd64.tar.gz | tar -xz -C /usr/local/bin \
-    && chmod +x /usr/local/bin/migrate
+# Make the wait-for-it.sh script executable
+RUN chmod +x /wait-for-it.sh
 
-# Set the working directory
-WORKDIR /migrations
+# Copy the migrations directory into the container
+COPY ./migrations /migrations
 
-COPY ./migrations .
-
-# Default command
-CMD ["sh", "-c", "until pg_isready -h db -p 5432; do echo waiting for db; sleep 2; done; migrate -path /migrations -database $DATABASE_URL up"]
+# Set the entrypoint to use wait-for-it.sh by default
+ENTRYPOINT ["sh", "/wait-for-it.sh"]
 

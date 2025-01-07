@@ -33,13 +33,11 @@ services:
 
   
   migrate:
-    image: migrate/migrate:latest
+    build:
+      context: ./database
     container_name: migrate
     depends_on:
       - db
-    volumes:
-      - ./database/migrations:/migrations
-      - ./database/wait-for-it.sh:/wait-for-it.sh
     entrypoint: ["sh", "/wait-for-it.sh", "db", "--", "migrate", "-path", "/migrations", "-database", "postgres://master:secret@db:5432/finance?sslmode=disable", "up"]
 
   db:
