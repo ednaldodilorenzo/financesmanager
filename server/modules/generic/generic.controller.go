@@ -28,13 +28,35 @@ func NewGenericController[V model.IUserDependent](service GenericService[V]) Gen
 }
 
 func (cc *GenericControllerStruct[V]) GetAll(c *fiber.Ctx) error {
-	items, err := cc.FindAll()
+	paginate := c.QueryBool("paginate", true)
+	pageSize := c.QueryInt("pageSize", 10)
 
-	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+	pageNumber := c.QueryInt("page", 1)
+	filter := c.Query("filter")
+
+	var result interface{}
+	var err interface{}
+
+	if paginate {
+		result, err = cc.FindAllPaginatedAndFiltered(int(pageSize), int(pageNumber), filter)
+
+		if err != nil {
+			return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+		}
+
+		response := result.(*PaginatedResponse[V])
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "items": response.Items, "total": response.Total, "page": response.Page})
+	} else {
+		result, err = cc.FindAll()
+
+		if err != nil {
+			return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "items": result})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(items), "items": items})
 }
 
 func (cc *GenericControllerStruct[V]) GetOne(c *fiber.Ctx) error {

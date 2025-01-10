@@ -9,6 +9,7 @@ import (
 
 type GenericService[V model.IUserDependent] interface {
 	FindAll() ([]V, error)
+	FindAllPaginatedAndFiltered(limit, offset int, filter string) (*PaginatedResponse[V], error)
 	Create(*V) error
 	CreateAll([]V) error
 	Update(id int, item *V) error
@@ -28,6 +29,10 @@ func NewGenericService[V model.IUserDependent](repository GenericRepository[V]) 
 
 func (c *GenericServiceStruct[V]) FindAll() ([]V, error) {
 	return c.repository.FindAll()
+}
+
+func (c *GenericServiceStruct[V]) FindAllPaginatedAndFiltered(limit, offset int, filter string) (*PaginatedResponse[V], error) {
+	return c.repository.FindAllPaginatedAndFiltered(limit, offset, filter)
 }
 
 func (c *GenericServiceStruct[V]) CreateAll(items []V) error {

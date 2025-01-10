@@ -1,13 +1,22 @@
 package generic
 
 import (
+	"strings"
+
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"gorm.io/gorm"
 )
 
+type PaginatedResponse[V model.IUserDependent] struct {
+	Page  int
+	Total int
+	Items []V
+}
+
 type GenericRepository[V model.IUserDependent] interface {
 	FindAll() ([]V, error)
+	FindAllPaginatedAndFiltered(limit, offset int, filter string) (*PaginatedResponse[V], error)
 	Create(*V) error
 	CreateAll([]V) error
 	Update(id int, item *V) error
@@ -54,6 +63,35 @@ func (g *GenericRepositoryStruct[V]) FindAll() ([]V, error) {
 	}
 
 	return items, nil
+}
+
+func (g *GenericRepositoryStruct[V]) FindAllPaginatedAndFiltered(limit, offset int, filter string) (*PaginatedResponse[V], error) {
+	var totalCount int64
+	var items []V
+
+	zeroValue := new(V)
+
+	query := g.dbConfig.DB.Model(zeroValue)
+
+	// Apply filter if it's not empty
+	if filter != "" {
+		query = query.Where("LOWER(filter) LIKE ?", "%"+strings.ToLower(filter)+"%") // Replace "name" with the actual column you want to filter by
+	}
+
+	if err := query.Count(&totalCount).Error; err != nil {
+		return nil, err
+	}
+
+	// Apply pagination and fetch results
+	if err := query.Limit(limit).Offset(offset - 1).Find(&items).Error; err != nil {
+		return nil, err
+	}
+
+	return &PaginatedResponse[V]{
+		Page:  offset,
+		Total: int(totalCount),
+		Items: items,
+	}, nil
 }
 
 func (g *GenericRepositoryStruct[V]) Create(item *V) error {
