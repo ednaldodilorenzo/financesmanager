@@ -15,6 +15,7 @@ import (
 type TransactionService interface {
 	generic.GenericService[*model.Transaction]
 	FindAllRelated(*int, *int) ([]model.Transaction, error)
+	FindById(id int) (**model.Transaction, error)
 	PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string) ([]TransactionUploadSchema, error)
 }
 
@@ -40,6 +41,10 @@ func NewTransactionService(service generic.GenericService[*model.Transaction], r
 
 func (ts *TransactionServiceStruct) FindAllRelated(month *int, year *int) ([]model.Transaction, error) {
 	return ts.repository.FindAllWithRelationships(month, year)
+}
+
+func (ts *TransactionServiceStruct) FindById(id int) (**model.Transaction, error) {
+	return ts.repository.FindById(id)
 }
 
 func (ts *TransactionServiceStruct) isDuplicated(value int32, paymentDate time.Time, transactionDate time.Time) (bool, error) {

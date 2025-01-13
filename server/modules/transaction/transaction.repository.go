@@ -13,6 +13,7 @@ import (
 
 type TransactionRepository interface {
 	generic.GenericRepository[*model.Transaction]
+	FindById(id int) (**model.Transaction, error)
 	FindAllWithRelationships(*int, *int) ([]model.Transaction, error)
 	FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time) (*model.Transaction, error)
 }
@@ -24,9 +25,29 @@ type TransactionRespositoryStruct struct {
 
 func NewTransactionRepository(repository generic.GenericRepository[*model.Transaction], database *config.Database) TransactionRepository {
 	return &TransactionRespositoryStruct{
-		repository,
-		database,
+		GenericRepository: repository,
+		dbConfig:          database,
 	}
+}
+
+func (g *TransactionRespositoryStruct) FindById(id int) (**model.Transaction, error) {
+	var item *model.Transaction
+
+	// Use Joins to enforce INNER JOIN
+	err := g.dbConfig.DB.Model(&item).
+		Joins("INNER JOIN category ON transaction.id_category = category.id AND transaction.id_user = category.id_user").
+		Joins("INNER JOIN account ON transaction.id_account = account.id AND transaction.id_user = account.id_user").
+		Joins("LEFT JOIN transaction_tag ON transaction.id = transaction_tag.transaction_id AND transaction.id_user = transaction_tag.user_id").
+		Preload("Tags"). // Still preload tags to attach them to the struct
+		Preload("Category").
+		Preload("Account").
+		First(&item, "transaction.id = ?", id).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
 }
 
 func (tr *TransactionRespositoryStruct) FindAllWithRelationships(month *int, year *int) ([]model.Transaction, error) {

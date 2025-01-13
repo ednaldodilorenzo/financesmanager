@@ -51,6 +51,22 @@ func NewTransactionController(service TransactionService, controller generic.Gen
 	}
 }
 
+func (cc *TransactionControllerStruct) GetOne(c *fiber.Ctx) error {
+	itemId, err := strconv.Atoi(c.Params("id"))
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
+	}
+
+	item, err := cc.FindById(itemId)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "item": item})
+}
+
 func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) error {
 
 	var monthParam, yearParam *int = nil, nil
