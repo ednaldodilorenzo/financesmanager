@@ -13,7 +13,6 @@ import (
 
 type TransactionRepository interface {
 	generic.GenericRepository[*model.Transaction]
-	FindById(id int) (**model.Transaction, error)
 	FindAllWithRelationships(*int, *int) ([]model.Transaction, error)
 	FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time) (*model.Transaction, error)
 }
@@ -35,9 +34,9 @@ func (g *TransactionRespositoryStruct) FindById(id int) (**model.Transaction, er
 
 	// Use Joins to enforce INNER JOIN
 	err := g.dbConfig.DB.Model(&item).
-		Joins("INNER JOIN category ON transaction.id_category = category.id AND transaction.id_user = category.id_user").
-		Joins("INNER JOIN account ON transaction.id_account = account.id AND transaction.id_user = account.id_user").
-		Joins("LEFT JOIN transaction_tag ON transaction.id = transaction_tag.transaction_id AND transaction.id_user = transaction_tag.user_id").
+		Joins("INNER JOIN category ON transaction.category_id = category.id AND transaction.user_id = category.user_id").
+		Joins("INNER JOIN account ON transaction.account_id = account.id AND transaction.user_id = account.user_id").
+		Joins("LEFT JOIN transaction_tag ON transaction.id = transaction_tag.transaction_id AND transaction.user_id = transaction_tag.user_id").
 		Preload("Tags"). // Still preload tags to attach them to the struct
 		Preload("Category").
 		Preload("Account").

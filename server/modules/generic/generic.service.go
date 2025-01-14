@@ -23,7 +23,7 @@ type GenericServiceStruct[V model.IUserDependent] struct {
 
 func NewGenericService[V model.IUserDependent](repository GenericRepository[V]) GenericService[V] {
 	return &GenericServiceStruct[V]{
-		repository: repository,
+		repository,
 	}
 }
 

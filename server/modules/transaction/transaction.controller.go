@@ -41,7 +41,7 @@ type TransactionController interface {
 
 type TransactionControllerStruct struct {
 	generic.GenericController[*model.Transaction]
-	TransactionService
+	service TransactionService
 }
 
 func NewTransactionController(service TransactionService, controller generic.GenericController[*model.Transaction]) TransactionController {
@@ -58,7 +58,7 @@ func (cc *TransactionControllerStruct) GetOne(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
 	}
 
-	item, err := cc.FindById(itemId)
+	item, err := cc.service.FindById(itemId)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -87,7 +87,7 @@ func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) err
 		}
 	}
 
-	items, err := cc.FindAllRelated(monthParam, yearParam)
+	items, err := cc.service.FindAllRelated(monthParam, yearParam)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -130,7 +130,7 @@ func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
 
 	fileType := c.FormValue("fileType")
 
-	transactions, err := cc.TransactionService.PrepareFileImport(fileReader, uint32(accountId), &date, fileType)
+	transactions, err := cc.service.PrepareFileImport(fileReader, uint32(accountId), &date, fileType)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to open the file")
 	}

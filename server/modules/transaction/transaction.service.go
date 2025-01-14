@@ -15,7 +15,6 @@ import (
 type TransactionService interface {
 	generic.GenericService[*model.Transaction]
 	FindAllRelated(*int, *int) ([]model.Transaction, error)
-	FindById(id int) (**model.Transaction, error)
 	PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string) ([]TransactionUploadSchema, error)
 }
 
@@ -100,7 +99,7 @@ func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader, acco
 				return nil, err
 			}
 
-			accountID = account.ID
+			accountID = account.Id
 		} else {
 			accountID = accountId
 		}
@@ -112,7 +111,7 @@ func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader, acco
 				return nil, err
 			}
 			if category != nil {
-				categoryID = category.ID
+				categoryID = category.Id
 			}
 
 		} else {

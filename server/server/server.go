@@ -16,6 +16,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/routes"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/tag"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/dig"
@@ -32,6 +33,7 @@ type ServerDependencies struct {
 	AccountController     generic.GenericController[*model.Account]
 	TransactionController transaction.TransactionController
 	CategoryController    generic.GenericController[*model.Category]
+	TagController         tag.TagController
 	DB                    config.Database
 }
 
@@ -39,6 +41,7 @@ func NewServer(authController auth.AuthController,
 	accountController generic.GenericController[*model.Account],
 	transactionController transaction.TransactionController,
 	categoryController generic.GenericController[*model.Category],
+	tagController tag.TagController,
 	deserializer *middleware.Deserializer,
 	db *config.Database) *Server {
 	server := &Server{
@@ -51,6 +54,7 @@ func NewServer(authController auth.AuthController,
 	api.Route(category.GetRoutes(categoryController, deserializer))
 	api.Route(account.GetRoutes(accountController, deserializer))
 	api.Route(transaction.GetRoutes(transactionController, deserializer))
+	api.Route(tag.GetRoutes(tagController, deserializer))
 	return server
 }
 

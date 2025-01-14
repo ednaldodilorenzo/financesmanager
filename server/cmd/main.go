@@ -10,6 +10,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/tag"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/ednaldo-dilorenzo/iappointment/server"
 	"go.uber.org/dig"
@@ -23,6 +24,9 @@ func BuildContainer() *dig.Container {
 	container.Provide(auth.NewAuthRepository)
 	container.Provide(auth.NewAuthService)
 	container.Provide(auth.NewAuthController)
+	container.Provide(tag.NewTagRepository)
+	container.Provide(tag.NewTagService)
+	container.Provide(tag.NewTagController)
 	container.Provide(generic.NewGenericRepository[*model.Category])
 	container.Provide(generic.NewGenericService[*model.Category])
 	container.Provide(generic.NewGenericController[*model.Category])

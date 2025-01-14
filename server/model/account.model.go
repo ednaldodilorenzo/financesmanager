@@ -8,7 +8,7 @@ type Account struct {
 }
 
 type RelatedAccount struct {
-	ID   int
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
