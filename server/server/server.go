@@ -15,6 +15,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/planning"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/routes"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/tag"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
@@ -42,6 +43,7 @@ func NewServer(authController auth.AuthController,
 	transactionController transaction.TransactionController,
 	categoryController generic.GenericController[*model.Category],
 	tagController tag.TagController,
+	planningControler planning.PlanningController,
 	deserializer *middleware.Deserializer,
 	db *config.Database) *Server {
 	server := &Server{
@@ -54,6 +56,7 @@ func NewServer(authController auth.AuthController,
 	api.Route(category.GetRoutes(categoryController, deserializer))
 	api.Route(account.GetRoutes(accountController, deserializer))
 	api.Route(transaction.GetRoutes(transactionController, deserializer))
+	api.Route(planning.GetRoutes(planningControler, deserializer))
 	api.Route(tag.GetRoutes(tagController, deserializer))
 	return server
 }

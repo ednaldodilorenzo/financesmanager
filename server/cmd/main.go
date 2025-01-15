@@ -10,6 +10,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/planning"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/tag"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/ednaldo-dilorenzo/iappointment/server"
@@ -27,6 +28,9 @@ func BuildContainer() *dig.Container {
 	container.Provide(tag.NewTagRepository)
 	container.Provide(tag.NewTagService)
 	container.Provide(tag.NewTagController)
+	container.Provide(planning.NewPlanningRepository)
+	container.Provide(planning.NewPlanningService)
+	container.Provide(planning.NewPlanningController)
 	container.Provide(generic.NewGenericRepository[*model.Category])
 	container.Provide(generic.NewGenericService[*model.Category])
 	container.Provide(generic.NewGenericController[*model.Category])
