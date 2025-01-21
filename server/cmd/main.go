@@ -8,6 +8,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/account"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/auth"
+	"github.com/ednaldo-dilorenzo/iappointment/modules/budget"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/planning"
@@ -31,12 +32,18 @@ func BuildContainer() *dig.Container {
 	container.Provide(planning.NewPlanningRepository)
 	container.Provide(planning.NewPlanningService)
 	container.Provide(planning.NewPlanningController)
+	container.Provide(budget.NewBudgetRepository)
+	container.Provide(budget.NewBudgetService)
+	container.Provide(budget.NewBudgetController)
 	container.Provide(generic.NewGenericRepository[*model.Category])
 	container.Provide(generic.NewGenericService[*model.Category])
 	container.Provide(generic.NewGenericController[*model.Category])
 	container.Provide(generic.NewGenericRepository[*model.Account])
 	container.Provide(generic.NewGenericService[*model.Account])
 	container.Provide(generic.NewGenericController[*model.Account])
+	container.Provide(generic.NewGenericRepository[*model.Budget])
+	container.Provide(generic.NewGenericService[*model.Budget])
+	container.Provide(generic.NewGenericController[*model.Budget])
 	container.Provide(generic.NewGenericRepository[*model.Transaction])
 	container.Provide(transaction.NewTransactionRepository)
 	container.Provide(generic.NewGenericService[*model.Transaction])

@@ -6,6 +6,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PaginatedResponse[V model.IUserDependent] struct {
@@ -95,7 +96,7 @@ func (g *GenericRepositoryStruct[V]) FindAllPaginatedAndFiltered(limit, offset i
 }
 
 func (g *GenericRepositoryStruct[V]) Create(item *V) error {
-	if err := g.dbConfig.DB.Create(item).Error; err != nil {
+	if err := g.dbConfig.DB.Clauses(clause.Returning{}).Create(item).Error; err != nil {
 		return err
 	}
 
