@@ -13,6 +13,7 @@ func GetRoutes(controller BudgetController, desirializer *middleware.Deserialize
 		router.Get("/:id", desirializer.DeserializeUser, controller.GetOne)
 		router.Post("/", desirializer.DeserializeUser, controller.Post)
 		router.Patch("/:id", desirializer.DeserializeUser, controller.Patch)
+		router.Delete("/:id", desirializer.DeserializeUser, controller.Delete)
 	}
 }
 
