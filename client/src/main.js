@@ -18,6 +18,21 @@ app.use(Toast, {
   newestOnTop: true,
 });
 
+app.config.globalProperties.$filters = {
+  currencyBRL(value) {
+    return Intl.NumberFormat("pt-br", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  },
+  percentageBRL(value) {
+    return Intl.NumberFormat("pt-br", {
+      style: "percent",
+      currency: "BRL",
+    }).format(value);
+  },
+};
+
 app.use(store);
 app.use(router);
 

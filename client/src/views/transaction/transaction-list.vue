@@ -14,24 +14,29 @@
     <div class="card-body p-2">
       <div class="d-flex justify-content-center my-3">
         <Calendar @date-change="onChangeDebounced"></Calendar>
-        <div class="mx-3 p-2 value-summary earn">
-          Receitas {{ summary.formatted_earns }}
-        </div>
-        <div class="mx-3 p-2 value-summary expense">
-          Despesas {{ summary.formatted_expenses }}
-        </div>
-        <div
-          class="mx-3 p-2 value-summary"
-          :class="{
-            expense: summary.earns + summary.expenses < 0,
-            earn: summary.earns + summary.expenses > 0,
-          }"
-        >
-          Saldo {{ summary.formatted_balance }}
-        </div>
       </div>
     </div>
   </div>
+  <summary-data
+    :data="[
+      {
+        title: 'Receitas',
+        value: $filters.currencyBRL(Math.abs(summary.earns)),
+      },
+      {
+        title: 'Despesas',
+        value: $filters.currencyBRL(Math.abs(summary.expenses)),
+        percent: $filters.percentageBRL(
+          Math.abs(summary.expenses / summary.earns)
+        ),
+        percentMessage: 'do Total de Receitas',
+      },
+      {
+        title: 'Saldo',
+        value: $filters.currencyBRL(Math.abs(summary.earns + summary.expenses)),
+      },
+    ]"
+  />
   <div class="card">
     <div class="card-body p-2">
       <nav class="navbar bg-body-tertiary">
@@ -108,6 +113,7 @@ import { useRouter } from "vue-router";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import { useDialogScreen } from "@/components/dialog/use-dialog-screen";
 import { useToast } from "vue-toastification";
+import SummaryData from "@/components/summary-data.vue";
 
 const fields = [
   { title: "Data", name: "formatted_date" },
@@ -167,18 +173,6 @@ const summary = computed(() => {
   return {
     earns: summaryData.earns,
     expenses: summaryData.expenses,
-    formatted_earns: Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    }).format(Math.abs(summaryData.earns)),
-    formatted_expenses: Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    }).format(Math.abs(summaryData.expenses)),
-    formatted_balance: Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    }).format(Math.abs(summaryData.earns + summaryData.expenses)),
   };
 });
 

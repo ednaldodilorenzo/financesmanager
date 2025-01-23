@@ -20,99 +20,32 @@
       </div>
     </div>
   </div>
-  <div class="card mb-3">
-    <div class="card-body p-0">
-      <div
-        class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center"
-      >
-        <div class="col border-end border-light border-dashed">
-          <div class="mt-3 mt-md-0 p-3">
-            <h5
-              title="Number of Orders"
-              class="text-muted fs-13 text-uppercase"
-            >
-              Total de Receitas
-            </h5>
-            <div
-              class="d-flex align-items-center justify-content-center gap-2 my-3"
-            >
-              <div class="avatar-sm flex-shrink-0">
-                <span
-                  class="avatar-title bg-primary-subtle fs-22 rounded-circle text-primary"
-                  ><iconify-icon
-                    icon="solar:bill-list-bold-duotone"
-                  ></iconify-icon
-                ></span>
-              </div>
-              <h3 class="mb-0 fw-bold">{{ summary.formatted_earns }}</h3>
-            </div>
-            <p class="mb-0 text-muted">
-              <span class="text-success me-2"
-                ><i class="ti ti-caret-up-filled"></i> 26.87%</span
-              ><span class="text-nowrap">Since last month</span>
-            </p>
-          </div>
-        </div>
-        <div class="col border-end border-light border-dashed">
-          <div class="mt-3 mt-md-0 p-3">
-            <h5
-              title="Number of Orders"
-              class="text-muted fs-13 text-uppercase"
-            >
-              Total de Despesas
-            </h5>
-            <div
-              class="d-flex align-items-center justify-content-center gap-2 my-3"
-            >
-              <div class="avatar-sm flex-shrink-0">
-                <span
-                  class="avatar-title bg-warning-subtle fs-22 rounded-circle text-warning"
-                  ><iconify-icon
-                    icon="solar:wallet-money-bold-duotone"
-                  ></iconify-icon
-                ></span>
-              </div>
-              <h3 class="mb-0 fw-bold">{{ summary.formatted_expenses }}</h3>
-            </div>
-            <p class="mb-0 text-muted">
-              <span class="text-success me-2"
-                ><i class="ti ti-caret-up-filled"></i>
-                {{ summary.formatted_expense_percentage }}</span
-              ><span class="text-nowrap">do Total de Receitas</span>
-            </p>
-          </div>
-        </div>
-        <div class="col border-end border-light border-dashed">
-          <div class="mt-3 mt-md-0 p-3">
-            <h5
-              title="Number of Orders"
-              class="text-muted fs-13 text-uppercase"
-            >
-              Saldo Total
-            </h5>
-            <div
-              class="d-flex align-items-center justify-content-center gap-2 my-3"
-            >
-              <div class="avatar-sm flex-shrink-0">
-                <span
-                  class="avatar-title bg-success-subtle fs-22 rounded-circle text-success"
-                  ><iconify-icon
-                    icon="solar:banknote-2-bold-duotone"
-                  ></iconify-icon
-                ></span>
-              </div>
-              <h3 class="mb-0 fw-bold">{{ summary.formatted_balance }}</h3>
-            </div>
-            <p class="mb-0 text-muted">
-              <span class="text-danger me-2"
-                ><i class="ti ti-caret-down-filled"></i> 1.05%</span
-              ><span class="text-nowrap">Since last month</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <summary-data
+    :data="[
+      {
+        title: 'Total de Receitas',
+        value: $filters.currencyBRL(Math.abs(summary.earns / 100)),
+      },
+      {
+        title: 'Total de Despesas',
+        value: $filters.currencyBRL(Math.abs(summary.expenses / 100)),
+        percent: $filters.percentageBRL(
+          Math.abs(summary.expenses / summary.earns)
+        ),
+        percentMessage: 'do Total de Receitas',
+      },
+      {
+        title: 'Saldo Total',
+        value: $filters.currencyBRL(
+          Math.abs((summary.earns - summary.expenses) / 100)
+        ),
+        percent: $filters.percentageBRL(
+          Math.abs((summary.earns - summary.expenses) / summary.earns)
+        ),
+        percentMessage: 'do Total de Receitas',
+      },
+    ]"
+  />
   <div class="card">
     <div class="card-body p-2">
       <nav class="navbar bg-body-tertiary mb-3">
@@ -154,6 +87,7 @@ import { ref, computed } from "vue";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import BudgetRecord from "./budget-record.vue";
 import BudgetItem from "./budget-item";
+import SummaryData from "@/components/summary-data.vue";
 
 const loading = useLoadingScreen();
 let currentDate = new Date();
@@ -179,22 +113,6 @@ const summary = computed(() => {
   return {
     earns: summaryData.earns,
     expenses: summaryData.expenses,
-    formatted_earns: Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    }).format(Math.abs(summaryData.earns)),
-    formatted_expenses: Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    }).format(Math.abs(summaryData.expenses)),
-    formatted_balance: Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    }).format(Math.abs(summaryData.earns - summaryData.expenses)),
-    formatted_expense_percentage: Intl.NumberFormat("pt-br", {
-      style: "percent",
-      currency: "BRL",
-    }).format(summaryData.expenses / summaryData.earns),
   };
 });
 
