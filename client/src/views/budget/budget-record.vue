@@ -13,7 +13,7 @@
     </td>
     <td>
       <span v-if="!editMode">{{ item.strValue }}</span>
-      <bootstrap-input v-model="item.strValue" v-currency v-else />
+      <input v-model="item.strValue" class="form-control" v-currency v-else />
     </td>
     <td>
       <button

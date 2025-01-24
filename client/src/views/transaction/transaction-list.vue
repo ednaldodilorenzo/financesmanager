@@ -33,7 +33,9 @@
       },
       {
         title: 'Saldo',
-        value: $filters.currencyBRL(Math.abs(summary.earns + summary.expenses)),
+        value: $filters.currencyBRL(
+          Math.abs(summary.earns + summary.expenses)
+        ),
       },
     ]"
   />
@@ -114,6 +116,7 @@ import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import { useDialogScreen } from "@/components/dialog/use-dialog-screen";
 import { useToast } from "vue-toastification";
 import SummaryData from "@/components/summary-data.vue";
+import { currencyBRL } from "@/components/filters/currency.filter";
 
 const fields = [
   { title: "Data", name: "formatted_date" },
@@ -234,16 +237,13 @@ function mapTransactions(transactionList) {
     ...item,
     formatted_date: format(item.paymentDate, "dd/MM/yyyy"),
     formatted_value: {
-      value: Intl.NumberFormat("pt-br", {
-        style: "currency",
-        currency: "BRL",
-      }).format(Math.abs(item.value / 100)),
+      value: currencyBRL(Math.abs(item.value)),
       style: {
         color: item.value > 0 ? "green" : "red",
         textAlign: "right",
       },
     },
-    value: item.value / 100,
+    value: item.value,
     category: item.category.name,
     categoryId: item.category.id,
     categoryType: item.category.type,

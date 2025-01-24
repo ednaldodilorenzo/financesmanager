@@ -9,6 +9,10 @@ import "./assets/styles.css";
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 import currencyDirective from "./components/currency.directive";
+import {
+  currencyBRL,
+  percentageBRL,
+} from "./components/filters/currency.filter";
 
 const app = createApp(App);
 
@@ -19,18 +23,8 @@ app.use(Toast, {
 });
 
 app.config.globalProperties.$filters = {
-  currencyBRL(value) {
-    return Intl.NumberFormat("pt-br", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  },
-  percentageBRL(value) {
-    return Intl.NumberFormat("pt-br", {
-      style: "percent",
-      currency: "BRL",
-    }).format(value);
-  },
+  currencyBRL,
+  percentageBRL,
 };
 
 app.use(store);

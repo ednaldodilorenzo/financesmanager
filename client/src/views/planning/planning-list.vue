@@ -21,15 +21,15 @@
     :data="[
       {
         title: 'Executado',
-        value: $filters.currencyBRL(summary.executed / 100),
+        value: $filters.currencyBRL(summary.executed),
       },
       {
         title: 'Planejado',
-        value: $filters.currencyBRL(summary.planned / 100),
+        value: $filters.currencyBRL(summary.planned),
       },
       {
         title: 'Diferença',
-        value: $filters.currencyBRL((summary.planned - summary.executed) / 100),
+        value: $filters.currencyBRL(summary.planned - summary.executed),
       },
     ]"
   />
@@ -40,6 +40,8 @@
           { title: 'Categoria', name: 'name' },
           { title: 'Valor', name: 'formatted_value' },
           { title: 'Planejado', name: 'formatted_planned' },
+          { title: 'Acumulado', name: 'formatted_accumulated' },
+          { title: 'Planej', name: 'formatted_planned_accumulated' },
         ]"
         :showPagination="false"
         :showNav="false"
@@ -58,6 +60,7 @@ import { debounce } from "@/utils/support";
 import { ref, computed } from "vue";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import SummaryData from "@/components/summary-data.vue";
+import { currencyBRL } from "@/components/filters/currency.filter";
 
 const loading = useLoadingScreen();
 
@@ -81,20 +84,30 @@ const getData = (month, year) => {
       filteredItems.value = resp.items.map((item) => ({
         ...item,
         formatted_value: {
-          value: Intl.NumberFormat("pt-br", {
-            style: "currency",
-            currency: "BRL",
-          }).format(Math.abs(item.total / 100)),
+          value: currencyBRL(Math.abs(item.total)),
           style: {
             color: Math.abs(item.total) > item.planned / 12 ? "red" : "green",
             textAlign: "right",
           },
         },
         formatted_planned: {
-          value: Intl.NumberFormat("pt-br", {
-            style: "currency",
-            currency: "BRL",
-          }).format(Math.abs(item.planned / 100 / 12)),
+          value: currencyBRL(Math.abs(item.planned / 12)),
+          style: {
+            color: "blue",
+            textAlign: "right",
+          },
+        },
+        formatted_accumulated: {
+          value: currencyBRL(Math.abs(item.accumulated)),
+          style: {
+            color: "blue",
+            textAlign: "right",
+          },
+        },
+        formatted_planned_accumulated: {
+          value: currencyBRL(
+            (Math.abs(item.planned) / 12) * (currentDate.getMonth() + 1)
+          ),
           style: {
             color: "blue",
             textAlign: "right",
@@ -107,10 +120,11 @@ const getData = (month, year) => {
     });
 };
 
-const currentDate = new Date();
+let currentDate = new Date();
 getData(currentDate.getMonth() + 1, currentDate.getFullYear());
 
 const onChangeDebounced = debounce((newDate) => {
+  currentDate = newDate;
   getData(newDate.getMonth() + 1, newDate.getFullYear());
 }, 1000);
 </script>

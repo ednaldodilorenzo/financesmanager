@@ -24,11 +24,11 @@
     :data="[
       {
         title: 'Total de Receitas',
-        value: $filters.currencyBRL(Math.abs(summary.earns / 100)),
+        value: $filters.currencyBRL(Math.abs(summary.earns)),
       },
       {
         title: 'Total de Despesas',
-        value: $filters.currencyBRL(Math.abs(summary.expenses / 100)),
+        value: $filters.currencyBRL(Math.abs(summary.expenses)),
         percent: $filters.percentageBRL(
           Math.abs(summary.expenses / summary.earns)
         ),
@@ -37,7 +37,7 @@
       {
         title: 'Saldo Total',
         value: $filters.currencyBRL(
-          Math.abs((summary.earns - summary.expenses) / 100)
+          Math.abs((summary.earns - summary.expenses))
         ),
         percent: $filters.percentageBRL(
           Math.abs((summary.earns - summary.expenses) / summary.earns)
