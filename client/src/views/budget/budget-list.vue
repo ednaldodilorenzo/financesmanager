@@ -24,24 +24,18 @@
     :data="[
       {
         title: 'Total de Receitas',
-        value: $filters.currencyBRL(Math.abs(summary.earns)),
+        value: summary.earns,
       },
       {
         title: 'Total de Despesas',
-        value: $filters.currencyBRL(Math.abs(summary.expenses)),
-        percent: $filters.percentageBRL(
-          Math.abs(summary.expenses / summary.earns)
-        ),
+        value: Math.abs(summary.expenses),
+        percent: Math.abs(summary.expenses / summary.earns),
         percentMessage: 'do Total de Receitas',
       },
       {
         title: 'Saldo Total',
-        value: $filters.currencyBRL(
-          Math.abs((summary.earns - summary.expenses))
-        ),
-        percent: $filters.percentageBRL(
-          Math.abs((summary.earns - summary.expenses) / summary.earns)
-        ),
+        value: summary.earns - summary.expenses,
+        percent: Math.abs((summary.earns - summary.expenses) / summary.earns),
         percentMessage: 'do Total de Receitas',
       },
     ]"
@@ -60,8 +54,8 @@
           <tr>
             <!-- loop through each value of the fields to get the table header -->
             <th>Categoria</th>
-            <th>Valor</th>
-            <th>Ações</th>
+            <th class="text-end">Valor</th>
+            <th class="text-center">Ações</th>
           </tr>
         </thead>
         <tbody>

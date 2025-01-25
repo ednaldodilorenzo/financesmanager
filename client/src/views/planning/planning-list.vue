@@ -21,15 +21,15 @@
     :data="[
       {
         title: 'Executado',
-        value: $filters.currencyBRL(summary.executed),
+        value: summary.executed,
       },
       {
         title: 'Planejado',
-        value: $filters.currencyBRL(summary.planned),
+        value: summary.planned,
       },
       {
         title: 'Diferença',
-        value: $filters.currencyBRL(summary.planned - summary.executed),
+        value: summary.planned - summary.executed,
       },
     ]"
   />
@@ -38,10 +38,13 @@
       <bootstrap-table
         :fields="[
           { title: 'Categoria', name: 'name' },
-          { title: 'Valor', name: 'formatted_value' },
+          { title: 'Executado', name: 'formatted_value' },
           { title: 'Planejado', name: 'formatted_planned' },
-          { title: 'Acumulado', name: 'formatted_accumulated' },
-          { title: 'Planej', name: 'formatted_planned_accumulated' },
+          { title: 'Executado Acumulado', name: 'formatted_accumulated' },
+          {
+            title: 'Planejado Acumulado',
+            name: 'formatted_planned_accumulated',
+          },
         ]"
         :showPagination="false"
         :showNav="false"
@@ -86,32 +89,39 @@ const getData = (month, year) => {
         formatted_value: {
           value: currencyBRL(Math.abs(item.total)),
           style: {
-            color: Math.abs(item.total) > item.planned / 12 ? "red" : "green",
-            textAlign: "right",
+            textAlign: "center",
           },
+          clazz:
+            Math.abs(item.total) > item.planned / 12
+              ? "text-danger"
+              : "text-success",
         },
         formatted_planned: {
           value: currencyBRL(Math.abs(item.planned / 12)),
           style: {
-            color: "blue",
-            textAlign: "right",
+            textAlign: "center",
           },
+          clazz: "text-primary",
         },
         formatted_accumulated: {
           value: currencyBRL(Math.abs(item.accumulated)),
           style: {
-            color: "blue",
-            textAlign: "right",
+            textAlign: "center",
           },
+          clazz:
+            Math.abs(item.accumulated) >
+            (Math.abs(item.planned) / 12) * (currentDate.getMonth() + 1)
+              ? "text-danger"
+              : "text-success",
         },
         formatted_planned_accumulated: {
           value: currencyBRL(
             (Math.abs(item.planned) / 12) * (currentDate.getMonth() + 1)
           ),
           style: {
-            color: "blue",
-            textAlign: "right",
+            textAlign: "center",
           },
+          clazz: "text-primary",
         },
       }));
     })

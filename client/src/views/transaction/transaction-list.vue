@@ -21,21 +21,17 @@
     :data="[
       {
         title: 'Receitas',
-        value: $filters.currencyBRL(Math.abs(summary.earns)),
+        value: summary.earns,
       },
       {
         title: 'Despesas',
-        value: $filters.currencyBRL(Math.abs(summary.expenses)),
-        percent: $filters.percentageBRL(
-          Math.abs(summary.expenses / summary.earns)
-        ),
+        value: Math.abs(summary.expenses),
+        percent: Math.abs(summary.expenses / summary.earns),
         percentMessage: 'do Total de Receitas',
       },
       {
         title: 'Saldo',
-        value: $filters.currencyBRL(
-          Math.abs(summary.earns + summary.expenses)
-        ),
+        value: summary.earns + summary.expenses,
       },
     ]"
   />
@@ -239,9 +235,9 @@ function mapTransactions(transactionList) {
     formatted_value: {
       value: currencyBRL(Math.abs(item.value)),
       style: {
-        color: item.value > 0 ? "green" : "red",
         textAlign: "right",
       },
+      clazz: item.value > 0 ? "text-success" : "text-danger",
     },
     value: item.value,
     category: item.category.name,

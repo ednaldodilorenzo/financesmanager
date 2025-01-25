@@ -11,11 +11,11 @@
         v-else
       />
     </td>
-    <td>
+    <td class="text-end">
       <span v-if="!editMode">{{ item.strValue }}</span>
       <input v-model="item.strValue" class="form-control" v-currency v-else />
     </td>
-    <td>
+    <td class="text-center">
       <button
         class="btn icon-link link-primary icon-link-hover"
         v-if="!editMode"

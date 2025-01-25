@@ -41,7 +41,7 @@
             {{ field?.title }}
             <i class="bi bi-sort-alpha-down" aria-label="Sort Icon"></i>
           </th>
-          <th v-if="actions.length">Ações</th>
+          <th v-if="actions.length" class="text-center">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -50,6 +50,7 @@
           <td
             v-for="field in fields"
             :style="item[field?.name]?.style"
+            :class="item[field?.name]?.clazz"
             :key="field"
           >
             {{
@@ -58,7 +59,7 @@
                 : item[field?.name]
             }}
           </td>
-          <td v-if="actions.length">
+          <td v-if="actions.length" class="text-center">
             <a
               v-for="action in actions"
               :key="action.name"

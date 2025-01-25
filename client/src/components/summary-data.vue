@@ -26,13 +26,19 @@
                   ></iconify-icon
                 ></span>
               </div>
-              <h3 class="mb-0 fw-bold">
-                {{ item.value }}
+              <h3
+                :class="{
+                  'text-danger': item.value && item.value < 0,
+                }"
+                class="mb-0 fw-bold"
+              >
+                {{ $filters.currencyBRL(item.value) }}
               </h3>
             </div>
             <p class="mb-0 text-muted">
               <span class="text-success me-2"
-                ><i class="ti ti-caret-up-filled"></i> {{ item.percent }}</span
+                ><i class="ti ti-caret-up-filled"></i>
+                {{ $filters.percentageBRL(item.percent) }}</span
               ><span class="text-nowrap">{{ item.percentMessage }}</span>
             </p>
           </div>
