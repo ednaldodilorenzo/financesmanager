@@ -139,6 +139,7 @@ const selectedType = ref("");
 const selectedAccount = ref("");
 const selectedCategory = ref(null);
 const loading = useLoadingScreen();
+let currentDate = new Date();
 
 const filteredItems = computed(() => {
   return transactions.value.filter((item) => {
@@ -176,8 +177,6 @@ const summary = computed(() => {
 });
 
 function loadInitalData() {
-  const currentDate = new Date();
-
   loading.show();
   const params = {
     month: currentDate.getMonth() + 1,
@@ -256,7 +255,8 @@ function onAccountChange(event) {
 }
 
 const onChangeDebounced = debounce((newDate) => {
-  getList(newDate.getMonth() + 1, newDate.getFullYear());
+  currentDate = newDate;
+  getList(currentDate.getMonth() + 1, currentDate.getFullYear());
 }, 1000);
 
 loadInitalData();
@@ -274,7 +274,6 @@ const handleEdit = async (itemClicked) => {
   };
   const saved = await modal.show(item);
   if (saved) {
-    const currentDate = new Date();
     getList(currentDate.getMonth() + 1, currentDate.getFullYear());
   }
 };
@@ -302,7 +301,6 @@ const handleDelete = async (itemClicked) => {
 async function onNewClicked() {
   const saved = await modal.show();
   if (saved) {
-    const currentDate = new Date();
     getList(currentDate.getMonth() + 1, currentDate.getFullYear());
   }
 }
