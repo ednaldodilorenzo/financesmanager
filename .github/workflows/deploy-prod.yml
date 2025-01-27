@@ -10,6 +10,11 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
+      
+    - name: Set up Docker Compose
+      uses: docker/compose-action@v2
+      with:
+        compose-version: latest # or specify a version
 
     - name: Set up SSH Key
       run: |
