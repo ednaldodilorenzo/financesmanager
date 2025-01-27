@@ -25,9 +25,9 @@ jobs:
 
     - name: Execute Docker Compose Down
       run: |
-        docker compose -H "ssh://root@147.93.35.35" down --rmi all
+        docker-compose -H "ssh://root@147.93.35.35" down --rmi all
 
     - name: Execute Docker Compose Up
       run: |
-        docker compose -H "ssh://root@147.93.35.35" up --build -d
+        docker-compose -H "ssh://root@147.93.35.35" up --build -d
 
