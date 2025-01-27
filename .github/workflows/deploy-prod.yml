@@ -1,7 +1,9 @@
 name: Run Docker Compose Commands
 
 on:
-  workflow_dispatch: # This allows you to trigger the workflow manually
+  push:
+    branches:
+      - main
 
 jobs:
   execute-docker-compose:
