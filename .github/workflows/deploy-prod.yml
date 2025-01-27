@@ -11,11 +11,6 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
       
-    - name: Set up Docker Compose
-      uses: docker/compose-action@v2
-      with:
-        compose-version: latest # or specify a version
-
     - name: Set up SSH Key
       run: |
         mkdir -p ~/.ssh
@@ -25,9 +20,9 @@ jobs:
 
     - name: Execute Docker Compose Down
       run: |
-        docker-compose -H "ssh://root@147.93.35.35" down --rmi all
+        docker compose -H "ssh://root@147.93.35.35" down --rmi all
 
     - name: Execute Docker Compose Up
       run: |
-        docker-compose -H "ssh://root@147.93.35.35" up --build -d
+        docker compose -H "ssh://root@147.93.35.35" up --build -d
 
