@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, watch, nextTick } from "vue";
+import { ref, watch, nextTick } from "vue";
 import { debounce } from "@/utils/support";
 
 const searchQuery = ref("");
