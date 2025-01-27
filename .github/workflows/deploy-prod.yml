@@ -1,0 +1,28 @@
+name: Run Docker Compose Commands
+
+on:
+  workflow_dispatch: # This allows you to trigger the workflow manually
+
+jobs:
+  execute-docker-compose:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 147.93.35.35 >> ~/.ssh/known_hosts
+
+    - name: Execute Docker Compose Down
+      run: |
+        docker-compose -H "ssh://root@147.93.35.35" down --rmi all
+
+    - name: Execute Docker Compose Up
+      run: |
+        docker-compose -H "ssh://root@147.93.35.35" up --build -d
+
