@@ -108,57 +108,39 @@ const getData = (month, year) => {
         ...item,
         formatted_value: {
           value: currencyBRL(Math.abs(item.total)),
-          style: {
-            textAlign: "right",
-          },
           clazz:
             Math.abs(item.total) > item.planned / 12
-              ? "text-danger"
-              : "text-success",
+              ? "text-danger text-end"
+              : "text-success text-end",
         },
         formatted_planned: {
           value: currencyBRL(Math.abs(item.planned / 12)),
-          style: {
-            textAlign: "right",
-          },
-          clazz: "text-primary",
+          clazz: "text-primary text-end",
         },
         formatted_accumulated: {
           value: currencyBRL(Math.abs(item.accumulated)),
-          style: {
-            textAlign: "right",
-          },
           clazz:
             Math.abs(item.accumulated) >
             (Math.abs(item.planned) / 12) * (currentDate.getMonth() + 1)
-              ? "text-danger"
-              : "text-success",
+              ? "text-danger text-end"
+              : "text-success text-end",
         },
         formatted_planned_accumulated: {
           value: currencyBRL(
             (item.planned / 12) * (currentDate.getMonth() + 1)
           ),
-          style: {
-            textAlign: "right",
-          },
-          clazz: "text-primary",
+          clazz: "text-primary text-end",
         },
         formatted_total_planned: {
           value: currencyBRL(item.planned),
-          style: {
-            textAlign: "right",
-          },
-          clazz: "text-primary",
+          clazz: "text-primary text-end",
         },
         formatted_tendency: {
           value: currencyBRL(
             Math.abs(item.accumulated) +
               ((11 - currentDate.getMonth()) * item.planned) / 12
           ),
-          style: {
-            textAlign: "right",
-          },
-          clazz: "text-primary",
+          clazz: "text-primary text-end",
         },
       }));
     })

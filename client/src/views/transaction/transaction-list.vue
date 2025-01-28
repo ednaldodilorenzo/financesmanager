@@ -119,7 +119,7 @@ const fields = [
   { title: "Descrição", name: "description" },
   { title: "Categoria", name: "category" },
   { title: "Conta", name: "account" },
-  { title: "Valor", name: "formatted_value" },
+  { title: { value: "Valor", clazz: "text-end" }, name: "formatted_value" },
 ];
 
 const toast = useToast();
@@ -233,10 +233,7 @@ function mapTransactions(transactionList) {
     formatted_date: format(item.paymentDate, "dd/MM/yyyy"),
     formatted_value: {
       value: currencyBRL(Math.abs(item.value)),
-      style: {
-        textAlign: "right",
-      },
-      clazz: item.value > 0 ? "text-success" : "text-danger",
+      clazz: item.value > 0 ? "text-success text-end" : "text-danger text-end",
     },
     value: item.value,
     category: item.category.name,
