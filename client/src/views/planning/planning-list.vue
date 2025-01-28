@@ -152,7 +152,7 @@ const getData = (month, year) => {
         },
         formatted_tendency: {
           value: currencyBRL(
-            Math.abs(item.total) +
+            Math.abs(item.accumulated) +
               ((11 - currentDate.getMonth()) * item.planned) / 12
           ),
           style: {
