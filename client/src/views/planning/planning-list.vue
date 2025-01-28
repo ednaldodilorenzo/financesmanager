@@ -29,7 +29,7 @@
       },
       {
         title: 'Diferença',
-        value: summary.planned - summary.executed,
+        value: summary.executed - summary.planned,
       },
     ]"
   />
@@ -38,12 +38,29 @@
       <bootstrap-table
         :fields="[
           { title: 'Categoria', name: 'name' },
-          { title: 'Executado', name: 'formatted_value' },
-          { title: 'Planejado', name: 'formatted_planned' },
-          { title: 'Executado Acumulado', name: 'formatted_accumulated' },
           {
-            title: 'Planejado Acumulado',
+            title: { value: 'Executado Mês', clazz: 'text-end' },
+            name: 'formatted_value',
+          },
+          {
+            title: { value: 'Planejado Mês', clazz: 'text-end' },
+            name: 'formatted_planned',
+          },
+          {
+            title: { value: 'Executado Acumulado Ano', clazz: 'text-end' },
+            name: 'formatted_accumulated',
+          },
+          {
+            title: { value: 'Planejado Acumulado Ano', clazz: 'text-end' },
             name: 'formatted_planned_accumulated',
+          },
+          {
+            title: { value: 'Planejado Total', clazz: 'text-end' },
+            name: 'formatted_total_planned',
+          },
+          {
+            title: { value: 'Tendência', clazz: 'text-end' },
+            name: 'formatted_tendency',
           },
         ]"
         :showPagination="false"
@@ -72,8 +89,11 @@ const filteredItems = ref([]);
 const summary = computed(() => {
   return filteredItems.value.reduce(
     (previous, current) => ({
-      executed: Math.abs(previous.executed + current.total),
-      planned: previous.planned + current.planned / 12,
+      executed: previous.executed + current.total,
+      planned:
+        current.type === "D"
+          ? previous.planned - current.planned / 12
+          : previous.planned + current.planned / 12,
     }),
     { executed: 0.0, planned: 0.0 }
   );
@@ -89,7 +109,7 @@ const getData = (month, year) => {
         formatted_value: {
           value: currencyBRL(Math.abs(item.total)),
           style: {
-            textAlign: "center",
+            textAlign: "right",
           },
           clazz:
             Math.abs(item.total) > item.planned / 12
@@ -99,14 +119,14 @@ const getData = (month, year) => {
         formatted_planned: {
           value: currencyBRL(Math.abs(item.planned / 12)),
           style: {
-            textAlign: "center",
+            textAlign: "right",
           },
           clazz: "text-primary",
         },
         formatted_accumulated: {
           value: currencyBRL(Math.abs(item.accumulated)),
           style: {
-            textAlign: "center",
+            textAlign: "right",
           },
           clazz:
             Math.abs(item.accumulated) >
@@ -116,10 +136,27 @@ const getData = (month, year) => {
         },
         formatted_planned_accumulated: {
           value: currencyBRL(
-            (Math.abs(item.planned) / 12) * (currentDate.getMonth() + 1)
+            (item.planned / 12) * (currentDate.getMonth() + 1)
           ),
           style: {
-            textAlign: "center",
+            textAlign: "right",
+          },
+          clazz: "text-primary",
+        },
+        formatted_total_planned: {
+          value: currencyBRL(item.planned),
+          style: {
+            textAlign: "right",
+          },
+          clazz: "text-primary",
+        },
+        formatted_tendency: {
+          value: currencyBRL(
+            Math.abs(item.total) +
+              ((11 - currentDate.getMonth()) * item.planned) / 12
+          ),
+          style: {
+            textAlign: "right",
           },
           clazz: "text-primary",
         },

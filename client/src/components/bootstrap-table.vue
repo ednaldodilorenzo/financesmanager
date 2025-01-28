@@ -37,8 +37,12 @@
       <thead>
         <tr>
           <!-- loop through each value of the fields to get the table header -->
-          <th v-for="field in fields" :key="field">
-            {{ field?.title }}
+          <th v-for="field in fields" :class="field?.title.clazz" :key="field">
+            {{
+              typeof field?.title === "object"
+                ? field?.title.value
+                : field?.title
+            }}
             <i class="bi bi-sort-alpha-down" aria-label="Sort Icon"></i>
           </th>
           <th v-if="actions.length" class="text-center">Ações</th>

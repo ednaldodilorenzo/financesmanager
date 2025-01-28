@@ -30,7 +30,8 @@ func (p *PlanningRepositoryStruct) FindByMonthAndYear(month int, year int) ([]mo
 
 	err := p.DB.Table("transaction").
 		Select(`
-			category.name AS name, 
+		    category.name AS name,
+			category.type AS type,
 			SUM(transaction.value) AS total, 
 			budget.value AS planned, 
 			a.accumulated
@@ -41,7 +42,7 @@ func (p *PlanningRepositoryStruct) FindByMonthAndYear(month int, year int) ([]mo
 		Where("EXTRACT(YEAR FROM transaction.payment_date) = ?", year).
 		Where("EXTRACT(MONTH FROM transaction.payment_date) = ?", month).
 		Where("budget.year = ?", year).
-		Group("category.name, budget.value, a.accumulated").
+		Group("category.name, category.type, budget.value, a.accumulated").
 		Scan(&results).Error
 
 	if err != nil {
