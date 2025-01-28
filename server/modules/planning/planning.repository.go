@@ -22,27 +22,30 @@ func NewPlanningRepository(database *config.Database) PlanningRepository {
 func (p *PlanningRepositoryStruct) FindByMonthAndYear(month int, year int) ([]model.Planning, error) {
 	var results []model.Planning
 
-	subQuery := p.DB.Table("transaction t").
+	accumulatedSubQuery := p.DB.Table("transaction t").
 		Select("t.category_id, t.user_id, SUM(t.value) AS accumulated").
 		Where("EXTRACT(YEAR FROM t.payment_date) = ?", year).
 		Where("EXTRACT(MONTH FROM t.payment_date) <= ?", month).
 		Group("t.category_id, t.user_id")
 
-	err := p.DB.Table("transaction").
+	monthYearSubQuery := p.DB.Table("transaction t").
+		Select("t.category_id, t.user_id, SUM(t.value) AS value").
+		Where("EXTRACT(YEAR FROM t.payment_date) = ?", year).
+		Where("EXTRACT(MONTH FROM t.payment_date) = ?", month).
+		Group("t.category_id, t.user_id")
+
+	err := p.DB.Table("budget").
 		Select(`
 		    category.name AS name,
 			category.type AS type,
-			SUM(transaction.value) AS total, 
+			m.value AS total, 
 			budget.value AS planned, 
 			a.accumulated
 		`).
-		Joins("INNER JOIN category ON category.id = transaction.category_id AND category.user_id = transaction.user_id").
-		Joins("INNER JOIN (?) a ON a.category_id = transaction.category_id AND a.user_id = transaction.user_id", subQuery).
-		Joins("LEFT JOIN budget ON budget.category_id = category.id AND category.user_id = budget.user_id").
-		Where("EXTRACT(YEAR FROM transaction.payment_date) = ?", year).
-		Where("EXTRACT(MONTH FROM transaction.payment_date) = ?", month).
+		Joins("INNER JOIN category ON category.id = budget.category_id AND category.user_id = budget.user_id").
+		Joins("LEFT JOIN (?) m ON m.category_id = budget.category_id AND m.user_id = budget.user_id", monthYearSubQuery).
+		Joins("LEFT JOIN (?) a ON a.category_id = budget.category_id AND a.user_id = budget.user_id", accumulatedSubQuery).
 		Where("budget.year = ?", year).
-		Group("category.name, category.type, budget.value, a.accumulated").
 		Scan(&results).Error
 
 	if err != nil {
