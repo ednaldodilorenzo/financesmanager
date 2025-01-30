@@ -89,7 +89,6 @@
           },
         ]"
         @trigger-page="getList"
-        @action-clicked="onClickAction"
         @new-clicked="onNewClicked()"
       ></Table>
     </div>

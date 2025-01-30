@@ -28,7 +28,6 @@
     ]"
     :showFilter="true"
     @search-input="onChangeDebounced"
-    @action-clicked="onClickAction"
     @new-clicked="onNewClicked()"
   ></Table>
 </template>
