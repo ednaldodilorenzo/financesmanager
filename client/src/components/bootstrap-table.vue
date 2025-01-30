@@ -11,6 +11,16 @@
         ></a>
 
         <a href="#" @click="clickNew()" class="btn btn-primary">+ Novo</a>
+        <div
+          v-if="showCSVButton"
+          class="btn-group mx-3"
+          role="group"
+          aria-label="Basic outlined example"
+        >
+          <button type="button" @click="csvHandler" class="btn btn-success">
+            <i class="bi bi-filetype-csv"></i> Exportar para CSV
+          </button>
+        </div>
       </div>
       <div style="width: 85%">
         <input
@@ -155,6 +165,14 @@ export default {
     items: {
       type: [Array, Function],
       default: () => [],
+    },
+    csvHandler: {
+      type: Function,
+      default: () => {},
+    },
+    showCSVButton: {
+      type: Boolean,
+      default: false,
     },
     pageSize: {
       type: Number,

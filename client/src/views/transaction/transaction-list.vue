@@ -71,6 +71,8 @@
       </nav>
       <Table
         :fields="fields"
+        :showCSVButton="true"
+        :csvHandler="exportToCSV"
         :showPagination="false"
         :items="filteredItems"
         :showFilter="true"
@@ -114,6 +116,7 @@ import { useDialogScreen } from "@/components/dialog/use-dialog-screen";
 import { useToast } from "vue-toastification";
 import SummaryData from "@/components/summary-data.vue";
 import { currencyBRL } from "@/components/filters/currency.filter";
+import { formatCurrency } from "@/utils/numbers";
 
 const fields = [
   { title: "Data", name: "formatted_date" },
@@ -242,6 +245,42 @@ function mapTransactions(transactionList) {
     categoryType: item.category.type,
     account: item.account.name,
   }));
+}
+
+function exportToCSV() {
+  const headers = "Data;Descrição;Valor;Categoria;Conta;Data Efetiva;Tags;Nota";
+  console.log(JSON.stringify(transactions.value));
+
+  const rows = transactions.value.map(
+    (item) =>
+      `${item.formatted_date};${item.description};${formatCurrency(
+        "" + item.value
+      )};${item.category};${item.account};${format(
+        item.transactionDate,
+        "dd/MM/yyyy"
+      )};;${item.detail}`
+  );
+
+  // Combine headers and rows
+  const csvContent = [
+    headers, // Header row
+    ...rows, // Data rows
+  ].join("\n");
+
+  // Create a Blob
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+  // Create a download link
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", "table_data.csv");
+  link.style.display = "none";
+
+  // Append the link to the body and trigger download
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function onTypeChange(event) {
