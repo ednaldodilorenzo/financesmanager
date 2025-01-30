@@ -45,7 +45,7 @@
     />
     <button type="submit" class="btn btn-primary mx-3">Enviar</button>
   </form>
-  <div v-if="state.collection.length > 0" class="d-flex justify-content-start">
+  <div v-if="state.collection.length > 0" class="d-flex justify-content-center">
     <div class="col-auto">
       <button
         @click.prevent="importSelectedTransactions"
@@ -66,10 +66,10 @@
     </div>
   </div>
   <ValidateEach
-    v-for="item in v$.collection.$model"
+    v-for="item in state.collection"
     :key="item"
     :state="item"
-    :rules="rules.collection.$each"
+    :rules="rules"
   >
     <template #default="{ v }">
       <div class="card my-3" :class="{ 'border-danger': item.duplicated }">
@@ -138,6 +138,17 @@
                 <label for="floatingInput">Anotação</label>
               </div>
             </div>
+            <div class="col">
+              <div class="form-floating">
+                <bootstrap-select-tag
+                  v-model="item.tags"
+                  :options="searchTags"
+                  :floating="true"
+                  id="iptTags"
+                  name="tags"
+                />
+              </div>
+            </div>
             <div class="col-2">
               <div class="input-group">
                 <span class="input-group-text">R$</span>
@@ -163,8 +174,9 @@
                 aria-label="Basic outlined example"
               >
                 <button
+                  type="button"
                   class="btn btn-primary"
-                  @click.prevent="importTransaction(item)"
+                  @click.prevent="importTransaction(v, item)"
                 >
                   <i class="bi bi-arrow-down-circle-fill"></i>
                 </button>
@@ -175,6 +187,7 @@
                 aria-label="Basic outlined example"
               >
                 <button
+                  type="button"
                   class="btn btn-danger mx-3"
                   @click.prevent="removeItem(item)"
                 >
@@ -196,12 +209,14 @@ import { required } from "@vuelidate/validators";
 import { ValidateEach } from "@vuelidate/components";
 import transactionService from "./transaction.service";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
-import { format, isValid } from "date-fns";
+import { format } from "date-fns";
 import categoryService from "../category/category.service";
 import accountService from "../account/account.service";
 import { parseCurrencyToNumber } from "@/utils/numbers";
 import { useToast } from "vue-toastification";
 import { currencyBRL } from "@/components/filters/currency.filter";
+import BootstrapSelectTag from "@/components/bootstrap-select-tag.vue";
+import tagService from "@/views/tag/tag.service";
 
 const loading = useLoadingScreen();
 const toast = useToast();
@@ -234,7 +249,13 @@ function getDependencies() {
 
 getDependencies();
 
-const collectionRules = {
+const searchTags = (filter) => {
+  return tagService
+    .findAll({ filter: filter })
+    .then((resp) => resp.items.map((item) => item.tag));
+};
+
+const rules = {
   formatted_date: {
     required,
   },
@@ -249,34 +270,16 @@ const collectionRules = {
   },
 };
 
-const rules = {
-  collection: { required, $each: collectionRules },
-};
-
 function removeItem(itemClicked) {
   state.value.collection = state.value.collection.filter(
     (value) => value !== itemClicked
   );
 }
 
-let v$ = useVuelidate(rules, state);
+let v$ = useVuelidate();
 
 function validate() {
   return v$.value.$validate();
-}
-
-function validateItem(item) {
-  const index = state.value.collection.indexOf(item);
-
-  if (index !== -1) {
-    console.dir(v$.value.collection.$each);
-
-    return v$.value.collection.$each[index].$validate();
-  } else {
-    return new Promise((resolve) => {
-      return resolve(false);
-    });
-  }
 }
 
 function importNonDuplicated() {
@@ -290,16 +293,19 @@ function importNonDuplicated() {
   });
 }
 
-function importTransaction(itemClicked) {
-  validateItem(itemClicked).then((isValid) => {
+function importTransaction(validator, itemClicked) {
+  validator.$validate().then((isValid) => {
     if (isValid) {
       loading.show();
 
       const payload = {
-        categoryId: itemClicked.categoryId,
-        accountId: itemClicked.accountId,
+        categoryId: itemClicked.category,
+        accountId: currentAccount.value,
         detail: itemClicked.detail,
         description: itemClicked.description,
+        tags: itemClicked.tags.map((item) => ({
+          tag: item,
+        })),
         value: parseCurrencyToNumber(itemClicked.formatted_value),
         paymentDate: new Date(itemClicked.paymentDate).toISOString(),
         transactionDate: new Date(itemClicked.transactionDate).toISOString(),
@@ -334,6 +340,9 @@ function sendBatchData(data) {
     value: parseCurrencyToNumber(item.formatted_value),
     categoryId: category,
     accountId: currentAccount.value,
+    tags: item.tags.map((value) => ({
+      tag: value,
+    })),
     paymentDate: new Date(item.paymentDate).toISOString(),
     transactionDate: new Date(item.transactionDate).toISOString(),
   }));
@@ -381,9 +390,9 @@ function submitForm(e) {
         formatted_value: currencyBRL(item.value),
         category: item.categoryId ? item.categoryId : "",
         checked: false,
+        tags: [],
         clazz: item.duplicated ? "table-danger" : null,
       }));
-      console.dir(v$.value.collection.$model);
     })
     .finally(() => {
       loading.hide();

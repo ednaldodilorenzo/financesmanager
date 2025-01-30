@@ -3,7 +3,7 @@
     <label class="form-label" v-if="label" :for="$attrs['id']">{{
       label
     }}</label>
-    <div class="position-relative">
+    <div :class="{ 'form-floating': floating }" class="position-relative">
       <div
         class="form-control d-flex flex-wrap align-items-center"
         id="tag-input-wrapper"
@@ -66,6 +66,10 @@ const props = defineProps({
   options: {
     type: [Array, Function],
     default: () => [],
+  },
+  floating: {
+    type: String,
+    default: undefined,
   },
 });
 
