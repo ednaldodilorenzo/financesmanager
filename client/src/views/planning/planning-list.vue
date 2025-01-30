@@ -66,8 +66,7 @@
         :showPagination="false"
         :showNav="false"
         :items="filteredItems"
-        :showFilter="false"
-        :actions="[]"
+        :showFilter="false"        
       ></bootstrap-table>
     </div>
   </div>

@@ -78,13 +78,15 @@
           {
             name: 'edit',
             title: 'Editar Transação',
-            clazz: 'bi bi-pencil-fill',
+            icon: 'bi bi-pencil-fill',
+            clazz: 'link-primary',
             handler: handleEdit,
           },
           {
             name: 'delete',
             title: 'Excluir Transação',
-            clazz: 'bi bi-trash-fill',
+            icon: 'bi bi-trash-fill',
+            clazz: 'link-danger',
             handler: handleDelete,
           },
         ]"

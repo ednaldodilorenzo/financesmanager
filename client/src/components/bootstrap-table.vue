@@ -67,6 +67,7 @@
             <a
               v-for="action in actions"
               :key="action.name"
+              :class="action.clazz"
               class="btn btn-sm icon-link icon-link-hover"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
@@ -74,7 +75,7 @@
               @click.prevent="action.handler(item)"
               href="#"
             >
-              <i :class="action.clazz"></i>
+              <i :class="action.icon"></i>
             </a>
           </td>
         </tr>

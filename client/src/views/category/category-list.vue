@@ -22,7 +22,8 @@
       {
         name: 'edit',
         title: 'Editar Categoria',
-        clazz: 'bi bi-pencil-fill',
+        clazz: 'link-primary',
+        icon: 'bi bi-pencil-fill',
         handler: handleEdit,
       },
     ]"
