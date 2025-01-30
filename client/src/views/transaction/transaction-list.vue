@@ -249,7 +249,6 @@ function mapTransactions(transactionList) {
 
 function exportToCSV() {
   const headers = "Data;Descrição;Valor;Categoria;Conta;Data Efetiva;Tags;Nota";
-  console.log(JSON.stringify(transactions.value));
 
   const rows = transactions.value.map(
     (item) =>

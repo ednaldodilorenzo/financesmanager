@@ -1,7 +1,7 @@
 <template>
   <nav v-if="showNav" class="navbar bg-body-tertiary mb-3">
     <div class="d-flex w-100">
-      <div style="width: 15%">
+      <div>
         <a
           href="javascript:void(0)"
           v-if="showBack"
@@ -11,18 +11,18 @@
         ></a>
 
         <a href="#" @click="clickNew()" class="btn btn-primary">+ Novo</a>
-        <div
-          v-if="showCSVButton"
-          class="btn-group mx-3"
-          role="group"
-          aria-label="Basic outlined example"
-        >
-          <button type="button" @click="csvHandler" class="btn btn-success">
-            <i class="bi bi-filetype-csv"></i> Exportar para CSV
-          </button>
-        </div>
       </div>
-      <div style="width: 85%">
+      <div
+        v-if="showCSVButton"
+        class="btn-group mx-3"
+        role="group"
+        aria-label="Basic outlined example"
+      >
+        <button type="button" @click="csvHandler" class="btn btn-success">
+          <i class="bi bi-filetype-csv"></i> Exportar para CSV
+        </button>
+      </div>
+      <div class="flex-fill">
         <input
           v-if="showFilter"
           v-autofocus
