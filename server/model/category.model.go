@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Category struct {
 	UserDependent
 	Name   string `gorm:"type:varchar(45);not null" json:"name"`
-	Type   string `gorm:"type:varchar(1);not null"  json:"type"`
+	Type   string `gorm:"type:char(1);not null"  json:"type"`
 	Filter string `gorm:"type:varchar(100);not null"`
 }
 

@@ -1,7 +1,7 @@
 <template>
   <nav v-if="showNav" class="navbar bg-body-tertiary mb-3">
     <div class="d-flex w-100">
-      <div>
+      <div class="me-3">
         <a
           href="javascript:void(0)"
           v-if="showBack"
@@ -14,7 +14,7 @@
       </div>
       <div
         v-if="showCSVButton"
-        class="btn-group mx-3"
+        class="btn-group me-3"
         role="group"
         aria-label="Basic outlined example"
       >

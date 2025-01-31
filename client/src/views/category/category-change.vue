@@ -1,9 +1,8 @@
 <template>
-  <bootstrap-modal
-    @close="onCloseModal()"
-    @save="onSaveModal()"
+  <bootstrap-modal-screen
+    :onClose="onCancelModal"
+    :onConfirm="onSubmit"
     :title="`${form.id ? 'Alterar' : 'Nova'} Categoria`"
-    :visible="open"
   >
     <form
       :class="{
@@ -23,20 +22,20 @@
           id="iptNome"
           label="Nome"
           name="nome"
-          class="form-control"
         />
       </div>
       <div class="col-md-6">
         <bootstrap-select
           required-message="Por favor preencha o tipo da
-        categoria"
+          categoria"
           :required="true"
           v-model="form.type"
           id="slcTipo"
           :options="[
             { id: '', description: 'Selecione...' },
-            { id: 'E', description: 'Receita' },
-            { id: 'X', description: 'Despesa' },
+            { id: 'R', description: 'Receita' },
+            { id: 'D', description: 'Despesa' },
+            { id: 'I', description: 'Investimento' },
           ]"
           :keyField="'id'"
           :valueField="'description'"
@@ -45,115 +44,78 @@
         />
       </div>
     </form>
-  </bootstrap-modal>
+  </bootstrap-modal-screen>
 </template>
-<script>
-import BootstrapModal from "@/components/bootstrap-modal.vue";
+<script setup>
+import { ref } from "vue";
+import BootstrapModalScreen from "@/components/bootstrap-modal-screen.vue";
 import BootstrapInput from "@/components/bootstrap-input.vue";
 import BootstrapSelect from "@/components/bootstrap-select.vue";
 import { useVuelidate } from "@vuelidate/core";
 import categoryService from "./category.service";
 import { required } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
+import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 
-export default {
-  setup() {
-    const toast = useToast();
-    return { v$: useVuelidate(), toast };
-  },
-  components: { BootstrapModal, BootstrapInput, BootstrapSelect },
-  emits: ["close", "saved"],
-  props: {
-    visible: {
-      type: Boolean,
-      default: false,
-    },
-    itemSelected: {
-      type: Object,
-      default: {
-        name: "",
-        type: { id: "" },
-      },
-    },
-  },
-  data() {
-    return {
-      loading: false,
-      form: this.itemSelected,
-      open: this.visible,
-    };
-  },
-  methods: {
-    onSaveModal() {
-      this.v$.$validate();
+const toast = useToast();
+const loading = useLoadingScreen();
+const form = ref({});
 
-      if (this.v$.$error) {
-        return;
-      }
-
-      this.loading = true;
-      const payload = { ...this.form, type: this.form.type.id };
-
-      const method = this.form.id
-        ? categoryService.modify(this.form.id, payload)
-        : categoryService.create(payload);
-
-      method
-        .then(() => {
-          this.toast.success(
-            `Categoria ${this.form.id ? "atualizada" : "criada"} com sucesso!`,
-            {
-              position: "top-center",
-              timeout: 5000,
-              closeOnClick: true,
-              pauseOnFocusLoss: true,
-              pauseOnHover: true,
-              draggable: true,
-              draggablePercent: 0.6,
-              showCloseButtonOnHover: false,
-              hideProgressBar: true,
-              closeButton: "button",
-              icon: true,
-              rtl: false,
-            }
-          );
-          this.v$.$reset();
-          this.$emit("saved");
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-    },
-    onCloseModal() {
-      this.v$.$reset();
-      this.$emit("close");
-    },
+const rules = {
+  name: {
+    required,
   },
-  validations() {
-    return {
-      form: {
-        name: {
-          required,
-        },
-        type: {
-          required,
-        },
-      },
-    };
+  type: {
+    required,
   },
-  watch: {
-    visible: function (newVal, oldVal) {
-      this.open = newVal;
-    },
-    itemSelected: function (newVal, oldVal) {
-      this.form = {
-        ...newVal,
-        type: {
-          id: newVal.type,
-          description: newVal.type === "X" ? "Despesa" : "Receita",
-        },
-      };
-    },
+};
+
+const props = defineProps({
+  onSaveModal: Function,
+  onCancelModal: Function,
+  item: {
+    type: Object,
+    required: false,
+    default: () => ({
+      name: "",
+      type: "",
+    }),
   },
+});
+
+form.value = props.item;
+
+const v$ = useVuelidate(rules, form.value);
+
+const onSubmit = () => {
+  v$.value.$validate();
+
+  if (v$.value.$error) {
+    return;
+  }
+
+  loading.show();
+  const payload = { ...form.value, type: form.value.type };
+  const method = form.value.id
+    ? categoryService.modify(form.value.id, payload)
+    : categoryService.create(payload);
+
+  method
+    .then(() => {
+      toast.success(
+        `Categoria ${form.value.id ? "atualizada" : "criada"} com sucesso!`,
+        {
+          position: "top-center",
+        }
+      );
+      v$.value.$reset();
+      props.onSaveModal();
+    })
+    .catch((e) => {
+      console.error(e);
+    })
+    .finally(() => {
+      loading.hide();
+    });
 };
 </script>

@@ -39,7 +39,7 @@ import Table from "@/components/bootstrap-table.vue";
 import categoryService from "./category.service";
 import { debounce } from "@/utils/support";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
-import CategoryChangeScreen from "./category-change-screen.vue";
+import CategoryChange from "./category-change.vue";
 import { useRouter } from "vue-router";
 import { useModalScreen } from "@/components/modal/use-modal-screen";
 
@@ -47,7 +47,7 @@ const loading = useLoadingScreen();
 const router = useRouter();
 const items = ref([]);
 
-const modal = useModalScreen(CategoryChangeScreen);
+const modal = useModalScreen(CategoryChange);
 
 const getList = async () => {
   loading.show();
@@ -57,7 +57,12 @@ const getList = async () => {
     const resp = await categoryService.findAll(params);
     items.value = resp.items.map((item) => ({
       ...item,
-      type_desc: item.type === "D" ? "Despesa" : "Receita",
+      type_desc:
+        item.type !== "D"
+          ? item.type === "I"
+            ? "Investimento"
+            : "Receira"
+          : "Despesa",
     }));
   } catch (err) {
     console.log(err);
