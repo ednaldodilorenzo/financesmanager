@@ -20,7 +20,7 @@ const ROUTES_DEFINITIONS = [
   {
     path: "/import-transactions",
     name: ROUTE_NAMES.UPLOAD,
-    component: () => import("./transaction-import-new.vue"),
+    component: () => import("./transaction-import.vue"),
     meta: {
       label: "Importação",
       icon: "bi bi-file-arrow-up-fill",

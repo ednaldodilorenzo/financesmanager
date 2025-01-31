@@ -107,7 +107,7 @@ import categoryService from "../category/category.service";
 import accountService from "../account/account.service";
 import { format } from "date-fns";
 import { debounce } from "@/utils/support";
-import TransactionChangeScreen from "./transaction-change-screen.vue";
+import TransactionChange from "./transaction-change.vue";
 import { ref, computed } from "vue";
 import { useModalScreen } from "@/components/modal/use-modal-screen";
 import { useRouter } from "vue-router";
@@ -127,7 +127,7 @@ const fields = [
 ];
 
 const toast = useToast();
-const modal = useModalScreen(TransactionChangeScreen);
+const modal = useModalScreen(TransactionChange);
 
 const dialog = useDialogScreen(
   "Deseja realmente excluir a transação?",
@@ -292,7 +292,7 @@ function onAccountChange(event) {
 
 const onChangeDebounced = debounce((newDate) => {
   currentDate = newDate;
-  getList(currentDate.getMonth() + 1, currentDate.getFullYear());
+  getList(newDate.getMonth() + 1, newDate.getFullYear());
 }, 1000);
 
 loadInitalData();

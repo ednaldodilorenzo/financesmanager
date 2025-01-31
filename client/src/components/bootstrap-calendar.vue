@@ -94,7 +94,7 @@ const nextMonth = () => {
     currentDate.value = newDate;
   } else {
     if (newDate.getMonth() < 11) {
-      newDate.setMonth(newDate.getMonth() + 1);
+      newDate.setMonth(newDate.getMonth() + 1, 2);
       currentDate.value = newDate;
     } else {
       newDate.setFullYear(newDate.getFullYear() + 1);

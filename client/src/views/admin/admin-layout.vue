@@ -3,7 +3,7 @@
     <adminSidebar :menuShown="showMenu" />
     <main class="d-flex flex-column w-100">
       <adminTopbar @collapse-click="topBarCollapseClick()" />
-      <div class="p-3">
+      <div style="background-color: #f2f5f6" class="p-3">
         <router-view />
       </div>
       <adminFooter />
