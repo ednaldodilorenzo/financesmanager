@@ -35,7 +35,7 @@
       },
       {
         title: 'Investido',
-        value: summary.investments,
+        value: Math.abs(summary.investments),
       },
     ]"
   />
@@ -176,7 +176,7 @@ const summary = computed(() => {
           : previous.expenses,
       investments:
         current.categoryType === "I"
-          ? previous.investments + Math.abs(current.value)
+          ? previous.investments + current.value
           : previous.investments,
     }),
     { earns: 0.0, expenses: 0.0, investments: 0.0 }

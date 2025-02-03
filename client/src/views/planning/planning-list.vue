@@ -33,7 +33,7 @@
       },
       {
         title: 'Investido',
-        value: summary.invested,
+        value: Math.abs(summary.invested),
       },
     ]"
   />
@@ -100,7 +100,7 @@ const summary = computed(() => {
             : 0
           : previous.planned - current.planned / 12,
       invested:
-        current.type === "I" ? previous.invested + Math.abs(current.total) : 0,
+        current.type === "I" ? previous.invested + current.total : 0,
     }),
     { executed: 0.0, planned: 0.0 }
   );

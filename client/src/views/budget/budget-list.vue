@@ -41,7 +41,7 @@
       {
         title: 'Investimento Total',
         value: summary.investments,
-        percent: summary.investments / summary.earns,
+        percent: Math.abs(summary.investments / summary.earns),
         percentMessage: 'do Total de Receitas',
       },
     ]"
@@ -108,7 +108,7 @@ const summary = computed(() => {
           : previous.expenses,
       investments:
         current.categoryType === "I"
-          ? previous.investments + Math.abs(current.value)
+          ? previous.investments + current.value
           : previous.investments,
     }),
     { earns: 0.0, expenses: 0.0, investments: 0.0 }
