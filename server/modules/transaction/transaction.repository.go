@@ -55,11 +55,11 @@ func (tr *TransactionRespositoryStruct) FindAllWithRelationships(month *int, yea
 	query := tr.dbConfig.DB.Model(&items).Preload("Account").Preload("Category")
 
 	if month != nil && year != nil {
-		query = query.Where("EXTRACT(MONTH FROM payment_date) = ? AND EXTRACT(YEAR FROM payment_date) = ? ORDER BY payment_date DESC", *month, *year)
+		query = query.Where("EXTRACT(MONTH FROM payment_date) = ? AND EXTRACT(YEAR FROM payment_date) = ? ORDER BY payment_date, transaction_date DESC", *month, *year)
 	} else if month != nil {
-		query = query.Where("EXTRACT(MONTH FROM payment_date) = ? ORDER BY payment_date DESC", *month)
+		query = query.Where("EXTRACT(MONTH FROM payment_date) = ? ORDER BY payment_date, transaction_date DESC", *month)
 	} else if year != nil {
-		query = query.Where("EXTRACT(YEAR FROM payment_date) = ? ORDER BY payment_date DESC", *year)
+		query = query.Where("EXTRACT(YEAR FROM payment_date) = ? ORDER BY payment_date, transaction_date DESC", *year)
 	}
 
 	if err := query.Find(&items).Error; err != nil {
