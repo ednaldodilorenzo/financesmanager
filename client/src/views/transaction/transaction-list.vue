@@ -33,6 +33,10 @@
         title: 'Saldo',
         value: summary.earns + summary.expenses,
       },
+      {
+        title: 'Investido',
+        value: summary.investments,
+      },
     ]"
   />
   <div class="card">
@@ -160,7 +164,7 @@ const filteredItems = computed(() => {
 
 // Computed property for dynamically updating the summary
 const summary = computed(() => {
-  const summaryData = filteredItems.value.reduce(
+  return filteredItems.value.reduce(
     (previous, current) => ({
       earns:
         current.categoryType === "R"
@@ -170,14 +174,13 @@ const summary = computed(() => {
         current.categoryType === "D"
           ? previous.expenses + current.value
           : previous.expenses,
+      investments:
+        current.categoryType === "I"
+          ? previous.investments + Math.abs(current.value)
+          : previous.investments,
     }),
-    { earns: 0.0, expenses: 0.0 }
+    { earns: 0.0, expenses: 0.0, investments: 0.0 }
   );
-
-  return {
-    earns: summaryData.earns,
-    expenses: summaryData.expenses,
-  };
 });
 
 function loadInitalData() {

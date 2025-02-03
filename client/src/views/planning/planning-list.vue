@@ -31,6 +31,10 @@
         title: 'Diferença',
         value: summary.executed - summary.planned,
       },
+      {
+        title: 'Investido',
+        value: summary.invested,
+      },
     ]"
   />
   <div class="card">
@@ -66,7 +70,7 @@
         :showPagination="false"
         :showNav="false"
         :items="filteredItems"
-        :showFilter="false"        
+        :showFilter="false"
       ></bootstrap-table>
     </div>
   </div>
@@ -90,9 +94,13 @@ const summary = computed(() => {
     (previous, current) => ({
       executed: previous.executed + current.total,
       planned:
-        current.type === "D"
-          ? previous.planned - current.planned / 12
-          : previous.planned + current.planned / 12,
+        current.type !== "D"
+          ? current.type === "R"
+            ? previous.planned + current.planned / 12
+            : 0
+          : previous.planned - current.planned / 12,
+      invested:
+        current.type === "I" ? previous.invested + Math.abs(current.total) : 0,
     }),
     { executed: 0.0, planned: 0.0 }
   );

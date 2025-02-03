@@ -38,6 +38,12 @@
         percent: Math.abs((summary.earns - summary.expenses) / summary.earns),
         percentMessage: 'do Total de Receitas',
       },
+      {
+        title: 'Investimento Total',
+        value: summary.investments,
+        percent: summary.investments / summary.earns,
+        percentMessage: 'do Total de Receitas',
+      },
     ]"
   />
   <div class="card">
@@ -90,7 +96,7 @@ const filteredItems = ref([]);
 let allCategories = [];
 
 const summary = computed(() => {
-  const summaryData = filteredItems.value.reduce(
+  return filteredItems.value.reduce(
     (previous, current) => ({
       earns:
         current.category.type === "R"
@@ -100,14 +106,13 @@ const summary = computed(() => {
         current.category.type === "D"
           ? previous.expenses + current.value
           : previous.expenses,
+      investments:
+        current.categoryType === "I"
+          ? previous.investments + Math.abs(current.value)
+          : previous.investments,
     }),
-    { earns: 0.0, expenses: 0.0 }
+    { earns: 0.0, expenses: 0.0, investments: 0.0 }
   );
-
-  return {
-    earns: summaryData.earns,
-    expenses: summaryData.expenses,
-  };
 });
 
 const handleDelete = (item) => {
