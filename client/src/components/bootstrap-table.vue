@@ -39,7 +39,7 @@
   <div v-if="filteredList.length === 0" class="data-not-found py-3">
     <h1>Nenhum dado encontrado...</h1>
   </div>
-  <div v-else>
+  <div class="table-responsive" v-else>
     <table
       id="tableComponent"
       class="table table-striped table-hover table-responsive"

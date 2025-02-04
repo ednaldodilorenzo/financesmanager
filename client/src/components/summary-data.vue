@@ -3,11 +3,11 @@
     class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center my-3"
   >
     <div v-for="item in data" class="col border-end border-light border-dashed">
-      <div class="card mx-3">
-        <div class="mt-3 mt-md-0 p-3">
-          <h5 title="Number of Orders" class="text-muted fs-13 text-uppercase">
+      <div class="card m-3">
+        <div class="mt-md-0 p-3">
+          <h6 title="Number of Orders" class="text-muted fs-13 text-uppercase">
             {{ item.title }}
-          </h5>
+          </h6>
           <div
             class="d-flex align-items-center justify-content-center gap-2 my-3"
           >
@@ -19,14 +19,14 @@
                 ></iconify-icon
               ></span>
             </div>
-            <h3
+            <h4
               :class="{
                 'text-danger': item.value && item.value < 0,
               }"
               class="mb-0 fw-bold"
             >
               {{ $filters.currencyBRL(item.value) }}
-            </h3>
+            </h4>
           </div>
           <p class="mb-0 text-muted">
             <span class="text-success me-2"
