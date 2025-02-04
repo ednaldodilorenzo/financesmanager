@@ -1,11 +1,11 @@
-function formatDate(date, locale = "pt-br", options = {}) {
-  const formatter = new Intl.DateTimeFormat(locale, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    ...options,
-  });
-  return formatter.format(new Date(date));
+import { format } from "date-fns";
+
+function formatDateUTC(dateString, pattern) {
+  const date = new Date(dateString);
+  return format(
+    new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    pattern
+  ); // Ensures the correct day
 }
 
-export { formatDate };
+export { formatDateUTC };

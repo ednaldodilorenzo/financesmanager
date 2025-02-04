@@ -109,7 +109,7 @@ import Calendar from "@/components/bootstrap-calendar.vue";
 import transactionService from "./transaction.service";
 import categoryService from "../category/category.service";
 import accountService from "../account/account.service";
-import { format } from "date-fns";
+import { formatDateUTC } from "@/utils/date";
 import { debounce } from "@/utils/support";
 import TransactionChange from "./transaction-change.vue";
 import { ref, computed } from "vue";
@@ -237,7 +237,7 @@ function getList(month, year, filter = undefined) {
 function mapTransactions(transactionList) {
   return transactionList.map((item) => ({
     ...item,
-    formatted_date: format(item.paymentDate, "dd/MM/yyyy"),
+    formatted_date: formatDateUTC(item.paymentDate, "dd/MM/yyyy"), //new Date(item.paymentDate).toLocaleDateString("pt-BR"),
     formatted_value: {
       value: currencyBRL(Math.abs(item.value)),
       clazz: item.value > 0 ? "text-success text-end" : "text-danger text-end",
@@ -257,7 +257,7 @@ function exportToCSV() {
     (item) =>
       `${item.formatted_date};${item.description};${formatCurrency(
         "" + item.value
-      )};${item.category};${item.account};${format(
+      )};${item.category};${item.account};${formatDateUTC(
         item.transactionDate,
         "dd/MM/yyyy"
       )};;${item.detail}`
@@ -308,8 +308,8 @@ const handleEdit = async (itemClicked) => {
       maximumFractionDigits: 2,
     }),
     categoryId: itemClicked.categoryId,
-    transactionDate: format(itemClicked.transactionDate, "yyyy-MM-dd"),
-    paymentDate: format(itemClicked.paymentDate, "yyyy-MM-dd"),
+    transactionDate: formatDateUTC(itemClicked.transactionDate, "yyyy-MM-dd"),
+    paymentDate: formatDateUTC(itemClicked.paymentDate, "yyyy-MM-dd"),
   };
   const saved = await modal.show(item);
   if (saved) {

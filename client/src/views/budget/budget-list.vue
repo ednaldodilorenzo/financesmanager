@@ -107,7 +107,7 @@ const summary = computed(() => {
           ? previous.expenses + current.value
           : previous.expenses,
       investments:
-        current.categoryType === "I"
+        current.category.type === "I"
           ? previous.investments + current.value
           : previous.investments,
     }),

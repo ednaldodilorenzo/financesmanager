@@ -95,7 +95,7 @@ import BootstrapSearcheableSelect from "@/components/bootstrap-searcheable-selec
 import BootstrapTextArea from "@/components/bootstrap-textarea.vue";
 import BootstrapModalScreen from "@/components/bootstrap-modal-screen.vue";
 import BootstrapSelectTag from "@/components/bootstrap-select-tag.vue";
-import { format } from "date-fns";
+import { formatDateUTC } from "@/utils/date";
 import { required } from "@vuelidate/validators";
 import categoryService from "@/views/category/category.service";
 import accountService from "@/views/account/account.service";
@@ -118,8 +118,8 @@ const props = defineProps({
     type: Object,
     required: false,
     default: () => ({
-      transactionDate: format(new Date(), "yyyy-MM-dd"),
-      paymentDate: format(new Date(), "yyyy-MM-dd"),
+      transactionDate: formatDateUTC(new Date(), "yyyy-MM-dd"),
+      paymentDate: formatDateUTC(new Date(), "yyyy-MM-dd"),
       description: "",
       categoryId: undefined,
       category: null,
@@ -160,8 +160,11 @@ function getDependencies() {
           ...resp.item,
           value: formatCurrency("" + resp.item.value),
           tags: resp.item.tags.map((value) => value.tag),
-          transactionDate: format(resp.item.transactionDate, "yyyy-MM-dd"),
-          paymentDate: format(resp.item.paymentDate, "yyyy-MM-dd"),
+          transactionDate: formatDateUTC(
+            resp.item.transactionDate,
+            "yyyy-MM-dd"
+          ),
+          paymentDate: formatDateUTC(resp.item.paymentDate, "yyyy-MM-dd"),
         };
       });
     } else {
