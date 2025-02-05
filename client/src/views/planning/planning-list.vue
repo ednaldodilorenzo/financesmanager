@@ -64,7 +64,7 @@
               :style="{
                 width:
                   Math.abs(item.total) <= item.monthly_planned
-                    ? (item.total / item.monthly_planned) * 100 + '%'
+                    ? Math.abs(item.total / item.monthly_planned) * 100 + '%'
                     : '100%',
               }"
               aria-valuenow="25"
