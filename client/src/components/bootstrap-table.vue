@@ -42,7 +42,8 @@
   <div class="table-responsive" v-else>
     <table
       id="tableComponent"
-      class="table table-striped table-hover table-responsive"
+      :class="{ 'table-striped': striped, 'table-hover': hover }"
+      class="table table-responsive"
     >
       <thead>
         <tr>
@@ -61,18 +62,30 @@
       <tbody>
         <!-- Loop through the list get the each student data -->
         <tr v-for="item in filteredList" :class="item.clazz" :key="item">
-          <td
+          <component
+            :is="'td'"
             v-for="field in fields"
-            :style="item[field?.name]?.style"
-            :class="item[field?.name]?.clazz"
-            :key="field"
+            :key="field.name"
+            v-bind="getTdAttributes(item, field)"
           >
-            {{
-              typeof item[field?.name] === "object"
-                ? item[field?.name].value
-                : item[field?.name]
-            }}
-          </td>
+            <!-- <td
+              :style="item[field?.name]?.style"
+              :class="item[field?.name]?.clazz"
+            >
+              {{
+                typeof item[field?.name] === "object"
+                  ? item[field?.name].value
+                  : item[field?.name]
+              }}
+            </td> -->
+            <slot :name="`custom-td-${field.name}`" :item="item" :field="field">
+              {{
+                typeof item[field?.name] === "object"
+                  ? item[field?.name].value
+                  : item[field?.name]
+              }}
+            </slot>
+          </component>
           <td v-if="actions.length" class="text-center">
             <a
               v-for="action in actions"
@@ -212,6 +225,14 @@ export default {
       type: Boolean,
       default: () => true,
     },
+    striped: {
+      type: Boolean,
+      default: () => false,
+    },
+    hover: {
+      type: Boolean,
+      default: () => true,
+    },
   },
   methods: {
     clickNew() {
@@ -219,6 +240,12 @@ export default {
     },
     clickBack() {
       this.$emit("back-clicked");
+    },
+    getTdAttributes(item, field) {
+      return {
+        style: item[field?.name]?.style || "",
+        class: item[field?.name]?.clazz || "",
+      };
     },
   },
   setup(props) {

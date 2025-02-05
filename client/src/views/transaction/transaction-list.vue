@@ -80,6 +80,7 @@
         :showPagination="false"
         :items="filteredItems"
         :showFilter="true"
+        :striped="true"
         :actions="[
           {
             name: 'edit',

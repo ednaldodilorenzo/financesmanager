@@ -20,16 +20,16 @@
   <summary-data
     :data="[
       {
-        title: 'Executado',
-        value: summary.executed,
-      },
-      {
         title: 'Planejado',
         value: summary.planned,
       },
       {
+        title: 'Executado',
+        value: summary.executed,
+      },
+      {
         title: 'Diferença',
-        value: summary.executed - summary.planned,
+        value: summary.planned - summary.executed,
       },
       {
         title: 'Investido',
@@ -43,35 +43,59 @@
         :fields="[
           { title: 'Categoria', name: 'name' },
           {
-            title: { value: 'Executado Mês', clazz: 'text-end' },
+            title: 'Executado',
             name: 'formatted_value',
           },
           {
-            title: { value: 'Planejado Mês', clazz: 'text-end' },
+            title: { value: 'Planejado', clazz: 'text-end' },
             name: 'formatted_planned',
-          },
-          {
-            title: { value: 'Executado Acumulado Ano', clazz: 'text-end' },
-            name: 'formatted_accumulated',
-          },
-          {
-            title: { value: 'Planejado Acumulado Ano', clazz: 'text-end' },
-            name: 'formatted_planned_accumulated',
-          },
-          {
-            title: { value: 'Planejado Total', clazz: 'text-end' },
-            name: 'formatted_total_planned',
-          },
-          {
-            title: { value: 'Tendência', clazz: 'text-end' },
-            name: 'formatted_tendency',
           },
         ]"
         :showPagination="false"
         :showNav="false"
         :items="filteredItems"
         :showFilter="false"
-      ></bootstrap-table>
+      >
+        <template v-slot:custom-td-formatted_value="{ item, field }">
+          <div class="progress" style="height: 20px">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              :style="{
+                width:
+                  Math.abs(item.total) <= item.monthly_planned
+                    ? (item.total / item.monthly_planned) * 100 + '%'
+                    : '100%',
+              }"
+              aria-valuenow="25"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              {{ currencyBRL(Math.abs(item.total)) }}
+            </div>
+            <div
+              v-if="Math.abs(item.total) > item.monthly_planned"
+              class="progress-bar bg-danger"
+              role="progressbar"
+              :style="{
+                width:
+                  (Math.abs(item.total) / item.monthly_planned - 1) * 100 + '%',
+              }"
+              aria-valuenow="30"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              {{ currencyBRL(Math.abs(item.rest)) }}
+            </div>
+            <div class="d-flex justify-content-center w-75" v-else>
+              {{ currencyBRL(item.rest) }}
+            </div>
+          </div>
+        </template>
+        <template v-slot:custom-td-rest="{ item, field }">
+          {{ currencyBRL(item.rest) }}
+        </template>
+      </bootstrap-table>
     </div>
   </div>
 </template>
@@ -97,7 +121,7 @@ const summary = computed(() =>
         current.type !== "D"
           ? current.type === "R"
             ? previous.planned + current.planned / 12
-            : 0
+            : previous.planned + 0
           : previous.planned - current.planned / 12,
       invested: current.type === "I" ? previous.invested + current.total : 0,
     }),
@@ -119,6 +143,7 @@ const getData = (month, year) => {
               ? "text-danger text-end"
               : "text-success text-end",
         },
+        monthly_planned: item.planned / 12,
         formatted_planned: {
           value: currencyBRL(Math.abs(item.planned / 12)),
           clazz: "text-primary text-end",
@@ -148,6 +173,7 @@ const getData = (month, year) => {
           ),
           clazz: "text-primary text-end",
         },
+        rest: item.planned / 12 - Math.abs(item.total),
       }));
     })
     .finally(() => {
