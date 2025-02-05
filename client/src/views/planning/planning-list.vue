@@ -89,8 +89,8 @@ const loading = useLoadingScreen();
 
 const filteredItems = ref([]);
 
-const summary = computed(() => {
-  return filteredItems.value.reduce(
+const summary = computed(() =>
+  filteredItems.value.reduce(
     (previous, current) => ({
       executed: previous.executed + current.total,
       planned:
@@ -99,12 +99,11 @@ const summary = computed(() => {
             ? previous.planned + current.planned / 12
             : 0
           : previous.planned - current.planned / 12,
-      invested:
-        current.type === "I" ? previous.invested + current.total : 0,
+      invested: current.type === "I" ? previous.invested + current.total : 0,
     }),
     { executed: 0.0, planned: 0.0 }
-  );
-});
+  )
+);
 
 const getData = (month, year) => {
   loading.show();

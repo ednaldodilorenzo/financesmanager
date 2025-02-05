@@ -149,8 +149,8 @@ const selectedCategory = ref(null);
 const loading = useLoadingScreen();
 let currentDate = new Date();
 
-const filteredItems = computed(() => {
-  return transactions.value.filter((item) => {
+const filteredItems = computed(() =>
+  transactions.value.filter((item) => {
     const typeMatch =
       !selectedType.value || item.categoryType === selectedType.value;
     const accountMatch =
@@ -159,12 +159,12 @@ const filteredItems = computed(() => {
       !selectedCategory.value || item.categoryId === selectedCategory.value.id;
 
     return typeMatch && accountMatch && categoryMatch;
-  });
-});
+  })
+);
 
 // Computed property for dynamically updating the summary
-const summary = computed(() => {
-  return filteredItems.value.reduce(
+const summary = computed(() =>
+  filteredItems.value.reduce(
     (previous, current) => ({
       earns:
         current.categoryType === "R"
@@ -180,8 +180,8 @@ const summary = computed(() => {
           : previous.investments,
     }),
     { earns: 0.0, expenses: 0.0, investments: 0.0 }
-  );
-});
+  )
+);
 
 function loadInitalData() {
   loading.show();

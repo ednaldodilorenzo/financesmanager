@@ -95,8 +95,8 @@ let currentDate = new Date();
 const filteredItems = ref([]);
 let allCategories = [];
 
-const summary = computed(() => {
-  return filteredItems.value.reduce(
+const summary = computed(() =>
+  filteredItems.value.reduce(
     (previous, current) => ({
       earns:
         current.category.type === "R"
@@ -112,8 +112,8 @@ const summary = computed(() => {
           : previous.investments,
     }),
     { earns: 0.0, expenses: 0.0, investments: 0.0 }
-  );
-});
+  )
+);
 
 const handleDelete = (item) => {
   filteredItems.value = filteredItems.value.filter(

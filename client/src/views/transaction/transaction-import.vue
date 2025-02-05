@@ -209,7 +209,7 @@ import { required } from "@vuelidate/validators";
 import { ValidateEach } from "@vuelidate/components";
 import transactionService from "./transaction.service";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
-import { format } from "date-fns";
+import { formatDateUTC } from "@/utils/date";
 import categoryService from "../category/category.service";
 import accountService from "../account/account.service";
 import { parseCurrencyToNumber } from "@/utils/numbers";
@@ -386,7 +386,7 @@ function submitForm(e) {
     .then((resp) => {
       state.value.collection = resp.items.map((item) => ({
         ...item,
-        formatted_date: format(item.paymentDate, "yyyy-MM-dd"),
+        formatted_date: formatDateUTC(item.paymentDate, "yyyy-MM-dd"),
         formatted_value: currencyBRL(item.value),
         category: item.categoryId ? item.categoryId : "",
         checked: false,
