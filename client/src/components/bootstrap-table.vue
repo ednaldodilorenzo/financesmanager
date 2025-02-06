@@ -54,13 +54,14 @@
                 ? field?.title.value
                 : field?.title
             }}
-            <i class="bi bi-sort-alpha-down" aria-label="Sort Icon"></i>
+            <i class="bi bi-sort-alpha-down" v-if="sortColumns" aria-label="Sort Icon"></i>
           </th>
           <th v-if="actions.length" class="text-center">Ações</th>
         </tr>
       </thead>
       <tbody>
         <!-- Loop through the list get the each student data -->
+        <slot name="first-row"></slot>
         <tr v-for="item in filteredList" :class="item.clazz" :key="item">
           <component
             :is="'td'"
@@ -68,16 +69,6 @@
             :key="field.name"
             v-bind="getTdAttributes(item, field)"
           >
-            <!-- <td
-              :style="item[field?.name]?.style"
-              :class="item[field?.name]?.clazz"
-            >
-              {{
-                typeof item[field?.name] === "object"
-                  ? item[field?.name].value
-                  : item[field?.name]
-              }}
-            </td> -->
             <slot :name="`custom-td-${field.name}`" :item="item" :field="field">
               {{
                 typeof item[field?.name] === "object"
@@ -232,6 +223,10 @@ export default {
     hover: {
       type: Boolean,
       default: () => true,
+    },
+    sortColumns: {
+      type: Boolean,
+      default: () => false,
     },
   },
   methods: {
