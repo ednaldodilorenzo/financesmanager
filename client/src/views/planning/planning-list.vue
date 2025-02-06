@@ -12,8 +12,20 @@
   </div>
   <div class="card mb-3">
     <div class="card-body p-2">
-      <div class="d-flex justify-content-center my-3">
-        <Calendar @date-change="onChangeDebounced"></Calendar>
+      <div class="d-flex flex-column align-items-center my-3">
+        <Calendar class="mb-3" @date-change="onChangeDebounced"></Calendar>
+        <bootstrap-select
+          @change="onSelectChange"
+          v-model="type"
+          class="w-25"
+          :options="[
+            { id: 'M', value: 'Mensal' },
+            { id: 'Y', value: 'Anual' },
+          ]"
+          :key-field="'id'"
+          :value-field="'value'"
+        >
+        </bootstrap-select>
       </div>
     </div>
   </div>
@@ -38,22 +50,22 @@
       >
         <template #first-row>
           <tr>
-            <td>Total</td>
-            <td>
+            <td class="w-25">Total</td>
+            <td class="w-50">
               <bootstrap-plan-exec-bar
                 :planned="earnsSummary.planned"
                 :executed="earnsSummary.executed"
               />
             </td>
-            <td class="text-end text-primary">
+            <td class="text-end text-primary w-25">
               {{ currencyBRL(earnsSummary.planned) }}
             </td>
           </tr>
         </template>
         <template #custom-td-formatted_value="{ item, field }">
           <bootstrap-plan-exec-bar
-            :planned="item.monthly_planned"
-            :executed="Math.abs(item.total)"
+            :planned="item.planned"
+            :executed="item.executed"
           />
         </template>
       </bootstrap-table>
@@ -76,22 +88,22 @@
       >
         <template #first-row>
           <tr>
-            <td>Total</td>
-            <td>
+            <td class="w-25">Total</td>
+            <td class="w-50">
               <bootstrap-plan-exec-bar
                 :planned="expensesSummary.planned"
                 :executed="expensesSummary.executed"
               />
             </td>
-            <td class="text-end text-primary">
+            <td class="text-end text-primary w-25">
               {{ currencyBRL(expensesSummary.planned) }}
             </td>
           </tr>
         </template>
         <template #custom-td-chartValues="{ item, field }">
           <bootstrap-plan-exec-bar
-            :planned="item.monthly_planned"
-            :executed="Math.abs(item.total)"
+            :planned="item.planned"
+            :executed="item.executed"
           />
         </template>
       </bootstrap-table>
@@ -101,23 +113,27 @@
 <script setup>
 import BootstrapTable from "@/components/bootstrap-table.vue";
 import BootstrapPlanExecBar from "@/components/boostra-planexec-bar.vue";
+import BootstrapSelect from "@/components/bootstrap-select.vue";
 import Calendar from "@/components/bootstrap-calendar.vue";
 import planningService from "./planning.service";
 import { debounce } from "@/utils/support";
 import { ref, computed } from "vue";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import { currencyBRL } from "@/components/filters/currency.filter";
+import { minutesToMilliseconds } from "date-fns";
 
 const loading = useLoadingScreen();
 
 const expensesList = ref([]);
 const earnsList = ref([]);
+let fullList = [];
+const type = ref("M");
 
 const earnsSummary = computed(() =>
   earnsList.value.reduce(
     (previous, current) => ({
-      planned: previous.planned + current.monthly_planned,
-      executed: previous.executed + current.total,
+      planned: previous.planned + current.planned,
+      executed: previous.executed + current.executed,
     }),
     { planned: 0.0, executed: 0.0 }
   )
@@ -126,27 +142,63 @@ const earnsSummary = computed(() =>
 const expensesSummary = computed(() =>
   expensesList.value.reduce(
     (previous, current) => ({
-      planned: previous.planned + current.monthly_planned,
-      executed: previous.executed + Math.abs(current.total),
+      planned: previous.planned + current.planned,
+      executed: previous.executed + current.executed,
     }),
     { planned: 0.0, executed: 0.0 }
   )
 );
+
+const onSelectChange = (value) => {
+  const respList =
+    value === "M"
+      ? fullList.map((item) => ({
+          ...item,
+          planned: item.planned / 12,
+          executed: Math.abs(item.total),
+          formatted_planned: {
+            value: currencyBRL(Math.abs(item.planned / 12)),
+            clazz: "text-primary text-end",
+          },
+        }))
+      : fullList.map((item) => ({
+          ...item,
+          executed: Math.abs(item.accumulated),
+          formatted_planned: {
+            value: currencyBRL(Math.abs(item.planned)),
+            clazz: "text-primary text-end",
+          },
+        }));
+
+  expensesList.value = respList.filter((item) => item.type === "D");
+  earnsList.value = respList.filter((item) => item.type === "R");
+};
 
 const getData = (month, year) => {
   loading.show();
   planningService
     .findAll({ month: month, year: year })
     .then((resp) => {
-      const respList = resp.items.map((item) => ({
-        ...item,
-        monthly_planned: item.planned / 12,
-        formatted_planned: {
-          value: currencyBRL(Math.abs(item.planned / 12)),
-          clazz: "text-primary text-end",
-        },
-        rest: item.planned / 12 - Math.abs(item.total),
-      }));
+      fullList = resp.items;
+      const respList =
+        type.value === "M"
+          ? fullList.map((item) => ({
+              ...item,
+              planned: item.planned / 12,
+              executed: Math.abs(item.total),
+              formatted_planned: {
+                value: currencyBRL(Math.abs(item.planned / 12)),
+                clazz: "text-primary text-end",
+              },
+            }))
+          : fullList.map((item) => ({
+              ...item,
+              executed: Math.abs(item.accumulated),
+              formatted_planned: {
+                value: currencyBRL(Math.abs(item.planned)),
+                clazz: "text-primary text-end",
+              },
+            }));
 
       expensesList.value = respList.filter((item) => item.type === "D");
       earnsList.value = respList.filter((item) => item.type === "R");

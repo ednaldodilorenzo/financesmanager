@@ -1,6 +1,11 @@
 <template>
   <label class="form-label" v-if="label" :for="$attrs['id']">{{ label }}</label>
-  <select v-bind="$attrs" v-model="model" class="form-select">
+  <select
+    @change="onSelectChange"
+    v-bind="$attrs"
+    v-model="model"
+    class="form-select"
+  >
     <option v-for="option in options" :value="option[props.keyField]">
       {{ option[props.valueField] }}
     </option>
@@ -34,4 +39,10 @@ const props = defineProps({
 });
 // The name value of the parameter must be modelValue to avoid passing it externally.
 const model = defineModel("modelValue");
+
+const emit = defineEmits(["change"]);
+
+const onSelectChange = (e) => {
+  emit("change", e.target.value);
+};
 </script>
