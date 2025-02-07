@@ -1,5 +1,6 @@
 import requester from "@/utils/request";
 import store from "@/store/index";
+import Cookies from "js-cookie";
 
 const authService = {
   login: (username, password) => {
@@ -13,8 +14,11 @@ const authService = {
         store.dispatch("currentUser/setUser", {
           id: user.id_usuario,
           name: user.nome_usuario,
-          role: user.papel,
-          token: user.token,
+        });
+        Cookies.set("jwtToken", user.token, {
+          expires: 1, // Optional: set cookie expiration time in days
+          secure: true, // Optional: ensures the cookie is only sent over HTTPS
+          sameSite: "Strict", // Optional: prevent CSRF attacks by restricting cross-site access
         });
         return true;
       })
@@ -25,6 +29,7 @@ const authService = {
       });
   },
   logout: () => {
+    Cookies.remove("jwtToken");
     return store.dispatch("currentUser/setUser", null);
   },
   signup: (user) => {

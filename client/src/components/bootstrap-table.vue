@@ -54,7 +54,11 @@
                 ? field?.title.value
                 : field?.title
             }}
-            <i class="bi bi-sort-alpha-down" v-if="sortColumns" aria-label="Sort Icon"></i>
+            <i
+              class="bi bi-sort-alpha-down"
+              v-if="sortColumns"
+              aria-label="Sort Icon"
+            ></i>
           </th>
           <th v-if="actions.length" class="text-center">Ações</th>
         </tr>
@@ -63,20 +67,24 @@
         <!-- Loop through the list get the each student data -->
         <slot name="first-row"></slot>
         <tr v-for="item in filteredList" :class="item.clazz" :key="item">
-          <component
-            :is="'td'"
+          <slot
             v-for="field in fields"
+            :name="`custom-td-${field.name}`"
+            :item="item"
+            :field="field"
             :key="field.name"
-            v-bind="getTdAttributes(item, field)"
           >
-            <slot :name="`custom-td-${field.name}`" :item="item" :field="field">
+            <td
+              :style="item[field?.name]?.style"
+              :class="item[field?.name]?.clazz"
+            >
               {{
                 typeof item[field?.name] === "object"
                   ? item[field?.name].value
                   : item[field?.name]
               }}
-            </slot>
-          </component>
+            </td>
+          </slot>
           <td v-if="actions.length" class="text-center">
             <a
               v-for="action in actions"

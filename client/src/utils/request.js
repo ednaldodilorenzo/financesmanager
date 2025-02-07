@@ -1,20 +1,18 @@
 import axios from "axios";
 import { HTTP_STATUS_CODE, SERVER_VALIDATION_CODE } from "../utils/constants";
 import router from "../router";
-import store from "../store/index";
+import Cookies from "js-cookie";
 
 const request = axios.create({
   baseURL: "/api",
 });
 
 request.interceptors.request.use((config) => {
-  const token = store.getters["currentUser/getUserToken"];
-
   return {
     ...config,
     headers: {
       ...config.headers,
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${Cookies.get("jwtToken")}`,
     },
   };
 });

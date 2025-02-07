@@ -15,7 +15,7 @@
       <div class="d-flex flex-column align-items-center my-3">
         <Calendar class="mb-3" @date-change="onChangeDebounced"></Calendar>
         <bootstrap-select
-          @change="onSelectChange"
+          @change="updateState"
           v-model="type"
           class="w-25"
           :options="[
@@ -64,11 +64,13 @@
           </tr>
         </template>
         <template #custom-td-formatted_value="{ item, field }">
-          <bootstrap-plan-exec-bar
-            :planned="item.planned"
-            :executed="item.executed"
-            :percent-divider="percentDivider"
-          />
+          <td>
+            <bootstrap-plan-exec-bar
+              :planned="item.planned"
+              :executed="item.executed"
+              :percent-divider="percentDivider"
+            />
+          </td>
         </template>
       </bootstrap-table>
       <bootstrap-table
@@ -104,11 +106,13 @@
           </tr>
         </template>
         <template #custom-td-chartValues="{ item, field }">
-          <bootstrap-plan-exec-bar
-            :planned="item.planned"
-            :executed="item.executed"
-            :percent-divider="percentDivider"
-          />
+          <td>
+            <bootstrap-plan-exec-bar
+              :planned="item.planned"
+              :executed="item.executed"
+              :percent-divider="percentDivider"
+            />
+          </td>
         </template>
       </bootstrap-table>
     </div>
@@ -153,9 +157,9 @@ const expensesSummary = computed(() =>
   )
 );
 
-const onSelectChange = (value) => {
+const updateState = () => {
   const respList =
-    value === "M"
+    type.value === "M"
       ? fullList.map((item) => ({
           ...item,
           planned: item.planned / 12,
@@ -174,7 +178,8 @@ const onSelectChange = (value) => {
           },
         }));
 
-  percentDivider.value = value === "M" ? 0 : (currentDate.getMonth() + 1) / 12;
+  percentDivider.value =
+    type.value === "M" ? 0 : (currentDate.getMonth() + 1) / 12;
 
   expensesList.value = respList.filter((item) => item.type === "D");
   earnsList.value = respList.filter((item) => item.type === "R");
@@ -186,31 +191,7 @@ const getData = (month, year) => {
     .findAll({ month: month, year: year })
     .then((resp) => {
       fullList = resp.items;
-      const respList =
-        type.value === "M"
-          ? fullList.map((item) => ({
-              ...item,
-              planned: item.planned / 12,
-              executed: Math.abs(item.total),
-              formatted_planned: {
-                value: currencyBRL(Math.abs(item.planned / 12)),
-                clazz: "text-primary text-end",
-              },
-            }))
-          : fullList.map((item) => ({
-              ...item,
-              executed: Math.abs(item.accumulated),
-              formatted_planned: {
-                value: currencyBRL(Math.abs(item.planned)),
-                clazz: "text-primary text-end",
-              },
-            }));
-
-      percentDivider.value =
-        type.value === "M" ? 0 : (currentDate.getMonth() + 1) / 12;
-
-      expensesList.value = respList.filter((item) => item.type === "D");
-      earnsList.value = respList.filter((item) => item.type === "R");
+      updateState();
     })
     .finally(() => {
       loading.hide();
