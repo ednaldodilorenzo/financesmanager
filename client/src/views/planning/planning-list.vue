@@ -112,7 +112,7 @@
 </template>
 <script setup>
 import BootstrapTable from "@/components/bootstrap-table.vue";
-import BootstrapPlanExecBar from "@/components/boostra-planexec-bar.vue";
+import BootstrapPlanExecBar from "@/components/bootstrap-planexec-bar.vue";
 import BootstrapSelect from "@/components/bootstrap-select.vue";
 import Calendar from "@/components/bootstrap-calendar.vue";
 import planningService from "./planning.service";
