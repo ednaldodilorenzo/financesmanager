@@ -28,6 +28,11 @@
     <div class="flex-fill text-center" v-else>
       {{ currencyBRL(planned - executed) }}
     </div>
+    <div
+      class="divider"
+      v-if="percentDivider"
+      :style="{ left: percentDivider * 100 + '%' }"
+    ></div>
   </div>
 </template>
 <script setup>
@@ -42,5 +47,28 @@ const props = defineProps({
     type: Number,
     default: () => 0,
   },
+  percentDivider: {
+    type: Number,
+    default: () => 0,
+  },
 });
 </script>
+<style scoped>
+.progress {
+  position: relative;
+  height: 30px;
+  background-color: #e9ecef;
+  border-radius: 5px;
+}
+.progress-bar {
+  position: relative;
+}
+/* Black Vertical Divider */
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: black;
+}
+</style>

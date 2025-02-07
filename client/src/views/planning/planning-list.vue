@@ -55,6 +55,7 @@
               <bootstrap-plan-exec-bar
                 :planned="earnsSummary.planned"
                 :executed="earnsSummary.executed"
+                :percent-divider="percentDivider"
               />
             </td>
             <td class="text-end text-primary w-25">
@@ -66,6 +67,7 @@
           <bootstrap-plan-exec-bar
             :planned="item.planned"
             :executed="item.executed"
+            :percent-divider="percentDivider"
           />
         </template>
       </bootstrap-table>
@@ -93,6 +95,7 @@
               <bootstrap-plan-exec-bar
                 :planned="expensesSummary.planned"
                 :executed="expensesSummary.executed"
+                :percent-divider="percentDivider"
               />
             </td>
             <td class="text-end text-primary w-25">
@@ -104,6 +107,7 @@
           <bootstrap-plan-exec-bar
             :planned="item.planned"
             :executed="item.executed"
+            :percent-divider="percentDivider"
           />
         </template>
       </bootstrap-table>
@@ -120,7 +124,6 @@ import { debounce } from "@/utils/support";
 import { ref, computed } from "vue";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import { currencyBRL } from "@/components/filters/currency.filter";
-import { minutesToMilliseconds } from "date-fns";
 
 const loading = useLoadingScreen();
 
@@ -128,6 +131,7 @@ const expensesList = ref([]);
 const earnsList = ref([]);
 let fullList = [];
 const type = ref("M");
+const percentDivider = ref(0);
 
 const earnsSummary = computed(() =>
   earnsList.value.reduce(
@@ -170,6 +174,8 @@ const onSelectChange = (value) => {
           },
         }));
 
+  percentDivider.value = value === "M" ? 0 : (currentDate.getMonth() + 1) / 12;
+
   expensesList.value = respList.filter((item) => item.type === "D");
   earnsList.value = respList.filter((item) => item.type === "R");
 };
@@ -199,6 +205,9 @@ const getData = (month, year) => {
                 clazz: "text-primary text-end",
               },
             }));
+
+      percentDivider.value =
+        type.value === "M" ? 0 : (currentDate.getMonth() + 1) / 12;
 
       expensesList.value = respList.filter((item) => item.type === "D");
       earnsList.value = respList.filter((item) => item.type === "R");
