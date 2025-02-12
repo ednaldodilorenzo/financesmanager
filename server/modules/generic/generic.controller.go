@@ -34,11 +34,13 @@ func (cc *GenericControllerStruct[V]) GetAll(c *fiber.Ctx) error {
 	pageNumber := c.QueryInt("page", 1)
 	filter := c.Query("filter")
 
+	loggedUser := c.Locals("user").(model.User)
+
 	var result interface{}
 	var err interface{}
 
 	if paginate {
-		result, err = cc.FindAllPaginatedAndFiltered(int(pageSize), int(pageNumber), filter)
+		result, err = cc.FindAllPaginatedAndFiltered(int(loggedUser.ID), int(pageSize), int(pageNumber), filter)
 
 		if err != nil {
 			return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -48,7 +50,7 @@ func (cc *GenericControllerStruct[V]) GetAll(c *fiber.Ctx) error {
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "items": response.Items, "total": response.Total, "page": response.Page})
 	} else {
-		result, err = cc.FindAll()
+		result, err = cc.FindAll(int(loggedUser.ID))
 
 		if err != nil {
 			return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -67,7 +69,9 @@ func (cc *GenericControllerStruct[V]) GetOne(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
 	}
 
-	item, err := cc.FindById(itemId)
+	loggedUser := c.Locals("user").(model.User)
+
+	item, err := cc.FindById(itemId, int(loggedUser.ID))
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -84,7 +88,9 @@ func (cc *GenericControllerStruct[V]) Delete(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
 	}
 
-	err = cc.DeleteRecord(itemId)
+	loggedUser := c.Locals("user").(model.User)
+
+	err = cc.DeleteRecord(itemId, int(loggedUser.ID))
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -150,7 +156,9 @@ func (cc *GenericControllerStruct[V]) Patch(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
 	}
 
-	if err = cc.Update(itemId, payload); err != nil {
+	loggedUser := c.Locals("user").(model.User)
+
+	if err = cc.Update(itemId, payload, int(loggedUser.ID)); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
 	}
 

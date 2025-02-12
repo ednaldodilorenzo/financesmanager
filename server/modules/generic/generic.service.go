@@ -8,13 +8,13 @@ import (
 )
 
 type GenericService[V model.IUserDependent] interface {
-	FindAll() ([]V, error)
-	FindAllPaginatedAndFiltered(limit, offset int, filter string) (*PaginatedResponse[V], error)
+	FindAll(userId int) ([]V, error)
+	FindAllPaginatedAndFiltered(userId, limit, offset int, filter string) (*PaginatedResponse[V], error)
 	Create(*V) error
 	CreateAll([]V) error
-	Update(id int, item *V) error
-	FindById(id int) (*V, error)
-	DeleteRecord(id int) error
+	Update(id int, item *V, userId int) error
+	FindById(id, userId int) (*V, error)
+	DeleteRecord(id, userId int) error
 }
 
 type GenericServiceStruct[V model.IUserDependent] struct {
@@ -27,24 +27,24 @@ func NewGenericService[V model.IUserDependent](repository GenericRepository[V]) 
 	}
 }
 
-func (c *GenericServiceStruct[V]) FindAll() ([]V, error) {
-	return c.repository.FindAll()
+func (c *GenericServiceStruct[V]) FindAll(userId int) ([]V, error) {
+	return c.repository.FindAll(userId)
 }
 
-func (c *GenericServiceStruct[V]) FindAllPaginatedAndFiltered(limit, offset int, filter string) (*PaginatedResponse[V], error) {
-	return c.repository.FindAllPaginatedAndFiltered(limit, offset, filter)
+func (c *GenericServiceStruct[V]) FindAllPaginatedAndFiltered(userId, limit, offset int, filter string) (*PaginatedResponse[V], error) {
+	return c.repository.FindAllPaginatedAndFiltered(userId, limit, offset, filter)
 }
 
 func (c *GenericServiceStruct[V]) CreateAll(items []V) error {
 	return c.repository.CreateAll(items)
 }
 
-func (c *GenericServiceStruct[V]) DeleteRecord(id int) error {
-	return c.repository.Delete(id)
+func (c *GenericServiceStruct[V]) DeleteRecord(id, userId int) error {
+	return c.repository.Delete(id, userId)
 }
 
-func (c *GenericServiceStruct[V]) FindById(id int) (*V, error) {
-	currentItem, err := c.repository.FindById(id)
+func (c *GenericServiceStruct[V]) FindById(id, userId int) (*V, error) {
+	currentItem, err := c.repository.FindById(id, userId)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
@@ -63,9 +63,9 @@ func (c *GenericServiceStruct[V]) Create(item *V) error {
 	})
 }
 
-func (c *GenericServiceStruct[V]) Update(id int, item *V) error {
+func (c *GenericServiceStruct[V]) Update(id int, item *V, userId int) error {
 
-	if err := c.repository.Update(id, item); err != nil {
+	if err := c.repository.Update(id, item, userId); err != nil {
 		return err
 	}
 

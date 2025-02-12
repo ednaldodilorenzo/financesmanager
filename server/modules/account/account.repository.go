@@ -12,7 +12,7 @@ import (
 
 type AccountRepository interface {
 	generic.GenericRepository[*model.Account]
-	FindByName(name string) (*model.Account, error)
+	FindByName(name string, userId int) (*model.Account, error)
 }
 
 type AccountRespositoryStruct struct {
@@ -27,10 +27,10 @@ func NewAccountRepository(repository generic.GenericRepository[*model.Account], 
 	}
 }
 
-func (ar *AccountRespositoryStruct) FindByName(name string) (*model.Account, error) {
+func (ar *AccountRespositoryStruct) FindByName(name string, userId int) (*model.Account, error) {
 	var result model.Account
 
-	err := ar.dbConfig.DB.First(&result, "name = ?", name).Error
+	err := ar.dbConfig.DB.First(&result, "name = ? AND user_id = ?", name, userId).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle the case where no record is found

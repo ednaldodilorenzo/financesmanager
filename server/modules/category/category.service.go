@@ -7,7 +7,7 @@ import (
 
 type CategoryService interface {
 	generic.GenericService[*model.Category]
-	FindByName(name string) (*model.Category, error)
+	FindByName(name string, userId int) (*model.Category, error)
 }
 
 type CategoryServiceStruct struct {
@@ -22,6 +22,6 @@ func NewAccountService(service generic.GenericService[*model.Category], reposito
 	}
 }
 
-func (cs *CategoryServiceStruct) FindByName(name string) (*model.Category, error) {
-	return cs.repository.FindByName(name)
+func (cs *CategoryServiceStruct) FindByName(name string, userId int) (*model.Category, error) {
+	return cs.repository.FindByName(name, userId)
 }

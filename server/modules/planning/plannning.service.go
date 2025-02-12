@@ -3,7 +3,7 @@ package planning
 import "github.com/ednaldo-dilorenzo/iappointment/model"
 
 type PlanningService interface {
-	FindByMonthAndYear(month int, year int) ([]model.Planning, error)
+	FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error)
 }
 
 type PlanningServiceStruct struct {
@@ -16,6 +16,6 @@ func NewPlanningService(repository PlanningRepository) PlanningService {
 	}
 }
 
-func (p *PlanningServiceStruct) FindByMonthAndYear(month int, year int) ([]model.Planning, error) {
-	return p.repository.FindByMonthAndYear(month, year)
+func (p *PlanningServiceStruct) FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error) {
+	return p.repository.FindByMonthAndYear(month, year, userId)
 }

@@ -15,13 +15,16 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/tag"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/ednaldo-dilorenzo/iappointment/server"
+	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"go.uber.org/dig"
 )
 
 func BuildContainer() *dig.Container {
 	container := dig.New()
 
+	container.Provide(config.NewSettings)
 	container.Provide(config.NewDatabase)
+	container.Provide(util.NewEmailSender)
 	container.Provide(middleware.NewDeserializer)
 	container.Provide(auth.NewAuthRepository)
 	container.Provide(auth.NewAuthService)

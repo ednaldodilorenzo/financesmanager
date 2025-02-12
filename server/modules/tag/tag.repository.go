@@ -8,7 +8,7 @@ import (
 )
 
 type TagRepository interface {
-	FindAllWithFilter(filter string) ([]model.TransactionTag, error)
+	FindAllWithFilter(filter string, userId int) ([]model.TransactionTag, error)
 }
 
 type TagRespositoryStruct struct {
@@ -21,7 +21,7 @@ func NewTagRepository(database *config.Database) TagRepository {
 	}
 }
 
-func (t *TagRespositoryStruct) FindAllWithFilter(filter string) ([]model.TransactionTag, error) {
+func (t *TagRespositoryStruct) FindAllWithFilter(filter string, userId int) ([]model.TransactionTag, error) {
 	var items []model.TransactionTag
 
 	if filter == "" {
@@ -30,7 +30,7 @@ func (t *TagRespositoryStruct) FindAllWithFilter(filter string) ([]model.Transac
 
 	query := t.dbConfig.DB.Model(&model.TransactionTag{}).
 		Distinct("tag"). // Ensure only distinct tags are selected
-		Where("LOWER(tag) LIKE ?", "%"+strings.ToLower(filter)+"%")
+		Where("user_id = ? AND LOWER(tag) LIKE ?", userId, "%"+strings.ToLower(filter)+"%")
 
 	if err := query.Find(&items).Error; err != nil {
 		return nil, err

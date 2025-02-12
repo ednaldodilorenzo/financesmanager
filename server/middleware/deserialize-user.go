@@ -13,11 +13,13 @@ import (
 
 type Deserializer struct {
 	dbConfig *config.Database
+	settings *config.Settings
 }
 
-func NewDeserializer(database *config.Database) *Deserializer {
+func NewDeserializer(database *config.Database, settings *config.Settings) *Deserializer {
 	return &Deserializer{
 		dbConfig: database,
+		settings: settings,
 	}
 }
 
@@ -40,7 +42,7 @@ func (d *Deserializer) DeserializeUser(c *fiber.Ctx) error {
 			return nil, fmt.Errorf("unexpected signing method: %s", jwtToken.Header["alg"])
 		}
 
-		return []byte("Xuxa"), nil
+		return []byte(d.settings.AppSettings.JwtKey), nil
 	})
 
 	if err != nil {

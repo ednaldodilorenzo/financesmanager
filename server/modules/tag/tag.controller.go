@@ -2,6 +2,7 @@ package tag
 
 import (
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
+	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -28,8 +29,8 @@ func NewTagController(service TagService) TagController {
 func (t *TagControllerStruct) GetAll(c *fiber.Ctx) error {
 
 	filter := c.Query("filter")
-
-	items, err := t.service.FindAllWithFilter(filter)
+	loggedUser := c.Locals("user").(model.User)
+	items, err := t.service.FindAllWithFilter(filter, int(loggedUser.ID))
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": err.Error()})

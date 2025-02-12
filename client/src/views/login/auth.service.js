@@ -37,6 +37,11 @@ const authService = {
       return resp.data;
     });
   },
+  confirmAccount: (token) => {
+    return requester.get(`/auth/verify/${token}`).then((resp) => {
+      return resp.data;
+    });
+  }
 };
 
 export default authService;

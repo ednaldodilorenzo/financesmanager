@@ -58,7 +58,9 @@ func (cc *TransactionControllerStruct) GetOne(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
 	}
 
-	item, err := cc.service.FindById(itemId)
+	loggedUser := c.Locals("user").(model.User)
+
+	item, err := cc.service.FindById(itemId, int(loggedUser.ID))
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -87,7 +89,9 @@ func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) err
 		}
 	}
 
-	items, err := cc.service.FindAllRelated(monthParam, yearParam)
+	loggedUser := c.Locals("user").(model.User)
+
+	items, err := cc.service.FindAllRelated(monthParam, yearParam, int(loggedUser.ID))
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -129,8 +133,9 @@ func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
 	}
 
 	fileType := c.FormValue("fileType")
+	loggedUser := c.Locals("user").(model.User)
 
-	transactions, err := cc.service.PrepareFileImport(fileReader, uint32(accountId), &date, fileType)
+	transactions, err := cc.service.PrepareFileImport(fileReader, uint32(accountId), &date, fileType, int(loggedUser.ID))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to open the file")
 	}

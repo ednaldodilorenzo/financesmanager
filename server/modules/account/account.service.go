@@ -7,7 +7,7 @@ import (
 
 type AccountService interface {
 	generic.GenericService[*model.Account]
-	FindByName(name string) (*model.Account, error)
+	FindByName(name string, userId int) (*model.Account, error)
 }
 
 type AccountServiceStruct struct {
@@ -22,6 +22,6 @@ func NewAccountService(service generic.GenericService[*model.Account], repositor
 	}
 }
 
-func (as *AccountServiceStruct) FindByName(name string) (*model.Account, error) {
-	return as.repository.FindByName(name)
+func (as *AccountServiceStruct) FindByName(name string, userId int) (*model.Account, error) {
+	return as.repository.FindByName(name, userId)
 }

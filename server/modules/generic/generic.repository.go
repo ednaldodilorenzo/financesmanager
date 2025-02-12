@@ -16,13 +16,13 @@ type PaginatedResponse[V model.IUserDependent] struct {
 }
 
 type GenericRepository[V model.IUserDependent] interface {
-	FindAll() ([]V, error)
-	FindAllPaginatedAndFiltered(limit, offset int, filter string) (*PaginatedResponse[V], error)
+	FindAll(userId int) ([]V, error)
+	FindAllPaginatedAndFiltered(userId, limit, offset int, filter string) (*PaginatedResponse[V], error)
 	Create(*V) error
 	CreateAll([]V) error
-	Update(id int, item *V) error
-	FindById(id int) (*V, error)
-	Delete(id int) error
+	Update(id int, item *V, userId int) error
+	FindById(id int, userId int) (*V, error)
+	Delete(id int, userId int) error
 	Transaction(fn func(repo GenericRepository[V]) error) error //https://gist.github.com/IamNator/f1e9e6b1ae4d9e3eb66c73998f545f6c
 }
 
@@ -36,17 +36,17 @@ func NewGenericRepository[V model.IUserDependent](database *config.Database) Gen
 	}
 }
 
-func (g *GenericRepositoryStruct[V]) FindById(id int) (*V, error) {
+func (g *GenericRepositoryStruct[V]) FindById(id int, userId int) (*V, error) {
 	var item V
 
-	if err := g.dbConfig.DB.First(&item, "id = ?", id).Error; err != nil {
+	if err := g.dbConfig.DB.First(&item, "id = ? AND userId = ?", id, userId).Error; err != nil {
 		return nil, err
 	}
 
 	return &item, nil
 }
 
-func (g *GenericRepositoryStruct[V]) Delete(id int) error {
+func (g *GenericRepositoryStruct[V]) Delete(id, userId int) error {
 	var item V
 
 	if err := g.dbConfig.DB.Delete(&item, id).Error; err != nil {
@@ -56,23 +56,30 @@ func (g *GenericRepositoryStruct[V]) Delete(id int) error {
 	return nil
 }
 
-func (g *GenericRepositoryStruct[V]) FindAll() ([]V, error) {
+func (g *GenericRepositoryStruct[V]) FindAll(userId int) ([]V, error) {
 	var items []V
 
-	if err := g.dbConfig.DB.Find(&items).Error; err != nil {
+	zeroValue := new(V)
+
+	query := g.dbConfig.DB.Model(zeroValue)
+
+	query.Where("user_id = ?", userId)
+
+	if err := query.Find(&items).Error; err != nil {
 		return nil, err
 	}
 
 	return items, nil
 }
 
-func (g *GenericRepositoryStruct[V]) FindAllPaginatedAndFiltered(limit, offset int, filter string) (*PaginatedResponse[V], error) {
+func (g *GenericRepositoryStruct[V]) FindAllPaginatedAndFiltered(userId, limit, offset int, filter string) (*PaginatedResponse[V], error) {
 	var totalCount int64
 	var items []V
 
 	zeroValue := new(V)
 
 	query := g.dbConfig.DB.Model(zeroValue)
+	query = query.Where("user_id = ?", userId)
 
 	// Apply filter if it's not empty
 	if filter != "" {
@@ -111,8 +118,8 @@ func (g *GenericRepositoryStruct[V]) CreateAll(items []V) error {
 	return nil
 }
 
-func (g *GenericRepositoryStruct[V]) Update(id int, item *V) error {
-	if err := g.dbConfig.DB.Model(&item).Where("id = ?", id).Updates(item).Error; err != nil {
+func (g *GenericRepositoryStruct[V]) Update(id int, item *V, userId int) error {
+	if err := g.dbConfig.DB.Model(&item).Where("id = ? AND user_id = ?", id, userId).Updates(item).Error; err != nil {
 		return err
 	}
 

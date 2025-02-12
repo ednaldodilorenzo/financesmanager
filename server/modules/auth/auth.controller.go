@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
@@ -17,6 +19,7 @@ func GetRoutes(controller AuthController, deserializer *middleware.Deserializer)
 		router.Post("/login", controller.SigninUser)
 		router.Post("/signup", controller.SignUpUser)
 		router.Get("/logout", deserializer.DeserializeUser, controller.LogoutUser)
+		router.Get("/verify/:token", controller.VerifyUser)
 	}
 }
 
@@ -42,23 +45,20 @@ type AuthController interface {
 	SigninUser(c *fiber.Ctx) error
 	SignUpUser(c *fiber.Ctx) error
 	LogoutUser(c *fiber.Ctx) error
+	VerifyUser(c *fiber.Ctx) error
 }
 
 type AuthControllerStruct struct {
 	authService AuthService
+	settings    *config.Settings
 }
 
-func NewAuthController(authService AuthService) AuthController {
+func NewAuthController(authService AuthService, settings *config.Settings) AuthController {
 	return &AuthControllerStruct{
 		authService: authService,
+		settings:    settings,
 	}
 }
-
-//func BuildAuthController(service AuthService) *AuthController {
-//	return &AuthController{
-//		authService: service,
-//	}
-//}
 
 func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 
@@ -89,7 +89,7 @@ func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 	claims["iat"] = now.Unix()
 	claims["nbf"] = now.Unix()
 
-	tokenString, err := tokenByte.SignedString([]byte("Xuxa"))
+	tokenString, err := tokenByte.SignedString([]byte(a.settings.AppSettings.JwtKey))
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "fail", "message": fmt.Sprintf("generating JWT Token failed: %v", err)})
@@ -111,10 +111,10 @@ func (a *AuthControllerStruct) SignUpUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
 	}
 
-	errors := util.ValidateStruct(payload)
+	validationErrors := util.ValidateStruct(payload)
 
-	if errors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": errors})
+	if validationErrors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationErrors})
 	}
 
 	if payload.Password != payload.ConfirmPassword {
@@ -131,8 +131,10 @@ func (a *AuthControllerStruct) SignUpUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": "Could not save new user"})
 	}
 
-	if err := a.authService.RegisterUser(newUser); err != nil && strings.Contains(err.Error(), "duplicate key value violates unique") {
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"status": "fail", "message": "User with that email already exists"})
+	var businessError *util.BusinessError
+
+	if err := a.authService.RegisterUser(newUser); err != nil && errors.As(err, &businessError) {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "message": businessError.Message})
 	} else if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Something bad happened"})
 	}
@@ -148,4 +150,16 @@ func (a *AuthControllerStruct) LogoutUser(c *fiber.Ctx) error {
 		Expires: expired,
 	})
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
+}
+
+func (a *AuthControllerStruct) VerifyUser(c *fiber.Ctx) error {
+	token := c.Params("token")
+
+	err := a.authService.ConfirmUserEmail(token)
+
+	if err != nil {
+		c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "message": "Email could not be verified"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
 }

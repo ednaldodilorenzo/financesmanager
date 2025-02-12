@@ -12,7 +12,7 @@ import (
 
 type CategoryRepository interface {
 	generic.GenericRepository[*model.Category]
-	FindByName(name string) (*model.Category, error)
+	FindByName(name string, userId int) (*model.Category, error)
 }
 
 type CategoryRespositoryStruct struct {
@@ -27,10 +27,10 @@ func NewAccountRepository(repository generic.GenericRepository[*model.Category],
 	}
 }
 
-func (cr *CategoryRespositoryStruct) FindByName(name string) (*model.Category, error) {
+func (cr *CategoryRespositoryStruct) FindByName(name string, userId int) (*model.Category, error) {
 	var result model.Category
 
-	err := cr.dbConfig.DB.First(&result, "name = ?", name).Error
+	err := cr.dbConfig.DB.First(&result, "name = ? AND user_id = ?", name, userId).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Handle the case where no record is found

@@ -14,8 +14,8 @@ import (
 
 type TransactionService interface {
 	generic.GenericService[*model.Transaction]
-	FindAllRelated(*int, *int) ([]model.Transaction, error)
-	PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string) ([]TransactionUploadSchema, error)
+	FindAllRelated(*int, *int, int) ([]model.Transaction, error)
+	PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string, userId int) ([]TransactionUploadSchema, error)
 }
 
 type TransactionServiceStruct struct {
@@ -38,16 +38,16 @@ func NewTransactionService(service generic.GenericService[*model.Transaction], r
 	}
 }
 
-func (ts *TransactionServiceStruct) FindAllRelated(month *int, year *int) ([]model.Transaction, error) {
-	return ts.repository.FindAllWithRelationships(month, year)
+func (ts *TransactionServiceStruct) FindAllRelated(month *int, year *int, userId int) ([]model.Transaction, error) {
+	return ts.repository.FindAllWithRelationships(month, year, userId)
 }
 
-func (ts *TransactionServiceStruct) FindById(id int) (**model.Transaction, error) {
-	return ts.repository.FindById(id)
+func (ts *TransactionServiceStruct) FindById(id int, userId int) (**model.Transaction, error) {
+	return ts.repository.FindById(id, userId)
 }
 
-func (ts *TransactionServiceStruct) isDuplicated(value int32, paymentDate time.Time, transactionDate time.Time) (bool, error) {
-	transaction, err := ts.repository.FindOneByValuePaymentDateAndTransactionDate(value, paymentDate, transactionDate)
+func (ts *TransactionServiceStruct) isDuplicated(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (bool, error) {
+	transaction, err := ts.repository.FindOneByValuePaymentDateAndTransactionDate(value, paymentDate, transactionDate, userId)
 	if err != nil {
 		var runtimeError *util.RuntimeError
 		if errors.As(err, &runtimeError) {
@@ -63,7 +63,7 @@ func (ts *TransactionServiceStruct) isDuplicated(value int32, paymentDate time.T
 	return duplicated, nil
 }
 
-func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string) ([]TransactionUploadSchema, error) {
+func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string, userId int) ([]TransactionUploadSchema, error) {
 	var constFileType util.FileImportType
 	switch fileType {
 	case "BBCA":
@@ -87,14 +87,14 @@ func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader, acco
 
 	var transactionData []TransactionUploadSchema
 	for _, record := range parsedData {
-		duplicated, err := ts.isDuplicated(record.Value, record.PaymentDate, record.TransactionDate)
+		duplicated, err := ts.isDuplicated(record.Value, record.PaymentDate, record.TransactionDate, userId)
 		if err != nil {
 			return nil, err
 		}
 
 		var accountID uint32
 		if record.AccountName != nil {
-			account, err := ts.accountService.FindByName(*record.AccountName)
+			account, err := ts.accountService.FindByName(*record.AccountName, userId)
 			if err != nil {
 				return nil, err
 			}
@@ -106,7 +106,7 @@ func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader, acco
 
 		var categoryID uint32
 		if record.CategoryName != nil {
-			category, err := ts.categoryService.FindByName(*record.CategoryName)
+			category, err := ts.categoryService.FindByName(*record.CategoryName, userId)
 			if err != nil {
 				return nil, err
 			}

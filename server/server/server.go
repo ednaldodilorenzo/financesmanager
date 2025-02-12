@@ -20,13 +20,16 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/routes"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/tag"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
+	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/dig"
 )
 
 type Server struct {
-	App *fiber.App
-	db  *config.Database
+	App      *fiber.App
+	db       *config.Database
+	mb       util.EmailSender
+	settings *config.Settings
 }
 
 type ServerDependencies struct {
@@ -47,10 +50,14 @@ func NewServer(authController auth.AuthController,
 	planningControler planning.PlanningController,
 	budgetController budget.BudgetController,
 	deserializer *middleware.Deserializer,
-	db *config.Database) *Server {
+	db *config.Database,
+	settings *config.Settings,
+	mb util.EmailSender) *Server {
 	server := &Server{
-		App: InitFiberApplication(),
-		db:  db,
+		App:      InitFiberApplication(),
+		db:       db,
+		mb:       mb,
+		settings: settings,
 	}
 
 	api := server.App.Group("/api")
@@ -71,8 +78,8 @@ func (s *Server) Setup() {
 
 	api := s.App.Group("/api")
 	routes.SetRoutes(&api)
-	settings := config.ReadSettings()
-	s.db.Connect(&settings.Database)
+	s.db.Connect(&s.settings.Database)
+	s.mb.Config(&s.settings.MessageBroker)
 }
 
 func (s *Server) BasicSetup(prefix string, f func(router fiber.Router)) {

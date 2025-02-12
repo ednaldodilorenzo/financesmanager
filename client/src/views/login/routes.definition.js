@@ -4,6 +4,7 @@ const ROUTE_NAMES = {
   INDEX: `${namespace}`,
   LOGIN: `${namespace}-login`,
   REGISTER: `${namespace}-register`,
+  VERIFY: `${namespace}-verify`,
 };
 
 const ROUTES_DEFINITIONS = [
@@ -21,6 +22,11 @@ const ROUTES_DEFINITIONS = [
         path: "/register",
         name: ROUTE_NAMES.REGISTER,
         component: () => import("./registration-page.vue"),
+      },
+      {
+        path: "/verify/:token",
+        name: ROUTE_NAMES.VERIFY,
+        component: () => import("./confirmation-page.vue"),
       },
     ],
   },

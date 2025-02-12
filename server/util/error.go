@@ -34,6 +34,9 @@ func NewRuntimeError(msg string, err error) *RuntimeError {
 
 const (
 	BE_INPUT_VALIDATION_ERROR int = iota
+	BE_PASSWORD_DO_NOT_MATCH
+	BE_USER_ALREADY_REGISTERED
+	BE_USER_EMAIL_NOT_VERIFIED
 )
 
 type BusinessError struct {

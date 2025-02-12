@@ -4,7 +4,6 @@ import {
   ROUTE_NAMES as LOGIN_ROUTE_NAMES,
 } from "@/views/login/routes.definition";
 import { VIEW_ROUTES } from "@/views/routes.definition";
-import store from "@/store/index";
 import Cookies from "js-cookie";
 
 const routes = [
@@ -27,6 +26,7 @@ const routes = [
 const PUBLIC_ROUTES_NAMES = [
   LOGIN_ROUTE_NAMES.LOGIN,
   LOGIN_ROUTE_NAMES.REGISTER,
+  LOGIN_ROUTE_NAMES.VERIFY,
 ];
 
 const router = createRouter({

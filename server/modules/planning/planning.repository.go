@@ -6,7 +6,7 @@ import (
 )
 
 type PlanningRepository interface {
-	FindByMonthAndYear(month int, year int) ([]model.Planning, error)
+	FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error)
 }
 
 type PlanningRepositoryStruct struct {
@@ -19,7 +19,7 @@ func NewPlanningRepository(database *config.Database) PlanningRepository {
 	}
 }
 
-func (p *PlanningRepositoryStruct) FindByMonthAndYear(month int, year int) ([]model.Planning, error) {
+func (p *PlanningRepositoryStruct) FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error) {
 	var results []model.Planning
 
 	accumulatedSubQuery := p.DB.Table("transaction t").
@@ -45,7 +45,7 @@ func (p *PlanningRepositoryStruct) FindByMonthAndYear(month int, year int) ([]mo
 		Joins("INNER JOIN category ON category.id = budget.category_id AND category.user_id = budget.user_id").
 		Joins("LEFT JOIN (?) m ON m.category_id = budget.category_id AND m.user_id = budget.user_id", monthYearSubQuery).
 		Joins("LEFT JOIN (?) a ON a.category_id = budget.category_id AND a.user_id = budget.user_id", accumulatedSubQuery).
-		Where("budget.year = ?", year).
+		Where("budget.year = ? AND budget.user_id = ?", year, userId).
 		Scan(&results).Error
 
 	if err != nil {

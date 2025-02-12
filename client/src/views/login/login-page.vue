@@ -2,7 +2,7 @@
     <loading-screen :loading="loading" />
     <div class="text-center mt-2 mb-4">
       <h4 class="text-primary">Bem Vindo !</h4>
-      <p class="text-muted">Entre para continuar no Iappointment.</p>
+      <p class="text-muted">Entre para continuar no Finance Web.</p>
     </div>
     <div
       v-if="showInvalidLoginMessage"

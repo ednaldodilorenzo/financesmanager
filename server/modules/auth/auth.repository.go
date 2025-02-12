@@ -12,6 +12,7 @@ import (
 type AuthRepository interface {
 	Create(user *model.User) error
 	FindUserByEmail(email string) (*model.User, error)
+	Update(id int, item *model.User) error
 }
 
 type AuthRepositoryStruct struct {
@@ -43,6 +44,14 @@ func (a *AuthRepositoryStruct) Create(user *model.User) error {
 
 	if result.Error != nil {
 		return result.Error
+	}
+
+	return nil
+}
+
+func (g *AuthRepositoryStruct) Update(id int, item *model.User) error {
+	if err := g.dbConfig.DB.Model(&item).Where("id = ?", id).Updates(item).Error; err != nil {
+		return err
 	}
 
 	return nil

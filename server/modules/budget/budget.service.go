@@ -7,7 +7,7 @@ import (
 
 type BudgetService interface {
 	generic.GenericService[*model.Budget]
-	FindAllByYear(year int) ([]model.Budget, error)
+	FindAllByYear(year, userId int) ([]model.Budget, error)
 }
 
 type BudgetServiceStruct struct {
@@ -22,6 +22,6 @@ func NewBudgetService(service generic.GenericService[*model.Budget], repository 
 	}
 }
 
-func (b *BudgetServiceStruct) FindAllByYear(year int) ([]model.Budget, error) {
-	return b.repository.FindAllByYear(year)
+func (b *BudgetServiceStruct) FindAllByYear(year, userId int) ([]model.Budget, error) {
+	return b.repository.FindAllByYear(year, userId)
 }

@@ -37,7 +37,8 @@ func NewBudgetController(controller generic.GenericController[*model.Budget], se
 func (b *BudgetControllerStruct) GetAllByYear(c *fiber.Ctx) error {
 	year := c.QueryInt("year")
 
-	items, err := b.service.FindAllByYear(year)
+	loggedUser := c.Locals("user").(model.User)
+	items, err := b.service.FindAllByYear(year, int(loggedUser.ID))
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})

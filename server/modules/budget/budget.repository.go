@@ -8,7 +8,7 @@ import (
 
 type BudgetRepository interface {
 	generic.GenericRepository[*model.Budget]
-	FindAllByYear(year int) ([]model.Budget, error)
+	FindAllByYear(year, userId int) ([]model.Budget, error)
 }
 
 type BudgetRepositoryStruct struct {
@@ -23,10 +23,10 @@ func NewBudgetRepository(repository generic.GenericRepository[*model.Budget], da
 	}
 }
 
-func (b *BudgetRepositoryStruct) FindAllByYear(year int) ([]model.Budget, error) {
+func (b *BudgetRepositoryStruct) FindAllByYear(year, userId int) ([]model.Budget, error) {
 	var items []model.Budget
 
-	if err := b.DB.Model(&items).Where("year = ?", year).Find(&items).Error; err != nil {
+	if err := b.DB.Model(&items).Where("year = ? AND user_id = ?", year, userId).Find(&items).Error; err != nil {
 		return nil, err
 	}
 

@@ -8,6 +8,7 @@ on:
 jobs:
   execute-docker-compose:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
     - name: Checkout Code
@@ -32,5 +33,5 @@ jobs:
 
     - name: Execute Docker Compose Up
       run: |
-        docker-compose -H "ssh://root@147.93.35.35" up --build -d
+        APP_URL=${{ secrets.APP_URL }} JWT_KEY=${{ secrets.JWT_KEY }} docker-compose -H "ssh://root@147.93.35.35" up --build -d
 
