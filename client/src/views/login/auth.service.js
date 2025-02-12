@@ -32,16 +32,16 @@ const authService = {
     Cookies.remove("jwtToken");
     return store.dispatch("currentUser/setUser", null);
   },
-  signup: (user) => {
-    return requester.post("/auth/signup", user).then((resp) => {
-      return resp.data;
-    });
-  },
-  confirmAccount: (token) => {
-    return requester.get(`/auth/verify/${token}`).then((resp) => {
-      return resp.data;
-    });
-  }
+  signup: (user) =>
+    requester
+      .post("/auth/signup", user)
+      .then((resp) => resp.data),
+  confirmAccount: (token) =>
+    requester.get(`/auth/verify/${token}`).then((resp) => resp.data),
+  startRegistration: (email) =>
+    requester
+      .post(`/auth/register`, { email: email })
+      .then((resp) => resp.data),
 };
 
 export default authService;

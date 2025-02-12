@@ -3,12 +3,10 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
-	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -19,7 +17,7 @@ func GetRoutes(controller AuthController, deserializer *middleware.Deserializer)
 		router.Post("/login", controller.SigninUser)
 		router.Post("/signup", controller.SignUpUser)
 		router.Get("/logout", deserializer.DeserializeUser, controller.LogoutUser)
-		router.Get("/verify/:token", controller.VerifyUser)
+		router.Post("/register", controller.StartRegistration)
 	}
 }
 
@@ -30,7 +28,7 @@ type SignInInput struct {
 
 type SignUpInput struct {
 	Name            string `json:"name" validate:"required"`
-	Email           string `json:"email" validate:"required"`
+	Token           string `json:"token" validate:"required"`
 	Password        string `json:"password" validate:"required,min=8"`
 	ConfirmPassword string `json:"confirmPassword" validate:"required,min=8"`
 }
@@ -41,11 +39,15 @@ type SignInResponse struct {
 	Token string `json:"token,omitempty"`
 }
 
+type StartRegistrationRequest struct {
+	Email string `json:"email" validate:"required"`
+}
+
 type AuthController interface {
 	SigninUser(c *fiber.Ctx) error
 	SignUpUser(c *fiber.Ctx) error
 	LogoutUser(c *fiber.Ctx) error
-	VerifyUser(c *fiber.Ctx) error
+	StartRegistration(c *fiber.Ctx) error
 }
 
 type AuthControllerStruct struct {
@@ -121,19 +123,9 @@ func (a *AuthControllerStruct) SignUpUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "Passwords do not match"})
 	}
 
-	newUser := &model.User{
-		Name:     payload.Name,
-		Email:    strings.ToLower(payload.Email),
-		Password: payload.Password,
-	}
-
-	if a.authService == nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": "Could not save new user"})
-	}
-
 	var businessError *util.BusinessError
 
-	if err := a.authService.RegisterUser(newUser); err != nil && errors.As(err, &businessError) {
+	if err := a.authService.RegisterUserWithToken(payload); err != nil && errors.As(err, &businessError) {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "message": businessError.Message})
 	} else if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Something bad happened"})
@@ -152,13 +144,22 @@ func (a *AuthControllerStruct) LogoutUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
 }
 
-func (a *AuthControllerStruct) VerifyUser(c *fiber.Ctx) error {
-	token := c.Params("token")
+func (a *AuthControllerStruct) StartRegistration(c *fiber.Ctx) error {
+	var payload *StartRegistrationRequest
 
-	err := a.authService.ConfirmUserEmail(token)
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+	}
+
+	err := a.authService.StartRegistrationProcess(payload.Email)
 
 	if err != nil {
-		c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "message": "Email could not be verified"})
+		var businessError *util.BusinessError
+		if errors.As(err, &businessError) {
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "message": businessError.Message})
+		} else {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": "Failed to start registration process"})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})

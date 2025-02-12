@@ -5,6 +5,7 @@ const ROUTE_NAMES = {
   LOGIN: `${namespace}-login`,
   REGISTER: `${namespace}-register`,
   VERIFY: `${namespace}-verify`,
+  SEND_MAIL: `${namespace}-send-mail`,
 };
 
 const ROUTES_DEFINITIONS = [
@@ -19,7 +20,7 @@ const ROUTES_DEFINITIONS = [
         component: () => import("./login-page.vue"),
       },
       {
-        path: "/register",
+        path: "/register/:token",
         name: ROUTE_NAMES.REGISTER,
         component: () => import("./registration-page.vue"),
       },
@@ -27,6 +28,11 @@ const ROUTES_DEFINITIONS = [
         path: "/verify/:token",
         name: ROUTE_NAMES.VERIFY,
         component: () => import("./confirmation-page.vue"),
+      },
+      {
+        path: "/registration",
+        name: ROUTE_NAMES.SEND_MAIL,
+        component: () => import("./send-mail.vue"),
       },
     ],
   },

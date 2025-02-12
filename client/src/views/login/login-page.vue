@@ -78,7 +78,7 @@
       <div class="mt-4 text-center">
         <p class="mb-0">
           Ainda não possui uma conta?
-          <router-link to="/register" class="fw-medium text-primary">
+          <router-link :to="{name: ROUTE_NAMES.SEND_MAIL}" class="fw-medium text-primary">
             Cadastre-se agora</router-link
           >
         </p>
@@ -90,6 +90,7 @@
   import { required, minLength, email } from "@vuelidate/validators";
   import authService from "./auth.service";
   import LoadingScreen from "@/components/loading-screen.vue";
+  import { ROUTE_NAMES } from "./routes.definition";
   
   export default {
     components: {
@@ -97,6 +98,9 @@
     },
     setup() {
       return { v$: useVuelidate() };
+    },
+    created() {
+      this.ROUTE_NAMES = ROUTE_NAMES;
     },
     data() {
       return {

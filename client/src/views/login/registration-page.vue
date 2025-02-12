@@ -3,6 +3,20 @@
     <h4 class="text-primary">Criar uma Conta</h4>
     <p class="text-muted">Tenha acesso grátis ao Finance Web.</p>
   </div>
+  <div
+    v-if="showValidationError"
+    class="alert alert-warning alert-dismissible fade show"
+    role="alert"
+    data-test="msg-invalid-login"
+  >
+    <strong>{{ validationMessage }}</strong>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
   <form
     :class="{
       'was-validated': v$.$dirty ? true : false,
@@ -23,22 +37,6 @@
         data-test="input-name"
       />
       <div class="invalid-feedback">Campo obrigatório</div>
-    </div>
-    <div class="mb-3" id="groupUsername" role="group">
-      <label for="inputUsername" class="form-label">Email</label>
-      <input
-        class="form-control"
-        id="inputUsername"
-        type="email"
-        placeholder="Enter email"
-        required
-        aria-required="true"
-        v-model="form.email"
-        data-test="input-email"
-      />
-      <div class="invalid-feedback" id="live-feedback-email">
-        Formato de email inválido
-      </div>
     </div>
     <div class="mb-3" id="input-group-senha" role="group">
       <label for="inputPassword" class="form-label">Senha</label>
@@ -101,6 +99,8 @@ import { required, minLength, email } from "@vuelidate/validators";
 import authService from "./auth.service";
 import { ROUTE_NAMES } from "./routes.definition";
 import { useToast } from "vue-toastification";
+import { useRoute } from "vue-router";
+import { HTTP_STATUS_CODE } from "@/utils/constants";
 
 export default {
   components: {
@@ -108,8 +108,14 @@ export default {
   },
   setup() {
     const toast = useToast();
+    const route = useRoute();
 
-    return { v$: useVuelidate(), toast: toast, loading: useLoadingScreen() };
+    return {
+      v$: useVuelidate(),
+      toast: toast,
+      loading: useLoadingScreen(),
+      route: route,
+    };
   },
   data() {
     return {
@@ -119,6 +125,8 @@ export default {
         password: null,
         confirmPassword: null,
       },
+      showValidationError: false,
+      validationMessage: "",
     };
   },
   validations() {
@@ -126,10 +134,6 @@ export default {
       form: {
         name: {
           required,
-        },
-        email: {
-          required,
-          email,
         },
         password: {
           required,
@@ -147,16 +151,24 @@ export default {
       }
 
       this.loading.show();
+      const payload = { ...this.form };
+      payload.token = this.$route.params.token;      
+
       authService
-        .signup(this.form)
-        .then(() => {
+        .signup(payload)
+        .then(() => {          
           this.toast.success("Usuário registrado com sucesso!", {
             position: "top-center",
           });
           this.$router.push({ name: ROUTE_NAMES.INDEX });
         })
         .catch((err) => {
-          console.log(err.response.status);
+          if (err.response.status === HTTP_STATUS_CODE.UNPROCESSABLE_ENTITY) {
+            this.showValidationError = true;
+            this.validationMessage = err.response.data.message;
+          } else {
+            this.toast.error("Falha no registro do usuário!");
+          }
         })
         .finally(() => {
           this.loading.hide();

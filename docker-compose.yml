@@ -16,10 +16,10 @@ services:
     depends_on:
       - redis
     environment:
-      - MAIL_HOST=smtp.gmail.com
-      - MAIL_PORT=587
-      - MAIL_USERNAME=ednaldo.dilorenzo@ifpb.edu.br
-      - MAIL_PASSWORD=wAG*BNV1W3&IndG7
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
       - MB_HOST=redis
       - MB_PORT=6379
       

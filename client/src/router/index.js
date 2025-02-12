@@ -26,7 +26,7 @@ const routes = [
 const PUBLIC_ROUTES_NAMES = [
   LOGIN_ROUTE_NAMES.LOGIN,
   LOGIN_ROUTE_NAMES.REGISTER,
-  LOGIN_ROUTE_NAMES.VERIFY,
+  LOGIN_ROUTE_NAMES.SEND_MAIL,
 ];
 
 const router = createRouter({
