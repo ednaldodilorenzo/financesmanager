@@ -33,4 +33,4 @@ jobs:
 
     - name: Execute Docker Compose Up
       run: |
-        MAIL_HOST=${{ secrets.EMAIL_HOST }} MAIL_PORT=${{ secrets.EMAIL_PORT }} MAIL_USERNAME=${{ secrets.EMAIL_USERNAME }} MAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} APP_URL=${{ secrets.APP_URL }} JWT_KEY=${{ secrets.JWT_KEY }} docker-compose -H "ssh://root@147.93.35.35" up --build -d
+        CERT_PATH=${{ secrets.CERT_PATH }} MAIL_HOST=${{ secrets.EMAIL_HOST }} MAIL_PORT=${{ secrets.EMAIL_PORT }} MAIL_USERNAME=${{ secrets.EMAIL_USERNAME }} MAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} APP_URL=${{ secrets.APP_URL }} JWT_KEY=${{ secrets.JWT_KEY }} docker-compose -H "ssh://root@147.93.35.35" up --build -d

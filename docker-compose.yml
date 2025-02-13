@@ -55,6 +55,7 @@ services:
       - "443:443"
     volumes:
       - ./client:/app
+      - ${CERT_PATH}:/certs:ro
     depends_on:
       - api
 
