@@ -12,6 +12,7 @@ import (
 type AuthRepository interface {
 	Create(user *model.User) error
 	FindUserByEmail(email string) (*model.User, error)
+	FindById(int) (*model.User, error)
 	Update(id int, item *model.User) error
 }
 
@@ -29,6 +30,20 @@ func (a *AuthRepositoryStruct) FindUserByEmail(email string) (*model.User, error
 	var user model.User
 
 	if err := a.dbConfig.DB.First(&user, "email = ?", strings.ToLower(email)).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+func (a *AuthRepositoryStruct) FindById(id int) (*model.User, error) {
+	var user model.User
+
+	if err := a.dbConfig.DB.First(&user, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		} else {

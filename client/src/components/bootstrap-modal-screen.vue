@@ -1,6 +1,9 @@
 <template>
   <div class="modal fade" style="display: block" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div
+      class="modal-dialog"
+      :class="{ [`modal-${size}`]: `moda-${size}` }"
+    >
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ title }}</h5>
@@ -38,6 +41,10 @@ const props = defineProps({
   },
   onConfirm: {
     type: Function,
+  },
+  size: {
+    type: String,
+    default: "lg",
   },
 });
 </script>

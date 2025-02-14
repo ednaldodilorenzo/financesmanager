@@ -7,6 +7,7 @@ import (
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
+	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -18,6 +19,7 @@ func GetRoutes(controller AuthController, deserializer *middleware.Deserializer)
 		router.Post("/signup", controller.SignUpUser)
 		router.Get("/logout", deserializer.DeserializeUser, controller.LogoutUser)
 		router.Post("/register", controller.StartRegistration)
+		router.Post("/changePassword", deserializer.DeserializeUser, controller.ChangePassword)
 	}
 }
 
@@ -43,11 +45,18 @@ type StartRegistrationRequest struct {
 	Email string `json:"email" validate:"required"`
 }
 
+type ChangePasswordRequest struct {
+	Password          string `json:"password" validate:"required"`
+	NewPassword       string `json:"newPassword" validate:"required"`
+	CofirmNewPassword string `json:"confirmNewPassword" validate:"required"`
+}
+
 type AuthController interface {
 	SigninUser(c *fiber.Ctx) error
 	SignUpUser(c *fiber.Ctx) error
 	LogoutUser(c *fiber.Ctx) error
 	StartRegistration(c *fiber.Ctx) error
+	ChangePassword(c *fiber.Ctx) error
 }
 
 type AuthControllerStruct struct {
@@ -160,6 +169,32 @@ func (a *AuthControllerStruct) StartRegistration(c *fiber.Ctx) error {
 		} else {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": "Failed to start registration process"})
 		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
+}
+
+func (a *AuthControllerStruct) ChangePassword(c *fiber.Ctx) error {
+	var payload *ChangePasswordRequest
+
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+	}
+
+	validationErrors := util.ValidateStruct(payload)
+
+	if validationErrors != nil || (payload.NewPassword != payload.CofirmNewPassword) || (payload.NewPassword == payload.Password) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationErrors})
+	}
+
+	loggedUser := c.Locals("user").(model.User)
+
+	if err := a.authService.ChangePassword(int(loggedUser.ID), payload.NewPassword); err != nil {
+		var validationError *util.BusinessError
+		if errors.As(err, &validationError) {
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": validationError.Message, "code": validationError.Code})
+		}
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": "failed to change password"})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})

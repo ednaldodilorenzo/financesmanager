@@ -17,6 +17,7 @@ type AuthService interface {
 	RegisterUser(user *model.User) error
 	StartRegistrationProcess(string) error
 	RegisterUserWithToken(*SignUpInput) error
+	ChangePassword(int, string) error
 }
 
 type AuthServiceStruct struct {
@@ -188,7 +189,34 @@ func (a *AuthServiceStruct) RegisterUserWithToken(signin *SignUpInput) error {
 	}
 
 	if err = a.repository.Create(newUser); err != nil {
-		return errors.New("Failed to register new user")
+		return errors.New("failed to register new user")
+	}
+
+	return nil
+}
+
+func (a *AuthServiceStruct) ChangePassword(userId int, newPassword string) error {
+	user, err := a.repository.FindById(userId)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return util.NewBusinessError("User not Found", nil, util.BE_INPUT_VALIDATION_ERROR)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+
+	if err != nil {
+		return err
+	}
+	user.Password = string(hashedPassword)
+
+	err = a.repository.Update(userId, user)
+
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 import requester from "@/utils/request";
 import store from "@/store/index";
 import Cookies from "js-cookie";
+import ChangePassword from "./change-password.vue";
 
 const authService = {
   login: (username, password) => {
@@ -33,15 +34,15 @@ const authService = {
     return store.dispatch("currentUser/setUser", null);
   },
   signup: (user) =>
-    requester
-      .post("/auth/signup", user)
-      .then((resp) => resp.data),
+    requester.post("/auth/signup", user).then((resp) => resp.data),
   confirmAccount: (token) =>
     requester.get(`/auth/verify/${token}`).then((resp) => resp.data),
   startRegistration: (email) =>
     requester
       .post(`/auth/register`, { email: email })
       .then((resp) => resp.data),
+  changePassword: (userData) =>
+    requester.post(`/auth/changePassword`, userData).then((resp) => resp.data),
 };
 
 export default authService;
