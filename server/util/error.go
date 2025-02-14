@@ -37,6 +37,7 @@ const (
 	BE_PASSWORD_DO_NOT_MATCH
 	BE_USER_ALREADY_REGISTERED
 	BE_USER_EMAIL_NOT_VERIFIED
+	BE_NOT_FOUND
 )
 
 type BusinessError struct {
@@ -54,5 +55,19 @@ func NewBusinessError(msg string, err error, code int) *BusinessError {
 		Message: msg,
 		Err:     err,
 		Code:    code,
+	}
+}
+
+type NotFoundError struct {
+	Message string
+}
+
+func (n *NotFoundError) Error() string {
+	return "Not found"
+}
+
+func NewNotFoundError(msg string) *NotFoundError {
+	return &NotFoundError{
+		Message: msg,
 	}
 }

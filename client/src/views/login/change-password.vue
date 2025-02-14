@@ -5,6 +5,20 @@
     size="md"
     title="Alterar Senha"
   >
+    <div
+      v-if="showValidationError"
+      class="alert alert-warning alert-dismissible fade show"
+      role="alert"
+      data-test="msg-invalid-login"
+    >
+      <strong>{{ validationMessage }}</strong>
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      ></button>
+    </div>
     <form
       :class="{
         'was-validated': v.$dirty ? true : false,
@@ -58,6 +72,8 @@ import { useToast } from "vue-toastification";
 import useVuelidate from "@vuelidate/core";
 import authService from "./auth.service";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
+import { HTTP_STATUS_CODE } from "@/utils/constants";
+import { sameAs } from "@vuelidate/validators";
 
 const props = defineProps({
   onSaveModal: Function,
@@ -76,7 +92,7 @@ const props = defineProps({
 const rules = {
   password: { required },
   newPassword: { required },
-  confirmNewPassword: { required },
+  confirmNewPassword: { required, sameAsPassword: sameAs("newPassword") },
 };
 
 const form = ref({});
@@ -84,6 +100,8 @@ form.value = props.item;
 const toast = useToast();
 const v = useVuelidate(rules, form.value);
 const loading = useLoadingScreen();
+const validationMessage = ref("");
+const showValidationError = ref(false);
 
 const onSubmit = () => {
   v.value.$validate();
@@ -98,6 +116,13 @@ const onSubmit = () => {
     .changePassword(form.value)
     .then(() => {
       toast.success("Senha alterada com sucesso!");
+      props.onSaveModal();
+    })
+    .catch((err) => {
+      if (err.response.status === HTTP_STATUS_CODE.UNPROCESSABLE_ENTITY) {
+        showValidationError.value = true;
+        validationMessage.value = err.response.data.errors;
+      }
     })
     .finally(() => {
       loading.hide();

@@ -17,7 +17,7 @@ type AuthService interface {
 	RegisterUser(user *model.User) error
 	StartRegistrationProcess(string) error
 	RegisterUserWithToken(*SignUpInput) error
-	ChangePassword(int, string) error
+	ChangePassword(int, *ChangePasswordRequest) error
 }
 
 type AuthServiceStruct struct {
@@ -195,7 +195,7 @@ func (a *AuthServiceStruct) RegisterUserWithToken(signin *SignUpInput) error {
 	return nil
 }
 
-func (a *AuthServiceStruct) ChangePassword(userId int, newPassword string) error {
+func (a *AuthServiceStruct) ChangePassword(userId int, changePassword *ChangePasswordRequest) error {
 	user, err := a.repository.FindById(userId)
 
 	if err != nil {
@@ -203,10 +203,22 @@ func (a *AuthServiceStruct) ChangePassword(userId int, newPassword string) error
 	}
 
 	if user == nil {
-		return util.NewBusinessError("User not Found", nil, util.BE_INPUT_VALIDATION_ERROR)
+		return util.NewNotFoundError("User not Found")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(changePassword.Password)); err != nil {
+		return util.NewBusinessError("Senha atual não corresponde a cadastada", err, util.BE_PASSWORD_DO_NOT_MATCH)
+	}
+
+	if changePassword.NewPassword != changePassword.CofirmNewPassword {
+		return util.NewBusinessError("Nova senha não confere com a confirmação", nil, util.BE_INPUT_VALIDATION_ERROR)
+	}
+
+	if changePassword.NewPassword == changePassword.Password {
+		return util.NewBusinessError("Nova senha não deve ser igual a anterior", nil, util.BE_INPUT_VALIDATION_ERROR)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(changePassword.NewPassword), bcrypt.DefaultCost)
 
 	if err != nil {
 		return err

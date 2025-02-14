@@ -183,16 +183,19 @@ func (a *AuthControllerStruct) ChangePassword(c *fiber.Ctx) error {
 
 	validationErrors := util.ValidateStruct(payload)
 
-	if validationErrors != nil || (payload.NewPassword != payload.CofirmNewPassword) || (payload.NewPassword == payload.Password) {
+	if validationErrors != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationErrors})
 	}
 
 	loggedUser := c.Locals("user").(model.User)
 
-	if err := a.authService.ChangePassword(int(loggedUser.ID), payload.NewPassword); err != nil {
+	if err := a.authService.ChangePassword(int(loggedUser.ID), payload); err != nil {
 		var validationError *util.BusinessError
+		var notFoundError *util.NotFoundError
 		if errors.As(err, &validationError) {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": validationError.Message, "code": validationError.Code})
+		} else if errors.As(err, &notFoundError) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "fail", "errors": "Usuário não encontrado"})
 		}
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": "failed to change password"})
 	}
