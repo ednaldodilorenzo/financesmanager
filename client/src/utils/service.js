@@ -1,39 +1,37 @@
 import requester from "./request";
+import { throttle } from "./support";
 
 class GenericService {
   constructor(serviceURL) {
     this.url = serviceURL;
   }
 
-  findAll(params = {}) {
-    return requester.get(`${this.url}/`, params).then((resp) => {
-      return resp.data;
-    });
-  }
+  findAll = throttle(
+    (params = {}) =>
+      requester.get(`${this.url}/`, params).then((resp) => resp.data),
+    1000
+  );
 
-  findById(id) {
-    return requester.get(`${this.url}/${id}`).then((resp) => {
-      return resp.data;
-    });
-  }
+  findById = throttle(
+    (id) => requester.get(`${this.url}/${id}`).then((resp) => resp.data),
+    1000
+  );
 
-  create(item) {
-    return requester.post(`${this.url}/`, item).then((resp) => {
-      return resp;
-    });
-  }
+  create = throttle(
+    (item) => requester.post(`${this.url}/`, item).then((resp) => resp),
+    1000
+  );
 
-  modify(id, item) {
-    return requester.patch(`${this.url}/${id}`, item).then((resp) => {
-      return resp.data;
-    });
-  }
+  modify = throttle(
+    (id, item) =>
+      requester.patch(`${this.url}/${id}`, item).then((resp) => resp.data),
+    1000
+  );
 
-  delete(id) {
-    return requester.delete(`${this.url}/${id}`).then((resp) => {
-      return resp.data;
-    });
-  }
+  delete = throttle(
+    (id) => requester.delete(`${this.url}/${id}`).then((resp) => resp.data),
+    1000
+  );
 }
 
 export default GenericService;

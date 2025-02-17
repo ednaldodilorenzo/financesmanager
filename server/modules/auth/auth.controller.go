@@ -20,6 +20,8 @@ func GetRoutes(controller AuthController, deserializer *middleware.Deserializer)
 		router.Get("/logout", deserializer.DeserializeUser, controller.LogoutUser)
 		router.Post("/register", controller.StartRegistration)
 		router.Post("/changePassword", deserializer.DeserializeUser, controller.ChangePassword)
+		router.Post("/recoverPassword", controller.RecoverPassword)
+		router.Post("/redefinePassword", controller.RedefinePassword)
 	}
 }
 
@@ -51,12 +53,20 @@ type ChangePasswordRequest struct {
 	CofirmNewPassword string `json:"confirmNewPassword" validate:"required"`
 }
 
+type RedefinePasswordRequest struct {
+	Token             string `json:"token" validate:"required"`
+	Password          string `json:"password" validate:"required"`
+	CofirmNewPassword string `json:"confirmPassword" validate:"required"`
+}
+
 type AuthController interface {
 	SigninUser(c *fiber.Ctx) error
 	SignUpUser(c *fiber.Ctx) error
 	LogoutUser(c *fiber.Ctx) error
 	StartRegistration(c *fiber.Ctx) error
 	ChangePassword(c *fiber.Ctx) error
+	RecoverPassword(c *fiber.Ctx) error
+	RedefinePassword(c *fiber.Ctx) error
 }
 
 type AuthControllerStruct struct {
@@ -107,10 +117,19 @@ func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 	}
 
 	response := SignInResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Token: tokenString,
+		ID:   user.ID,
+		Name: user.Name,
+		//Token: tokenString,
 	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "jwt",
+		Value:    tokenString,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HTTPOnly: true,  // Prevents JavaScript access
+		Secure:   false, // Use true in production (HTTPS required)
+		SameSite: "Strict",
+	})
 
 	return c.Status(fiber.StatusOK).JSON(response)
 }
@@ -144,11 +163,13 @@ func (a *AuthControllerStruct) SignUpUser(c *fiber.Ctx) error {
 }
 
 func (a *AuthControllerStruct) LogoutUser(c *fiber.Ctx) error {
-	expired := time.Now().Add(-time.Hour * 24)
 	c.Cookie(&fiber.Cookie{
-		Name:    "token",
-		Value:   "",
-		Expires: expired,
+		Name:     "jwt",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour), // Expire immediately
+		HTTPOnly: true,
+		Secure:   true, // Use true in production
+		SameSite: "Strict",
 	})
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
 }
@@ -190,6 +211,53 @@ func (a *AuthControllerStruct) ChangePassword(c *fiber.Ctx) error {
 	loggedUser := c.Locals("user").(model.User)
 
 	if err := a.authService.ChangePassword(int(loggedUser.ID), payload); err != nil {
+		var validationError *util.BusinessError
+		var notFoundError *util.NotFoundError
+		if errors.As(err, &validationError) {
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": validationError.Message, "code": validationError.Code})
+		} else if errors.As(err, &notFoundError) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "fail", "errors": "Usuário não encontrado"})
+		}
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": "failed to change password"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
+}
+
+func (a *AuthControllerStruct) RecoverPassword(c *fiber.Ctx) error {
+	var payload *StartRegistrationRequest
+
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+	}
+
+	validationErrors := util.ValidateStruct(payload)
+
+	if validationErrors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationErrors})
+	}
+
+	if err := a.authService.StartRecoverPasswordProcess(payload.Email); err != nil {
+
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
+}
+
+func (a *AuthControllerStruct) RedefinePassword(c *fiber.Ctx) error {
+	var payload *RedefinePasswordRequest
+
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+	}
+
+	validationErrors := util.ValidateStruct(payload)
+
+	if validationErrors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationErrors})
+	}
+
+	if err := a.authService.RedefinePassword(payload); err != nil {
 		var validationError *util.BusinessError
 		var notFoundError *util.NotFoundError
 		if errors.As(err, &validationError) {

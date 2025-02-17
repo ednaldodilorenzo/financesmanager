@@ -18,6 +18,8 @@ type AuthService interface {
 	StartRegistrationProcess(string) error
 	RegisterUserWithToken(*SignUpInput) error
 	ChangePassword(int, *ChangePasswordRequest) error
+	StartRecoverPasswordProcess(string) error
+	RedefinePassword(*RedefinePasswordRequest) error
 }
 
 type AuthServiceStruct struct {
@@ -116,24 +118,14 @@ func (a *AuthServiceStruct) StartRegistrationProcess(email string) error {
 		return util.NewBusinessError("User already registered", nil, util.BE_USER_ALREADY_REGISTERED)
 	}
 
-	tokenByte := jwt.New(jwt.SigningMethodHS256)
-
-	claims := tokenByte.Claims.(jwt.MapClaims)
-
-	now := time.Now().UTC()
-
-	claims["sub"] = email
-	claims["exp"] = now.Add(30 * time.Minute).Unix()
-	claims["iat"] = now.Unix()
-	claims["nbf"] = now.Unix()
-
-	tokenString, err := tokenByte.SignedString([]byte(a.settings.AppSettings.JwtKey))
+	expirationTime := 30 * time.Minute
+	tokenString, err := util.GenerateToken(&email, &a.settings.AppSettings.JwtKey, &expirationTime)
 
 	if err != nil {
 		return err
 	}
 
-	err = a.emailSender.SendEmail(email, "Confirmação de email", fmt.Sprintf("Clique no link abaixo para confirmar seu email<br><br><a href=\"%s\">Clique aqui.</a>", fmt.Sprintf("%s/register/%s", a.settings.AppSettings.Url, tokenString)))
+	err = a.emailSender.SendEmail(email, "Confirmação de email", fmt.Sprintf("Clique no link abaixo para confirmar seu email<br><br><a href=\"%s\">Clique aqui.</a>", fmt.Sprintf("%s/register/%s", a.settings.AppSettings.Url, *tokenString)))
 
 	if err != nil {
 		return err
@@ -228,6 +220,70 @@ func (a *AuthServiceStruct) ChangePassword(userId int, changePassword *ChangePas
 	err = a.repository.Update(userId, user)
 
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *AuthServiceStruct) StartRecoverPasswordProcess(email string) error {
+	user, err := a.repository.FindUserByEmail(email)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return util.NewNotFoundError("Usuário não registrado")
+	}
+
+	expirationTime := 30 * time.Minute
+	tokenString, err := util.GenerateToken(&email, &a.settings.AppSettings.JwtKey, &expirationTime)
+
+	if err != nil {
+		return err
+	}
+
+	err = a.emailSender.SendEmail(email, "Recuperação de Conta", fmt.Sprintf("Clique no link abaixo para registrar uma nova senha.<br><br><a href=\"%s\">Clique aqui.</a>", fmt.Sprintf("%s/redefine/%s", a.settings.AppSettings.Url, *tokenString)))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *AuthServiceStruct) RedefinePassword(redefinePassword *RedefinePasswordRequest) error {
+
+	email, err := util.ExtractSubContent(&redefinePassword.Token, &a.settings.AppSettings.JwtKey)
+
+	if err != nil {
+		return err
+	}
+
+	user, err := a.repository.FindUserByEmail(*email)
+
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return util.NewNotFoundError("Usuário não encontrado")
+	}
+
+	if redefinePassword.Password != redefinePassword.CofirmNewPassword {
+		return util.NewBusinessError("Senha diferente da confirmação", nil, util.BE_INPUT_VALIDATION_ERROR)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(redefinePassword.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return err
+	}
+
+	user.Password = string(hashedPassword)
+
+	if err := a.repository.Update(int(user.ID), user); err != nil {
 		return err
 	}
 

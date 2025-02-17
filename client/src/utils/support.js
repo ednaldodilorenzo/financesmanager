@@ -13,6 +13,25 @@ export function debounce(fn, wait) {
   };
 }
 
+export function throttle(fn, delay) {
+  let isThr = false;
+  let lastPromise = null;
+
+  return function (...args) {
+    if (!isThr) {
+      isThr = true;
+      lastPromise = fn.apply(this, args);
+
+      setTimeout(() => {
+        isThr = false;
+      }, delay);
+
+      return lastPromise;
+    }
+    return lastPromise;
+  };
+}
+
 export default function useClickOutside(component, callback, excludeComponent) {
   // fail early if any of the required params is missing
   console.log(component);

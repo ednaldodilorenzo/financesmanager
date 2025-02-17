@@ -15,12 +15,13 @@ const authService = {
         store.dispatch("currentUser/setUser", {
           id: user.id_usuario,
           name: user.nome_usuario,
+          token: "newToken",
         });
-        Cookies.set("jwtToken", user.token, {
-          expires: 1, // Optional: set cookie expiration time in days
-          secure: true, // Optional: ensures the cookie is only sent over HTTPS
-          sameSite: "Strict", // Optional: prevent CSRF attacks by restricting cross-site access
-        });
+        // Cookies.set("jwtToken", user.token, {
+        //   expires: 1, // Optional: set cookie expiration time in days
+        //   secure: true, // Optional: ensures the cookie is only sent over HTTPS
+        //   sameSite: "Strict", // Optional: prevent CSRF attacks by restricting cross-site access
+        // });
         return true;
       })
       .catch((err) => {
@@ -30,7 +31,6 @@ const authService = {
       });
   },
   logout: () => {
-    Cookies.remove("jwtToken");
     return store.dispatch("currentUser/setUser", null);
   },
   signup: (user) =>
@@ -39,10 +39,16 @@ const authService = {
     requester.get(`/auth/verify/${token}`).then((resp) => resp.data),
   startRegistration: (email) =>
     requester
-      .post(`/auth/register`, { email: email })
+      .post("/auth/register", { email: email })
       .then((resp) => resp.data),
   changePassword: (userData) =>
-    requester.post(`/auth/changePassword`, userData).then((resp) => resp.data),
+    requester.post("/auth/changePassword", userData).then((resp) => resp.data),
+  redefinePassword: (payload) =>
+    requester.post("/auth/redefinePassword", payload).then((resp) => resp.data),
+  startRecoverProcess: (email) =>
+    requester
+      .post("/auth/recoverPassword", { email: email })
+      .then((resp) => resp.data),
 };
 
 export default authService;

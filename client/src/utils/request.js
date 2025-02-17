@@ -10,10 +10,10 @@ const request = axios.create({
 request.interceptors.request.use((config) => {
   return {
     ...config,
-    headers: {
-      ...config.headers,
-      Authorization: `Bearer ${Cookies.get("jwtToken")}`,
-    },
+    // headers: {
+    //   ...config.headers,
+    //   Authorization: `Bearer ${Cookies.get("jwtToken")}`,
+    // },
   };
 });
 

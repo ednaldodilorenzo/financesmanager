@@ -5,6 +5,7 @@ import {
 } from "@/views/login/routes.definition";
 import { VIEW_ROUTES } from "@/views/routes.definition";
 import Cookies from "js-cookie";
+import store from "@/store";
 
 const routes = [
   {
@@ -27,6 +28,8 @@ const PUBLIC_ROUTES_NAMES = [
   LOGIN_ROUTE_NAMES.LOGIN,
   LOGIN_ROUTE_NAMES.REGISTER,
   LOGIN_ROUTE_NAMES.SEND_MAIL,
+  LOGIN_ROUTE_NAMES.RECOVER,
+  LOGIN_ROUTE_NAMES.REDEFINE,
 ];
 
 const router = createRouter({
@@ -35,7 +38,12 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  if (!PUBLIC_ROUTES_NAMES.includes(to.name) && !Cookies.get("jwtToken")) {
+  if (
+    !PUBLIC_ROUTES_NAMES.includes(to.name) &&
+    !store.getters["currentUser/isAuthenticated"]
+  ) {
+    console.log("Entrou no if");
+
     next({ name: LOGIN_ROUTE_NAMES.LOGIN });
   } else {
     next();

@@ -71,7 +71,7 @@ func parseBBCurrentAccount(fileReader io.Reader, _ *time.Time) ([]TransactionImp
 		return nil, err
 	}
 
-	var result []TransactionImportedData
+	result := make([]TransactionImportedData, 0, 100)
 	for i, record := range records {
 		if (i == 0) || (i == 1) || (i == len(records)-1) {
 			// Skip header row saldo and total

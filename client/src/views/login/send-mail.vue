@@ -16,7 +16,7 @@
   {{ message }}
   <div class="mt-4 text-center">
     <p class="mb-0">
-        <label class="form-label">Informe o email</label>
+      <label class="form-label">Informe o email</label>
       <input
         type="text"
         v-model="email"
@@ -35,19 +35,25 @@ import { ref } from "vue";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import { HTTP_STATUS_CODE } from "@/utils/constants";
 import { useToast } from "vue-toastification";
+import { useRoute } from "vue-router";
+import { ROUTE_NAMES } from "./routes.definition";
 
 const email = ref("");
 const loading = useLoadingScreen();
 const toast = useToast();
+const route = useRoute();
 
 const validationMessage = ref(null);
 const showValidationError = ref(false);
 
 const sendEmail = () => {
   loading.show();
-  authService
-    .startRegistration(email.value)
-    .then(() => {        
+  const method =
+    route.name === ROUTE_NAMES.RECOVER
+      ? authService.startRecoverProcess(email.value)
+      : startRegistration(email.value);
+  method
+    .then(() => {
       toast.success("Email enviado com sucesso!");
     })
     .catch((err) => {
