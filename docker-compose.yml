@@ -39,6 +39,7 @@ services:
       - MB_PORT=6379
       - APP_URL=${APP_URL}
       - APP_JWT_KEY=${JWT_KEY}
+      - APP_ENVIRONMENT=PRODUCTION
     depends_on:
       - db
       - migrate

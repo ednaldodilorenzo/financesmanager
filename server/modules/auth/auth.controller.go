@@ -119,15 +119,20 @@ func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 	response := SignInResponse{
 		ID:   user.ID,
 		Name: user.Name,
-		//Token: tokenString,
+	}
+
+	secureCookie := false
+
+	if a.settings.AppSettings.Environment == config.ENVIRONMENT_PROD {
+		secureCookie = true
 	}
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    tokenString,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HTTPOnly: true,  // Prevents JavaScript access
-		Secure:   false, // Use true in production (HTTPS required)
+		Expires:  time.Now().Add(30 * time.Minute),
+		HTTPOnly: true,         // Prevents JavaScript access
+		Secure:   secureCookie, // Use true in production (HTTPS required)
 		SameSite: "Strict",
 	})
 

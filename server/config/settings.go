@@ -2,6 +2,11 @@ package config
 
 import "os"
 
+const (
+	ENVIRONMENT_DEV  = "DEVELOPMENT"
+	ENVIRONMENT_PROD = "PRODUCTION"
+)
+
 type DBSettings struct {
 	Username string `yaml:"user"`
 	Password string `yaml:"pass"`
@@ -16,8 +21,9 @@ type BrokerSettings struct {
 }
 
 type AppSettings struct {
-	Url    string
-	JwtKey string
+	Url         string
+	JwtKey      string
+	Environment string
 }
 
 type Settings struct {
@@ -40,8 +46,9 @@ func NewSettings() *Settings {
 			Port: os.Getenv("MB_PORT"),
 		},
 		AppSettings: AppSettings{
-			Url:    os.Getenv("APP_URL"),
-			JwtKey: os.Getenv("APP_JWT_KEY"),
+			Url:         os.Getenv("APP_URL"),
+			JwtKey:      os.Getenv("APP_JWT_KEY"),
+			Environment: os.Getenv("APP_ENVIRONMENT"),
 		},
 	}
 }
