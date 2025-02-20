@@ -21,8 +21,8 @@
     <div class="col-4">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Valores por tipo</h4>
-          <PieChart :chart-data="chartData"></PieChart>
+          <h4 class="card-title">Valores por Tipo</h4>
+          <PieChart :chart-data="chartData" :options="chartOptions"></PieChart>
         </div>
       </div>
     </div>
@@ -30,7 +30,10 @@
       <div class="card">
         <div class="card-body">
           <h4 class="card-title">Despesas por Categoria</h4>
-          <PieChart :chart-data="chartExpensesData"></PieChart>
+          <PieChart
+            :chart-data="chartExpensesData"
+            :options="chartOptions"
+          ></PieChart>
         </div>
       </div>
     </div>
@@ -38,7 +41,10 @@
       <div class="card">
         <div class="card-body">
           <h4 class="card-title">Receitas por Categoria</h4>
-          <PieChart :chart-data="chartEarnsData"></PieChart>
+          <PieChart
+            :chart-data="chartEarnsData"
+            :options="chartOptions"
+          ></PieChart>
         </div>
       </div>
     </div>
@@ -79,6 +85,17 @@ function loadInitalData() {
       loading.hide();
     });
 }
+
+const chartOptions = {
+  plugins: {
+    legend: {
+      display: false, // Remove legend
+    },
+    tooltip: {
+      enabled: true, // Keep tooltips
+    },
+  },
+};
 
 loadInitalData();
 
