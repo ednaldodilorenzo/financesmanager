@@ -6,11 +6,6 @@
       >Menu</small
     >
     <ul class="nav nav-pills flex-column mb-auto">
-      <li class="nav-item">
-        <a href="#" class="nav-link text-white" aria-current="page">
-          <i class="bi bi-house-door-fill me-2"></i>Home</a
-        >
-      </li>
       <li class="nav-item" v-for="menuItem in menuItems" :key="menuItem.name">
         <router-link :to="menuItem" class="nav-link text-white">
           <i :class="[menuItem.meta.icon]" class="bx me-2"></i

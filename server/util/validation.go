@@ -22,3 +22,28 @@ func ValidateStruct[T any](payload T) []*ErrorResponse {
 
 	return errors
 }
+
+func ValidateRequestPayload[T any](parser func(out interface{}) error) (*T, error) {
+	var errs []*ErrorResponse
+	payload := new(T)
+
+	if err := parser(&payload); err != nil {
+		errs = append(errs, &ErrorResponse{Value: err.Error()})
+		return nil, NewValidationError(err.Error(), errs)
+	}
+
+	err := validate.Struct(payload)
+
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			var element ErrorResponse
+			element.Field = err.StructNamespace()
+			element.Tag = err.Tag()
+			element.Value = err.Param()
+			errs = append(errs, &element)
+		}
+		return nil, NewValidationError(err.Error(), errs)
+	}
+
+	return payload, nil
+}

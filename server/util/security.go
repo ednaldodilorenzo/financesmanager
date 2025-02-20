@@ -8,14 +8,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken(email, key *string, expTime *time.Duration) (*string, error) {
+func GenerateToken(id interface{}, key *string, expTime *time.Duration) (*string, error) {
 	tokenByte := jwt.New(jwt.SigningMethodHS256)
 
 	claims := tokenByte.Claims.(jwt.MapClaims)
 
 	now := time.Now().UTC()
 
-	claims["sub"] = *email
+	claims["sub"] = id
 	claims["exp"] = now.Add(*expTime).Unix()
 	claims["iat"] = now.Unix()
 	claims["nbf"] = now.Unix()

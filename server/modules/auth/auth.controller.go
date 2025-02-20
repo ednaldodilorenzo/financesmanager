@@ -10,7 +10,6 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func GetRoutes(controller AuthController, deserializer *middleware.Deserializer) (string, func(router fiber.Router)) {
@@ -83,34 +82,20 @@ func NewAuthController(authService AuthService, settings *config.Settings) AuthC
 
 func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 
-	var payload *SignInInput
+	payload, err := util.ValidateRequestPayload[SignInInput](c.BodyParser)
 
-	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
-	}
-
-	errors := util.ValidateStruct(payload)
-	if errors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(errors)
+	if err != nil {
+		return err
 	}
 
 	user, err := a.authService.ExecuteAuthentication(payload.Email, payload.Password)
 
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "fail", "message": "Invalid email or Password"})
+		return err
 	}
 
-	tokenByte := jwt.New(jwt.SigningMethodHS256)
-
-	now := time.Now().UTC()
-	claims := tokenByte.Claims.(jwt.MapClaims)
-
-	claims["sub"] = user.ID
-	claims["exp"] = now.Add(515151500000000000).Unix()
-	claims["iat"] = now.Unix()
-	claims["nbf"] = now.Unix()
-
-	tokenString, err := tokenByte.SignedString([]byte(a.settings.AppSettings.JwtKey))
+	expTime := 30 * time.Minute
+	tokenString, err := util.GenerateToken(user.ID, &a.settings.AppSettings.JwtKey, &expTime)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "fail", "message": fmt.Sprintf("generating JWT Token failed: %v", err)})
@@ -129,7 +114,7 @@ func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
-		Value:    tokenString,
+		Value:    *tokenString,
 		Expires:  time.Now().Add(30 * time.Minute),
 		HTTPOnly: true,         // Prevents JavaScript access
 		Secure:   secureCookie, // Use true in production (HTTPS required)
@@ -140,28 +125,15 @@ func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 }
 
 func (a *AuthControllerStruct) SignUpUser(c *fiber.Ctx) error {
-	var payload *SignUpInput
 
-	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+	payload, err := util.ValidateRequestPayload[SignUpInput](c.BodyParser)
+
+	if err != nil {
+		return err
 	}
 
-	validationErrors := util.ValidateStruct(payload)
-
-	if validationErrors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationErrors})
-	}
-
-	if payload.Password != payload.ConfirmPassword {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "Passwords do not match"})
-	}
-
-	var businessError *util.BusinessError
-
-	if err := a.authService.RegisterUserWithToken(payload); err != nil && errors.As(err, &businessError) {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "message": businessError.Message})
-	} else if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Something bad happened"})
+	if err = a.authService.RegisterUserWithToken(payload); err != nil {
+		return err
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
@@ -180,50 +152,32 @@ func (a *AuthControllerStruct) LogoutUser(c *fiber.Ctx) error {
 }
 
 func (a *AuthControllerStruct) StartRegistration(c *fiber.Ctx) error {
-	var payload *StartRegistrationRequest
 
-	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
-	}
-
-	err := a.authService.StartRegistrationProcess(payload.Email)
+	payload, err := util.ValidateRequestPayload[StartRegistrationRequest](c.BodyParser)
 
 	if err != nil {
-		var businessError *util.BusinessError
-		if errors.As(err, &businessError) {
-			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "message": businessError.Message})
-		} else {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": "Failed to start registration process"})
-		}
+		return err
+	}
+
+	if err = a.authService.StartRegistrationProcess(payload.Email); err != nil {
+		return err
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
 }
 
 func (a *AuthControllerStruct) ChangePassword(c *fiber.Ctx) error {
-	var payload *ChangePasswordRequest
 
-	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
-	}
+	payload, err := util.ValidateRequestPayload[ChangePasswordRequest](c.BodyParser)
 
-	validationErrors := util.ValidateStruct(payload)
-
-	if validationErrors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationErrors})
+	if err != nil {
+		return err
 	}
 
 	loggedUser := c.Locals("user").(model.User)
 
 	if err := a.authService.ChangePassword(int(loggedUser.ID), payload); err != nil {
-		var validationError *util.BusinessError
-		var notFoundError *util.NotFoundError
-		if errors.As(err, &validationError) {
-			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": validationError.Message, "code": validationError.Code})
-		} else if errors.As(err, &notFoundError) {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "fail", "errors": "Usuário não encontrado"})
-		}
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": "failed to change password"})
+		return err
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})

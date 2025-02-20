@@ -8,7 +8,6 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,7 +44,7 @@ func (a *AuthServiceStruct) ExecuteAuthentication(username string, password stri
 	}
 
 	if user == nil {
-		return nil, errors.New("invalid username or password")
+		return nil, util.NewUnauthorizedError("invalid username or password")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
@@ -83,16 +82,8 @@ func (a *AuthServiceStruct) RegisterUser(user *model.User) error {
 		return err
 	}
 
-	tokenByte := jwt.New(jwt.SigningMethodHS256)
-
-	claims := tokenByte.Claims.(jwt.MapClaims)
-
-	claims["sub"] = user.Email
-	claims["exp"] = now.Add(30 * time.Minute).Unix()
-	claims["iat"] = now.Unix()
-	claims["nbf"] = now.Unix()
-
-	tokenString, err := tokenByte.SignedString([]byte(a.settings.AppSettings.JwtKey))
+	expirationTime := 30 * time.Minute
+	tokenString, err := util.GenerateToken(&user.Email, &a.settings.AppSettings.JwtKey, &expirationTime)
 
 	if err != nil {
 		return err
@@ -135,27 +126,13 @@ func (a *AuthServiceStruct) StartRegistrationProcess(email string) error {
 }
 
 func (a *AuthServiceStruct) RegisterUserWithToken(signin *SignUpInput) error {
-	tokenByte, err := jwt.Parse(signin.Token, func(jwtToken *jwt.Token) (interface{}, error) {
-		if _, ok := jwtToken.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %s", jwtToken.Header["alg"])
-		}
-
-		return []byte(a.settings.AppSettings.JwtKey), nil
-	})
+	email, err := util.ExtractSubContent(&signin.Token, &a.settings.AppSettings.JwtKey)
 
 	if err != nil {
 		return err
 	}
 
-	claims, ok := tokenByte.Claims.(jwt.MapClaims)
-	if !ok || !tokenByte.Valid {
-		return errors.New("invalid token")
-
-	}
-
-	email := fmt.Sprint(claims["sub"])
-
-	user, err := a.repository.FindUserByEmail(email)
+	user, err := a.repository.FindUserByEmail(*email)
 
 	if err != nil {
 		return err
@@ -175,7 +152,7 @@ func (a *AuthServiceStruct) RegisterUserWithToken(signin *SignUpInput) error {
 
 	newUser := &model.User{
 		Name:      signin.Name,
-		Email:     email,
+		Email:     *email,
 		Password:  string(hashedPassword),
 		CreatedAt: &now,
 	}

@@ -97,6 +97,7 @@ import { required, minLength, email } from "@vuelidate/validators";
 import authService from "./auth.service";
 import LoadingScreen from "@/components/loading-screen.vue";
 import { ROUTE_NAMES } from "./routes.definition";
+import { ROUTE_NAMES as DASHBOARD_ROUTE_NAMES } from "../dashboard/routes.definition";
 
 export default {
   components: {
@@ -107,6 +108,7 @@ export default {
   },
   created() {
     this.ROUTE_NAMES = ROUTE_NAMES;
+    this.DASHBOARD_ROUTE_NAMES = DASHBOARD_ROUTE_NAMES;
   },
   data() {
     return {
@@ -148,10 +150,15 @@ export default {
         .login(username, password)
         .then((response) => {
           if (response) {
-            this.$router.push("/");
+            this.$router.push({ name: DASHBOARD_ROUTE_NAMES.INDEX });
           } else {
             this.showInvalidLoginMessage = true;
           }
+        })
+        .catch((e) => {
+          console.log(e);
+          
+          this.showInvalidLoginMessage = true;
         })
         .finally(() => {
           this.loading = false;

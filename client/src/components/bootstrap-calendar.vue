@@ -35,7 +35,7 @@ const months = {
   10: "Novembro",
   11: "Dezembro",
 };
-const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 const props = defineProps({
   modelValue: {
     type: Date,
