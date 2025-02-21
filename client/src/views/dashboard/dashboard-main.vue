@@ -17,7 +17,7 @@
       </div>
     </div>
   </div>
-  <div class="row">
+  <div class="row g-3">
     <div class="col-4">
       <div class="card">
         <div class="card-body">
@@ -48,6 +48,23 @@
         </div>
       </div>
     </div>
+    <!-- <div class="col-4">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Receitas x Despesas no Ano</h4>
+          <LineChart
+            :chart-data="chartLineData"
+            :options="chartLineOptions"
+          ></LineChart>
+        </div>
+      </div>
+    </div> -->
+    <div class="col-4">
+      <day-by-day-graph
+        :transactionsList="transactionsList"
+        :date="currentDate"
+      ></day-by-day-graph>
+    </div>
   </div>
 </template>
 <script setup>
@@ -56,7 +73,8 @@ import { PieChart } from "vue-chart-3";
 import { Chart, registerables } from "chart.js";
 import transactionService from "@/views/transaction/transaction.service";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
-import { getExtenseMonth } from "@/utils/date";
+import { getExtenseMonth, getDaysListPerMonth } from "@/utils/date";
+import DayByDayGraph from "./daybyday-graph.vue";
 
 // Register required components
 Chart.register(...registerables);
@@ -85,6 +103,43 @@ function loadInitalData() {
       loading.hide();
     });
 }
+
+const labels = ref(["Jan", "Fev"]);
+const dataValues = ref([41452.97, 82865.13]); // Initial values
+
+// Computed chart data
+const chartLineData = computed(() => ({
+  labels: labels.value,
+  datasets: [
+    {
+      label: "Despesa",
+      data: dataValues.value,
+      borderColor: "#42A5F5",
+      backgroundColor: "rgba(66, 165, 245, 0.2)",
+      fill: true,
+      tension: 0.4, // Smooth curve
+    },
+    {
+      label: "Receita",
+      data: [39157.31, 52791.16],
+      borderColor: "#42A5F5",
+      backgroundColor: "rgba(66, 165, 245, 0.2)",
+      fill: true,
+      tension: 0.4, // Smooth curve
+    },
+  ],
+}));
+
+// Chart options
+const chartLineOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    y: {
+      beginAtZero: true,
+    },
+  },
+};
 
 const chartOptions = {
   plugins: {

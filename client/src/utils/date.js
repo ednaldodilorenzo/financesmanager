@@ -27,4 +27,14 @@ function getExtenseMonth(date) {
   return months[date.getUTCMonth()];
 }
 
-export { formatDateUTC, getExtenseMonth };
+function getDaysListPerMonth(date) {
+  const daysPerMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  if (((date.getUTCFullYear() % 4 === 0) && (date.getUTCFullYear() % 100 !== 0)) || (date.getUTCFullYear() % 400 === 0)) {
+    daysPerMonth[2] = 29  
+  }
+
+  return Array.from({ length: daysPerMonth[date.getUTCMonth()] }, (_, i) => 1 + i);
+}
+
+export { formatDateUTC, getExtenseMonth, getDaysListPerMonth };

@@ -10,7 +10,7 @@
       }"
       @submit.stop.prevent="onSubmit"
       id="frmCategory"
-      class="row g-3 mb-3"
+      class="row 3 mb-3"
       autocomplete="off"
       novalidate
     >
