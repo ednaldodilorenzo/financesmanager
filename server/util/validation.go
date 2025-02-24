@@ -27,7 +27,7 @@ func ValidateRequestPayload[T any](parser func(out interface{}) error) (*T, erro
 	var errs []*ErrorResponse
 	payload := new(T)
 
-	if err := parser(&payload); err != nil {
+	if err := parser(payload); err != nil {
 		errs = append(errs, &ErrorResponse{Value: err.Error()})
 		return nil, NewValidationError(err.Error(), errs)
 	}

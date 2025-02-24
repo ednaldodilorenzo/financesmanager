@@ -110,7 +110,11 @@ func (cc *GenericControllerStruct[V]) Post(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(errors)
 	}
 
-	loggedUser := c.Locals("user").(model.User)
+	loggedUser, ok := c.Locals("user").(model.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "fail", "message": "unauthorized"})
+	}
+
 	payload.SetUserID(loggedUser.ID)
 
 	if err := cc.Create(&payload); err != nil {

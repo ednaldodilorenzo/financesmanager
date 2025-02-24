@@ -65,6 +65,9 @@
         :date="currentDate"
       ></day-by-day-graph>
     </div>
+    <div class="col-4">
+      <PlannedExecutedType :dataList="plannedList"></PlannedExecutedType>
+    </div>
   </div>
 </template>
 <script setup>
@@ -73,8 +76,10 @@ import { PieChart } from "vue-chart-3";
 import { Chart, registerables } from "chart.js";
 import transactionService from "@/views/transaction/transaction.service";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
-import { getExtenseMonth, getDaysListPerMonth } from "@/utils/date";
+import { getExtenseMonth } from "@/utils/date";
 import DayByDayGraph from "./daybyday-graph.vue";
+import planningService from "../planning/planning.service";
+import PlannedExecutedType from "./planned-executed-type.vue";
 
 // Register required components
 Chart.register(...registerables);
@@ -83,6 +88,7 @@ const loading = useLoadingScreen();
 const currentDate = new Date();
 
 const transactionsList = ref([]);
+const plannedList = ref([]);
 
 function loadInitalData() {
   loading.show();
@@ -91,10 +97,14 @@ function loadInitalData() {
     year: currentDate.getFullYear(),
   };
 
-  transactionService
-    .findAll(params)
-    .then((resp) => {
-      transactionsList.value = resp.items;
+  Promise.allSettled([
+    transactionService.findAll(params),
+    planningService.findAll(params),
+  ])
+    .then((results) => {
+      const [transactionsResult, planningResults] = results;
+      transactionsList.value = transactionsResult.value.items;
+      plannedList.value = planningResults.value.items;
     })
     .catch((err) => {
       router.push({ name: "denied" });
