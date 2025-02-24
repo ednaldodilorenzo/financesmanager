@@ -53,12 +53,14 @@ const chartValues = computed(() =>
   props.dataList.reduce(
     (previous, current) => {
       if (current.type === "D") {
-        previous.forEach((month) => {
-          month.expenses += current.accumulated / monthsList.value.length;
+        previous.forEach((month, index) => {
+          month.expenses +=
+            (current.accumulated / monthsList.value.length) * (index + 1);
         });
       } else if (current.type === "R") {
-        previous.forEach((month) => {
-          month.earns += current.accumulated / monthsList.value.length;
+        previous.forEach((month, index) => {
+          month.earns +=
+            (current.accumulated / monthsList.value.length) * (index + 1);
         });
       }
       return previous;
