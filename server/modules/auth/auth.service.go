@@ -89,7 +89,7 @@ func (a *AuthServiceStruct) RegisterUser(user *model.User) error {
 		return err
 	}
 
-	err = a.emailSender.SendEmail(user.Email, "Confirmação de email", fmt.Sprintf("Clique no link abaixo para confirmar seu email<br><br><a href=\"%s\">Clique aqui.</a>", fmt.Sprintf("%s/verify/%s", a.settings.AppSettings.Url, tokenString)))
+	err = a.emailSender.SendEmail(user.Email, "Confirmação de email", fmt.Sprintf("Clique no link abaixo para confirmar seu email<br><br><a href=\"%s\">Clique aqui.</a>", fmt.Sprintf("%s/verify/%s", a.settings.AppSettings.Url, *tokenString)))
 
 	if err != nil {
 		return err

@@ -78,6 +78,7 @@ func (s *Server) Setup() {
 
 	api := s.App.Group("/api")
 	routes.SetRoutes(&api)
+	s.settings.LoadSettings()
 	s.db.Connect(&s.settings.Database)
 	s.mb.Config(&s.settings.MessageBroker)
 }

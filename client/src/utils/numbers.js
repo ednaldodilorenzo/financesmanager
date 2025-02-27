@@ -7,7 +7,7 @@ function parseCurrencyToNumber(formattedValue) {
 
 const formatCurrency = (value) => {
   // Check if the value has a negative sign
-  const isNegative = value.startsWith("-");
+  //const isNegative = value.startsWith("-");
 
   // Remove all non-numeric characters except digits
   const digits = value.replace(/[^\d]/g, "");
@@ -21,7 +21,8 @@ const formatCurrency = (value) => {
     maximumFractionDigits: 2,
   });
 
-  return isNegative ? `-${formattedValue}` : formattedValue;
+  //return isNegative ? `-${formattedValue}` : formattedValue;
+  return formattedValue;
 };
 
 export { parseCurrencyToNumber, formatCurrency };

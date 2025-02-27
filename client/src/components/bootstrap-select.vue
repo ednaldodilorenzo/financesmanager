@@ -1,17 +1,21 @@
 <template>
-  <label class="form-label" v-if="label" :for="$attrs['id']">{{ label }}</label>
-  <select
-    @change="onSelectChange"
-    v-bind="$attrs"
-    v-model="model"
-    class="form-select"
-  >
-    <option v-for="option in options" :value="option[props.keyField]">
-      {{ option[props.valueField] }}
-    </option>
-  </select>
-  <div class="invalid-feedback" id="live-feedback-email">
-    {{ requiredMessage }}
+  <div class="container">
+    <label class="form-label" v-if="label" :for="$attrs['id']">{{
+      label
+    }}</label>
+    <select
+      @change="onSelectChange"
+      v-bind="$attrs"
+      v-model="model"
+      class="form-select"
+    >
+      <option v-for="option in options" :value="option[props.keyField]">
+        {{ option[props.valueField] }}
+      </option>
+    </select>
+    <div class="invalid-feedback" id="live-feedback-email">
+      {{ requiredMessage }}
+    </div>
   </div>
 </template>
 <script setup>

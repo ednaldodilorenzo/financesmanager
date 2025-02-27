@@ -256,9 +256,11 @@ function exportToCSV() {
 
   const rows = transactions.value.map(
     (item) =>
-      `${item.formatted_date};${item.description};${formatCurrency(
-        "" + item.value
-      )};${item.category};${item.account};${formatDateUTC(
+      `${item.formatted_date};${item.description};${
+        item.value < 0
+          ? "-" + formatCurrency("" + item.value)
+          : formatCurrency("" + item.value)
+      };${item.category};${item.account};${formatDateUTC(
         item.transactionDate,
         "dd/MM/yyyy"
       )};;${item.detail}`

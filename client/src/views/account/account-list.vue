@@ -24,35 +24,12 @@
         </button>
       </div>
     </div>
-    <div
+    <account-item
       v-for="item in items"
-      class="card"
-      style="width: 18rem; margin: 0.5rem"
-    >
-      <div class="card-body">
-        <div class="d-flex justify-content-between">
-          <h5 class="card-title">{{ item.name }}</h5>
-          <button
-            class="btn"
-            type="button"
-            id="defaultDropdown"
-            data-bs-toggle="dropdown"
-            data-bs-auto-close="true"
-            aria-expanded="false"
-          >
-            <i class="bi bi-three-dots-vertical"></i>
-          </button>
-
-          <ul class="dropdown-menu" aria-labelledby="defaultDropdown">
-            <li>
-              <a class="dropdown-item" @click.prevent="onItemEditClick(item)"
-                >Editar</a
-              >
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+      :key="item"
+      :item="item"
+      @item-edit-click="onItemEditClick"
+    ></account-item>
   </div>
 </template>
 <script setup>
@@ -62,6 +39,7 @@ import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import { useModalScreen } from "@/components/modal/use-modal-screen";
 import { useRouter } from "vue-router";
 import AccountChangeScreen from "./account-change-screen.vue";
+import AccountItem from "./account-item.vue";
 
 const loading = useLoadingScreen();
 const items = ref([]);

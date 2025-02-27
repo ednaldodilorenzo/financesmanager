@@ -33,22 +33,26 @@ type Settings struct {
 }
 
 func NewSettings() *Settings {
-	return &Settings{
-		Database: DBSettings{
-			Username: os.Getenv("DB_USERNAME"),
-			Password: os.Getenv("DB_PASSWORD"),
-			Host:     os.Getenv("DB_HOST"),
-			Port:     os.Getenv("DB_PORT"),
-			DBName:   os.Getenv("DB_NAME"),
-		},
-		MessageBroker: BrokerSettings{
-			Host: os.Getenv("MB_HOST"),
-			Port: os.Getenv("MB_PORT"),
-		},
-		AppSettings: AppSettings{
-			Url:         os.Getenv("APP_URL"),
-			JwtKey:      os.Getenv("APP_JWT_KEY"),
-			Environment: os.Getenv("APP_ENVIRONMENT"),
-		},
+	return &Settings{}
+}
+
+func (s *Settings) LoadSettings() {
+	s.Database = DBSettings{
+		Username: os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		DBName:   os.Getenv("DB_NAME"),
+	}
+
+	s.MessageBroker = BrokerSettings{
+		Host: os.Getenv("MB_HOST"),
+		Port: os.Getenv("MB_PORT"),
+	}
+
+	s.AppSettings = AppSettings{
+		Url:         os.Getenv("APP_URL"),
+		JwtKey:      os.Getenv("APP_JWT_KEY"),
+		Environment: os.Getenv("APP_ENVIRONMENT"),
 	}
 }

@@ -1,4 +1,27 @@
 # Building the binary of the App
+FROM golang:1.24 AS development
+
+# `boilerplate` should be replaced with your project name
+WORKDIR /app
+
+# Install Air for live-reloading
+RUN go install github.com/air-verse/air@latest
+
+# Ensure that Air is in PATH
+ENV PATH="/go/bin:$PATH"
+
+# Copy all the Code and stuff to compile everything
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+EXPOSE 5000
+
+# Use Air as the entrypoint
+CMD ["air"]
+
+# Building the binary of the App
 FROM golang:1.24 AS build
 
 # `boilerplate` should be replaced with your project name

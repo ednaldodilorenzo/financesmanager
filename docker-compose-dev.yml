@@ -1,33 +1,38 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:latest
-    container_name: redis
-    restart: always
-    volumes:
-      - redis_data:/data
-    expose:
-      - "6379"
+  #redis:
+  #  image: redis:latest
+  #  container_name: redis
+  #  restart: always
+  #  volumes:
+  #    - redis_data:/data
+  #  expose:
+  #    - "6379"
       
-  worker:
-    build: ./taskexecutor
-    container_name: task_executor
-    depends_on:
-      - redis
-    environment:
-      - MAIL_HOST=${MAIL_HOST}
-      - MAIL_PORT=${MAIL_PORT}
-      - MAIL_USERNAME=${MAIL_USERNAME}
-      - MAIL_PASSWORD=${MAIL_PASSWORD}
-      - MB_HOST=redis
-      - MB_PORT=6379
+  #worker:
+  #  build: ./taskexecutor
+  #  container_name: task_executor
+  #  depends_on:
+  #    - redis
+  #  environment:
+  #    - MAIL_HOST=${MAIL_HOST}
+  #    - MAIL_PORT=${MAIL_PORT}
+  #    - MAIL_USERNAME=${MAIL_USERNAME}
+  #    - MAIL_PASSWORD=${MAIL_PASSWORD}
+  #    - MB_HOST=redis
+  #    - MB_PORT=6379
       
   api:
     build: 
       context: ./server
       dockerfile: Dockerfile
+      target: development
     container_name: finance-app
+    volumes:
+      - ./server:/app
+    ports:
+      - "5000:5000"  
     environment:
       - DB_USERNAME=master
       - DB_PASSWORD=secret
@@ -37,26 +42,25 @@ services:
       - WAIT_HOSTS=db:5432
       - MB_HOST=redis
       - MB_PORT=6379
-      - APP_URL=${APP_URL}
-      - APP_JWT_KEY=${JWT_KEY}
-      - APP_ENVIRONMENT=PRODUCTION
+      - APP_URL=http://localhost:8080
+      - APP_JWT_KEY=d856af78a4f0db57e6638108deaef25e4f9a23d0cdbc3ce947130ca4c1e7ac225024f8f1453b7e367b9da20520f80fd66ca9aaf8ac959b47c08b99bb492987b4
+      - APP_ENVIRONMENT=DEVELOPMENT
     depends_on:
       - db
-      - migrate
-      - redis
-    expose:
-      - "5000"
+      #- migrate
+      #- redis    
 
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-dev
     container_name: finance-client
     ports:
-      - "443:443"
+      - "8080:8080"
     volumes:
       - ./client:/app
-      - ${CERT_PATH}:/certs:ro
+      - /app/node_modules
+      #- ${CERT_PATH}:/certs:ro
     depends_on:
       - api
 
@@ -78,9 +82,8 @@ services:
       POSTGRES_DB: finance      
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    expose:
-      - "5432"
+    ports:
+      - "5432:5432"
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_data:  

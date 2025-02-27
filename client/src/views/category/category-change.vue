@@ -40,7 +40,6 @@
           :keyField="'id'"
           :valueField="'description'"
           label="Tipo"
-          class="form-control"
         />
       </div>
     </form>

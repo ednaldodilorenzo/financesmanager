@@ -4,7 +4,6 @@ import {
   ROUTE_NAMES as LOGIN_ROUTE_NAMES,
 } from "@/views/login/routes.definition";
 import { VIEW_ROUTES } from "@/views/routes.definition";
-import Cookies from "js-cookie";
 import store from "@/store";
 
 const routes = [

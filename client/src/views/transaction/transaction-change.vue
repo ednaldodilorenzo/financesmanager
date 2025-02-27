@@ -5,6 +5,37 @@
     :title="`${form.id ? 'Alterar' : 'Nova'} Transação`"
   >
     <form id="frmTransaction" class="row g-3 mb-3" autocomplete="off">
+      <div class="col-md-12">
+        <div
+          class="container d-flex justify-content-evenly align-items-center form-control"
+        >
+          <input
+            type="radio"
+            class="btn-check"
+            name="options-outlined"
+            id="success-outlined"
+            autocomplete="off"
+            :checked="!expense"
+            @click="expense = false"
+          />
+          <label class="btn btn-outline-success" for="success-outlined"
+            >Receita</label
+          >
+
+          <input
+            type="radio"
+            class="btn-check"
+            name="options-outlined"
+            id="danger-outlined"
+            autocomplete="off"
+            :checked="expense"
+            @click="expense = true"
+          />
+          <label class="btn btn-outline-danger" for="danger-outlined"
+            >Despesa</label
+          >
+        </div>
+      </div>
       <div class="col-md-6">
         <bootstrap-input
           type="date"
@@ -111,6 +142,8 @@ const toast = useToast();
 // This is done because this component is loaded from another app.
 const vCurrency = CurrencyDirective;
 
+const expense = ref(true);
+
 const props = defineProps({
   onSaveModal: Function,
   onCancelModal: Function,
@@ -166,6 +199,7 @@ function getDependencies() {
           ),
           paymentDate: formatDateUTC(resp.item.paymentDate, "yyyy-MM-dd"),
         };
+        expense.value = resp.item.value < 0;
       });
     } else {
       form.value = props.item;
@@ -184,7 +218,9 @@ const searchTags = (filter) => {
 const onSubmit = () => {
   const { account, category, ...payload } = {
     ...form.value,
-    value: parseCurrencyToNumber(form.value.value),
+    value: expense.value
+      ? -parseCurrencyToNumber(form.value.value)
+      : parseCurrencyToNumber(form.value.value),
     paymentDate: new Date(form.value.paymentDate).toISOString(),
     transactionDate: new Date(form.value.transactionDate).toISOString(),
     tags: form.value.tags.map((item) => ({

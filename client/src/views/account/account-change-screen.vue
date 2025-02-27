@@ -40,35 +40,56 @@
           :keyField="'id'"
           :valueField="'description'"
           label="Tipo"
-          class="form-control"
+        />
+      </div>
+      <div class="col-md-6">
+        <bootstrap-select
+          v-if="form.type === 'C'"
+          required-message="Por favor preencha o dia de pagamento"
+          :required="true"
+          v-model="form.dueDay"
+          id="slcDueDay"
+          :options="dueDays"
+          :keyField="'id'"
+          :valueField="'description'"
+          label="Dia do Pagamento"
         />
       </div>
     </form>
   </bootstrap-modal-screen>
 </template>
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import bootstrapModalScreen from "@/components/bootstrap-modal-screen.vue";
 import BootstrapInput from "@/components/bootstrap-input.vue";
 import BootstrapSelect from "@/components/bootstrap-select.vue";
 import { useVuelidate } from "@vuelidate/core";
 import accountService from "./account.service";
-import { required } from "@vuelidate/validators";
+import { required, requiredIf } from "@vuelidate/validators";
 import { useToast } from "vue-toastification";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 
 const toast = useToast();
 const loading = useLoadingScreen();
 const form = ref({});
+const dueDays = Array.from({ length: 28 }, (_, i) => ({
+  id: 1 + i,
+  description: i + 1 < 10 ? "0" + (i + 1) : "" + (i + 1),
+}));
 
-const rules = {
+const rules = computed(() => ({
   name: {
     required,
   },
   type: {
     required,
   },
-};
+  dueDay: {
+    required: requiredIf(() => {
+      return form.value.type === "C";
+    }),
+  },
+}));
 
 const props = defineProps({
   onSaveModal: Function,
@@ -79,6 +100,7 @@ const props = defineProps({
     default: () => ({
       name: "",
       type: "",
+      dueDay: "",
     }),
   },
 });
@@ -95,7 +117,10 @@ const onSubmit = () => {
   }
 
   loading.show();
-  const payload = { ...form.value, type: form.value.type };
+  const payload = { name: form.value.name, type: form.value.type };
+  if (form.value.dueDay) {
+    payload.dueDay = form.value.dueDay;
+  }
   const method = form.value.id
     ? accountService.modify(form.value.id, payload)
     : accountService.create(payload);
@@ -112,7 +137,9 @@ const onSubmit = () => {
       props.onSaveModal();
     })
     .catch((e) => {
-      console.error(e);
+      toast.error("Falha na execução da solicitação!", {
+        position: "top-center",
+      });
     })
     .finally(() => {
       loading.hide();
