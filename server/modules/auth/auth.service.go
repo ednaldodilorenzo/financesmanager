@@ -44,11 +44,11 @@ func (a *AuthServiceStruct) ExecuteAuthentication(username string, password stri
 	}
 
 	if user == nil {
-		return nil, util.NewUnauthorizedError("invalid username or password")
+		return nil, util.NewAPIError(util.ErrBusiness, []string{"invalid username or password"})
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, util.NewBusinessError("password does not match", err, util.BE_PASSWORD_DO_NOT_MATCH)
+		return nil, util.NewAPIError(util.ErrBusiness, []string{"password does not match"})
 	}
 
 	return user, nil
@@ -63,7 +63,7 @@ func (a *AuthServiceStruct) RegisterUser(user *model.User) error {
 	}
 
 	if currentUser != nil {
-		return util.NewBusinessError("User already registered!", nil, util.BE_USER_ALREADY_REGISTERED)
+		return util.NewAPIError(util.ErrBusiness, []string{"User already registered"})
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -106,7 +106,7 @@ func (a *AuthServiceStruct) StartRegistrationProcess(email string) error {
 	}
 
 	if user != nil {
-		return util.NewBusinessError("User already registered", nil, util.BE_USER_ALREADY_REGISTERED)
+		return util.NewAPIError(util.ErrBusiness, []string{"User already registered"})
 	}
 
 	expirationTime := 30 * time.Minute
@@ -139,7 +139,7 @@ func (a *AuthServiceStruct) RegisterUserWithToken(signin *SignUpInput) error {
 	}
 
 	if user != nil {
-		return util.NewBusinessError("User already registered", nil, util.BE_USER_ALREADY_REGISTERED)
+		return util.NewAPIError(util.ErrBusiness, []string{"User already registered"})
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signin.Password), bcrypt.DefaultCost)
@@ -172,19 +172,19 @@ func (a *AuthServiceStruct) ChangePassword(userId int, changePassword *ChangePas
 	}
 
 	if user == nil {
-		return util.NewNotFoundError("User not Found")
+		return util.NewAPIError(util.ErrNotFound, []string{"User not Found"})
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(changePassword.Password)); err != nil {
-		return util.NewBusinessError("Senha atual não corresponde a cadastada", err, util.BE_PASSWORD_DO_NOT_MATCH)
+		return util.NewAPIError(util.ErrBusiness, []string{"Senha atual não corresponde a cadastada"})
 	}
 
 	if changePassword.NewPassword != changePassword.CofirmNewPassword {
-		return util.NewBusinessError("Nova senha não confere com a confirmação", nil, util.BE_INPUT_VALIDATION_ERROR)
+		return util.NewAPIError(util.ErrBusiness, []string{"Nova senha não confere com a confirmação"})
 	}
 
 	if changePassword.NewPassword == changePassword.Password {
-		return util.NewBusinessError("Nova senha não deve ser igual a anterior", nil, util.BE_INPUT_VALIDATION_ERROR)
+		return util.NewAPIError(util.ErrBusiness, []string{"Nova senha não deve ser igual a anterior"})
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(changePassword.NewPassword), bcrypt.DefaultCost)
@@ -211,7 +211,7 @@ func (a *AuthServiceStruct) StartRecoverPasswordProcess(email string) error {
 	}
 
 	if user == nil {
-		return util.NewNotFoundError("Usuário não registrado")
+		return util.NewAPIError(util.ErrNotFound, []string{"Usuário não registrado"})
 	}
 
 	expirationTime := 30 * time.Minute
@@ -245,11 +245,11 @@ func (a *AuthServiceStruct) RedefinePassword(redefinePassword *RedefinePasswordR
 	}
 
 	if user == nil {
-		return util.NewNotFoundError("Usuário não encontrado")
+		return util.NewAPIError(util.ErrNotFound, []string{"Usuário não encontrado"})
 	}
 
 	if redefinePassword.Password != redefinePassword.CofirmNewPassword {
-		return util.NewBusinessError("Senha diferente da confirmação", nil, util.BE_INPUT_VALIDATION_ERROR)
+		return util.NewAPIError(util.ErrBusiness, []string{"Senha diferente da confirmação"})
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(redefinePassword.Password), bcrypt.DefaultCost)

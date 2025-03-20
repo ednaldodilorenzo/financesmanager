@@ -24,12 +24,12 @@ func ValidateStruct[T any](payload T) []*ErrorResponse {
 }
 
 func ValidateRequestPayload[T any](parser func(out interface{}) error) (*T, error) {
-	var errs []*ErrorResponse
+	var errs []string
 	payload := new(T)
 
 	if err := parser(payload); err != nil {
-		errs = append(errs, &ErrorResponse{Value: err.Error()})
-		return nil, NewValidationError(err.Error(), errs)
+		errs = append(errs, err.Error())
+		return nil, NewAPIError(ErrBadRequest, errs)
 	}
 
 	err := validate.Struct(payload)
@@ -40,9 +40,9 @@ func ValidateRequestPayload[T any](parser func(out interface{}) error) (*T, erro
 			element.Field = err.StructNamespace()
 			element.Tag = err.Tag()
 			element.Value = err.Param()
-			errs = append(errs, &element)
+			errs = append(errs, err.Param())
 		}
-		return nil, NewValidationError(err.Error(), errs)
+		return nil, NewAPIError(ErrBadRequest, errs)
 	}
 
 	return payload, nil

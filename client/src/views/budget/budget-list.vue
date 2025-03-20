@@ -141,7 +141,7 @@ const getData = () => {
   ])
     .then((results) => {
       const [categoryResults, budgetResults] = results;
-      allCategories = categoryResults.value.items;
+      allCategories = categoryResults.value.data;
       parseBudgetResponse(budgetResults.value);
     })
     .finally(() => {
@@ -163,7 +163,7 @@ const clickNew = () => {
 };
 
 const parseBudgetResponse = (resp) => {
-  filteredItems.value = resp.items.map(
+  filteredItems.value = resp.data.map(
     (item) => new BudgetItem(item, allCategories)
   );
 };

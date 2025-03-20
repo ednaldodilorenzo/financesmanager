@@ -3,6 +3,7 @@ package planning
 import (
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
+	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -34,8 +35,8 @@ func (p *PlanningControllerStruct) GetPlanning(c *fiber.Ctx) error {
 	items, err := p.service.FindByMonthAndYear(month, year, int(loggedUser.ID))
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(items), "items": items})
+	return util.SendData(c, "success", &items, fiber.StatusOK)
 }

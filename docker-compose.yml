@@ -27,6 +27,7 @@ services:
     build: 
       context: ./server
       dockerfile: Dockerfile
+      target: release
     container_name: finance-app
     environment:
       - DB_USERNAME=master

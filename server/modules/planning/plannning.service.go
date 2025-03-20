@@ -6,16 +6,16 @@ type PlanningService interface {
 	FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error)
 }
 
-type PlanningServiceStruct struct {
+type planningService struct {
 	repository PlanningRepository
 }
 
 func NewPlanningService(repository PlanningRepository) PlanningService {
-	return &PlanningServiceStruct{
+	return &planningService{
 		repository: repository,
 	}
 }
 
-func (p *PlanningServiceStruct) FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error) {
+func (p *planningService) FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error) {
 	return p.repository.FindByMonthAndYear(month, year, userId)
 }

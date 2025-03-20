@@ -235,12 +235,12 @@ function getDependencies() {
   loading.show();
   Promise.allSettled([
     categoryService.findAll({ paginate: false }),
-    accountService.findAll(),
+    accountService.findAll({ paginate: false }),
   ])
     .then((results) => {
       const [respCategories, respAccounts] = results;
-      categories = respCategories.value.items;
-      accounts = respAccounts.value.items;
+      categories = respCategories.value.data;
+      accounts = respAccounts.value.data;
     })
     .finally(() => {
       loading.hide();
@@ -384,7 +384,7 @@ function submitForm(e) {
   transactionService
     .prepareForImport(payload)
     .then((resp) => {
-      state.value.collection = resp.items.map((item) => ({
+      state.value.collection = resp.data.map((item) => ({
         ...item,
         formatted_date: formatDateUTC(item.paymentDate, "yyyy-MM-dd"),
         formatted_value: currencyBRL(item.value),

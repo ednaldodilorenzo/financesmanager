@@ -3,6 +3,7 @@ package tag
 import (
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
+	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -33,8 +34,8 @@ func (t *TagControllerStruct) GetAll(c *fiber.Ctx) error {
 	items, err := t.service.FindAllWithFilter(filter, int(loggedUser.ID))
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(items), "items": items})
+	return util.SendData(c, "success", &items, fiber.StatusOK)
 }

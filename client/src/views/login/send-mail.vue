@@ -51,7 +51,7 @@ const sendEmail = () => {
   const method =
     route.name === ROUTE_NAMES.RECOVER
       ? authService.startRecoverProcess(email.value)
-      : startRegistration(email.value);
+      : authService.startRegistration(email.value);
   method
     .then(() => {
       toast.success("Email enviado com sucesso!");

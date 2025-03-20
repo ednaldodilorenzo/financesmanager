@@ -22,6 +22,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"go.uber.org/dig"
 )
 
@@ -60,6 +61,7 @@ func NewServer(authController auth.AuthController,
 		settings: settings,
 	}
 
+	server.App.Use(recover.New())
 	api := server.App.Group("/api")
 	api.Route(auth.GetRoutes(authController, deserializer))
 	api.Route(category.GetRoutes(categoryController, deserializer))

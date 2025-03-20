@@ -18,7 +18,7 @@ type TransactionService interface {
 	PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string, userId int) ([]TransactionUploadSchema, error)
 }
 
-type TransactionServiceStruct struct {
+type transactionService struct {
 	generic.GenericService[*model.Transaction]
 	repository      TransactionRepository
 	accountService  account.AccountService
@@ -29,7 +29,7 @@ type TransactionServiceStruct struct {
 func NewTransactionService(service generic.GenericService[*model.Transaction], repository TransactionRepository, accountService account.AccountService, categoryService category.CategoryService) TransactionService {
 	parserFactory := util.NewParserFactory()
 
-	return &TransactionServiceStruct{
+	return &transactionService{
 		service,
 		repository,
 		accountService,
@@ -38,15 +38,15 @@ func NewTransactionService(service generic.GenericService[*model.Transaction], r
 	}
 }
 
-func (ts *TransactionServiceStruct) FindAllRelated(month *int, year *int, userId int) ([]model.Transaction, error) {
+func (ts *transactionService) FindAllRelated(month *int, year *int, userId int) ([]model.Transaction, error) {
 	return ts.repository.FindAllWithRelationships(month, year, userId)
 }
 
-func (ts *TransactionServiceStruct) FindById(id int, userId int) (**model.Transaction, error) {
+func (ts *transactionService) FindById(id int, userId int) (**model.Transaction, error) {
 	return ts.repository.FindById(id, userId)
 }
 
-func (ts *TransactionServiceStruct) isDuplicated(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (bool, error) {
+func (ts *transactionService) isDuplicated(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (bool, error) {
 	transaction, err := ts.repository.FindOneByValuePaymentDateAndTransactionDate(value, paymentDate, transactionDate, userId)
 	if err != nil {
 		var runtimeError *util.RuntimeError
@@ -63,7 +63,7 @@ func (ts *TransactionServiceStruct) isDuplicated(value int32, paymentDate time.T
 	return duplicated, nil
 }
 
-func (ts *TransactionServiceStruct) PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string, userId int) ([]TransactionUploadSchema, error) {
+func (ts *transactionService) PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string, userId int) ([]TransactionUploadSchema, error) {
 	var constFileType util.FileImportType
 	switch fileType {
 	case "BBCA":

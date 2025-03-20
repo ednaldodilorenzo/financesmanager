@@ -10,18 +10,18 @@ type AccountService interface {
 	FindByName(name string, userId int) (*model.Account, error)
 }
 
-type AccountServiceStruct struct {
+type accountService struct {
 	generic.GenericService[*model.Account]
 	repository AccountRepository
 }
 
 func NewAccountService(service generic.GenericService[*model.Account], repository AccountRepository) AccountService {
-	return &AccountServiceStruct{
+	return &accountService{
 		service,
 		repository,
 	}
 }
 
-func (as *AccountServiceStruct) FindByName(name string, userId int) (*model.Account, error) {
+func (as *accountService) FindByName(name string, userId int) (*model.Account, error) {
 	return as.repository.FindByName(name, userId)
 }

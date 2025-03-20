@@ -41,8 +41,6 @@ router.beforeEach((to, from, next) => {
     !PUBLIC_ROUTES_NAMES.includes(to.name) &&
     !store.getters["currentUser/isAuthenticated"]
   ) {
-    console.log("Entrou no if");
-
     next({ name: LOGIN_ROUTE_NAMES.LOGIN });
   } else {
     next();

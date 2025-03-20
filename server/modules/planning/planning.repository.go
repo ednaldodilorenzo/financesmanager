@@ -9,17 +9,17 @@ type PlanningRepository interface {
 	FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error)
 }
 
-type PlanningRepositoryStruct struct {
+type planningRepository struct {
 	*config.Database
 }
 
 func NewPlanningRepository(database *config.Database) PlanningRepository {
-	return &PlanningRepositoryStruct{
+	return &planningRepository{
 		database,
 	}
 }
 
-func (p *PlanningRepositoryStruct) FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error) {
+func (p *planningRepository) FindByMonthAndYear(month int, year int, userId int) ([]model.Planning, error) {
 	var results []model.Planning
 
 	accumulatedSubQuery := p.DB.Table("transaction t").

@@ -4,6 +4,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
+	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -22,27 +23,27 @@ type BudgetController interface {
 	GetAllByYear(c *fiber.Ctx) error
 }
 
-type BudgetControllerStruct struct {
+type budgetController struct {
 	generic.GenericController[*model.Budget]
 	service BudgetService
 }
 
 func NewBudgetController(controller generic.GenericController[*model.Budget], service BudgetService) BudgetController {
-	return &BudgetControllerStruct{
+	return &budgetController{
 		controller,
 		service,
 	}
 }
 
-func (b *BudgetControllerStruct) GetAllByYear(c *fiber.Ctx) error {
+func (b *budgetController) GetAllByYear(c *fiber.Ctx) error {
 	year := c.QueryInt("year")
 
 	loggedUser := c.Locals("user").(model.User)
 	items, err := b.service.FindAllByYear(year, int(loggedUser.ID))
 
 	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(items), "items": items})
+	return util.SendData(c, "success", &items, fiber.StatusOK)
 }

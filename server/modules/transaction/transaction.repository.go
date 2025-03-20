@@ -17,19 +17,19 @@ type TransactionRepository interface {
 	FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (*model.Transaction, error)
 }
 
-type TransactionRespositoryStruct struct {
+type transactionRespository struct {
 	generic.GenericRepository[*model.Transaction]
 	dbConfig *config.Database
 }
 
 func NewTransactionRepository(repository generic.GenericRepository[*model.Transaction], database *config.Database) TransactionRepository {
-	return &TransactionRespositoryStruct{
+	return &transactionRespository{
 		GenericRepository: repository,
 		dbConfig:          database,
 	}
 }
 
-func (g *TransactionRespositoryStruct) FindById(id, userId int) (**model.Transaction, error) {
+func (g *transactionRespository) FindById(id, userId int) (**model.Transaction, error) {
 	var item *model.Transaction
 
 	// Use Joins to enforce INNER JOIN
@@ -49,7 +49,7 @@ func (g *TransactionRespositoryStruct) FindById(id, userId int) (**model.Transac
 	return &item, nil
 }
 
-func (tr *TransactionRespositoryStruct) FindAllWithRelationships(month *int, year *int, userId int) ([]model.Transaction, error) {
+func (tr *transactionRespository) FindAllWithRelationships(month *int, year *int, userId int) ([]model.Transaction, error) {
 	var items []model.Transaction
 
 	query := tr.dbConfig.DB.Model(&items).Preload("Account").Preload("Category")
@@ -69,7 +69,7 @@ func (tr *TransactionRespositoryStruct) FindAllWithRelationships(month *int, yea
 	return items, nil
 }
 
-func (tr *TransactionRespositoryStruct) FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (*model.Transaction, error) {
+func (tr *transactionRespository) FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (*model.Transaction, error) {
 	var result model.Transaction
 
 	err := tr.dbConfig.DB.First(&result, "value = ? AND payment_date = ? AND transaction_date = ? AND user_id = ?", value, paymentDate, transactionDate, userId).Error

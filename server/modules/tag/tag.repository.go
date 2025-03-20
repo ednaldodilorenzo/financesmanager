@@ -11,17 +11,17 @@ type TagRepository interface {
 	FindAllWithFilter(filter string, userId int) ([]model.TransactionTag, error)
 }
 
-type TagRespositoryStruct struct {
+type tagRespository struct {
 	dbConfig *config.Database
 }
 
 func NewTagRepository(database *config.Database) TagRepository {
-	return &TagRespositoryStruct{
+	return &tagRespository{
 		database,
 	}
 }
 
-func (t *TagRespositoryStruct) FindAllWithFilter(filter string, userId int) ([]model.TransactionTag, error) {
+func (t *tagRespository) FindAllWithFilter(filter string, userId int) ([]model.TransactionTag, error) {
 	var items []model.TransactionTag
 
 	if filter == "" {

@@ -48,7 +48,7 @@ const modal = useModalScreen(AccountChangeScreen);
 
 const getList = (filter = undefined) => {
   loading.show();
-  const params = {};
+  const params = { paginate: false };
   if (filter) {
     params.search = filter;
   }
@@ -56,7 +56,7 @@ const getList = (filter = undefined) => {
   accountService
     .findAll(params)
     .then((resp) => {
-      items.value = resp.items;
+      items.value = resp.data;
     })
     .catch((err) => {
       router.push({ name: "denied" });

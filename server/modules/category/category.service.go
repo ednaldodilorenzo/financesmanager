@@ -10,18 +10,18 @@ type CategoryService interface {
 	FindByName(name string, userId int) (*model.Category, error)
 }
 
-type CategoryServiceStruct struct {
+type categoryService struct {
 	generic.GenericService[*model.Category]
 	repository CategoryRepository
 }
 
 func NewAccountService(service generic.GenericService[*model.Category], repository CategoryRepository) CategoryService {
-	return &CategoryServiceStruct{
+	return &categoryService{
 		service,
 		repository,
 	}
 }
 
-func (cs *CategoryServiceStruct) FindByName(name string, userId int) (*model.Category, error) {
+func (cs *categoryService) FindByName(name string, userId int) (*model.Category, error) {
 	return cs.repository.FindByName(name, userId)
 }

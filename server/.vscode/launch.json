@@ -23,6 +23,17 @@
       },
       "args": [],
       "showLog": true
+    },
+    {
+      "name": "Attach to Air + Delve",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "host": "127.0.0.1",
+      "port": 2345,
+      "apiVersion": 2,
+      "showLog": true,
+      "trace": "verbose"
     }
   ]
 }

@@ -26,17 +26,17 @@ type GenericRepository[V model.IUserDependent] interface {
 	Transaction(fn func(repo GenericRepository[V]) error) error //https://gist.github.com/IamNator/f1e9e6b1ae4d9e3eb66c73998f545f6c
 }
 
-type GenericRepositoryStruct[V model.IUserDependent] struct {
+type genericRepository[V model.IUserDependent] struct {
 	dbConfig *config.Database
 }
 
 func NewGenericRepository[V model.IUserDependent](database *config.Database) GenericRepository[V] {
-	return &GenericRepositoryStruct[V]{
+	return &genericRepository[V]{
 		dbConfig: database,
 	}
 }
 
-func (g *GenericRepositoryStruct[V]) FindById(id int, userId int) (*V, error) {
+func (g *genericRepository[V]) FindById(id int, userId int) (*V, error) {
 	var item V
 
 	if err := g.dbConfig.DB.First(&item, "id = ? AND userId = ?", id, userId).Error; err != nil {
@@ -46,7 +46,7 @@ func (g *GenericRepositoryStruct[V]) FindById(id int, userId int) (*V, error) {
 	return &item, nil
 }
 
-func (g *GenericRepositoryStruct[V]) Delete(id, userId int) error {
+func (g *genericRepository[V]) Delete(id, userId int) error {
 	var item V
 
 	if err := g.dbConfig.DB.Delete(&item, id).Error; err != nil {
@@ -56,7 +56,7 @@ func (g *GenericRepositoryStruct[V]) Delete(id, userId int) error {
 	return nil
 }
 
-func (g *GenericRepositoryStruct[V]) FindAll(userId int) ([]V, error) {
+func (g *genericRepository[V]) FindAll(userId int) ([]V, error) {
 	var items []V
 
 	zeroValue := new(V)
@@ -72,7 +72,7 @@ func (g *GenericRepositoryStruct[V]) FindAll(userId int) ([]V, error) {
 	return items, nil
 }
 
-func (g *GenericRepositoryStruct[V]) FindAllPaginatedAndFiltered(userId, limit, offset int, filter string) (*PaginatedResponse[V], error) {
+func (g *genericRepository[V]) FindAllPaginatedAndFiltered(userId, limit, offset int, filter string) (*PaginatedResponse[V], error) {
 	var totalCount int64
 	var items []V
 
@@ -102,7 +102,7 @@ func (g *GenericRepositoryStruct[V]) FindAllPaginatedAndFiltered(userId, limit, 
 	}, nil
 }
 
-func (g *GenericRepositoryStruct[V]) Create(item *V) error {
+func (g *genericRepository[V]) Create(item *V) error {
 	if err := g.dbConfig.DB.Clauses(clause.Returning{}).Create(item).Error; err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ func (g *GenericRepositoryStruct[V]) Create(item *V) error {
 	return nil
 }
 
-func (g *GenericRepositoryStruct[V]) CreateAll(items []V) error {
+func (g *genericRepository[V]) CreateAll(items []V) error {
 	if err := g.dbConfig.DB.Create(&items).Error; err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (g *GenericRepositoryStruct[V]) CreateAll(items []V) error {
 	return nil
 }
 
-func (g *GenericRepositoryStruct[V]) Update(id int, item *V, userId int) error {
+func (g *genericRepository[V]) Update(id int, item *V, userId int) error {
 	if err := g.dbConfig.DB.Model(&item).Where("id = ? AND user_id = ?", id, userId).Updates(item).Error; err != nil {
 		return err
 	}
@@ -126,15 +126,15 @@ func (g *GenericRepositoryStruct[V]) Update(id int, item *V, userId int) error {
 	return nil
 }
 
-func (c *GenericRepositoryStruct[V]) withTx(tx *gorm.DB) GenericRepository[V] {
-	return &GenericRepositoryStruct[V]{
+func (c *genericRepository[V]) withTx(tx *gorm.DB) GenericRepository[V] {
+	return &genericRepository[V]{
 		dbConfig: &config.Database{
 			DB: tx,
 		},
 	}
 }
 
-func (c *GenericRepositoryStruct[V]) Transaction(fn func(repo GenericRepository[V]) error) error {
+func (c *genericRepository[V]) Transaction(fn func(repo GenericRepository[V]) error) error {
 	tx := c.dbConfig.DB.Begin()
 	if tx.Error != nil {
 		return tx.Error

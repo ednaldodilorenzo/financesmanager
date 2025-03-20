@@ -17,17 +17,17 @@ type GenericController[V model.IUserDependent] interface {
 	Delete(c *fiber.Ctx) error
 }
 
-type GenericControllerStruct[V model.IUserDependent] struct {
+type genericController[V model.IUserDependent] struct {
 	GenericService[V]
 }
 
 func NewGenericController[V model.IUserDependent](service GenericService[V]) GenericController[V] {
-	return &GenericControllerStruct[V]{
+	return &genericController[V]{
 		service,
 	}
 }
 
-func (cc *GenericControllerStruct[V]) GetAll(c *fiber.Ctx) error {
+func (cc *genericController[V]) GetAll(c *fiber.Ctx) error {
 	paginate := c.QueryBool("paginate", true)
 	pageSize := c.QueryInt("pageSize", 10)
 
@@ -36,37 +36,31 @@ func (cc *GenericControllerStruct[V]) GetAll(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 
-	var result interface{}
-	var err interface{}
-
 	if paginate {
-		result, err = cc.FindAllPaginatedAndFiltered(int(loggedUser.ID), int(pageSize), int(pageNumber), filter)
+		result, err := cc.FindAllPaginatedAndFiltered(int(loggedUser.ID), int(pageSize), int(pageNumber), filter)
 
 		if err != nil {
-			return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+			return err
 		}
 
-		response := result.(*PaginatedResponse[V])
-
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "items": response.Items, "total": response.Total, "page": response.Page})
+		return util.SendData(c, "success", &result, int(fiber.StatusOK))
 	} else {
-		result, err = cc.FindAll(int(loggedUser.ID))
+		result, err := cc.FindAll(int(loggedUser.ID))
 
 		if err != nil {
 			return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
 		}
-
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "items": result})
+		return util.SendData(c, "success", &result, int(fiber.StatusOK))
 	}
 
 }
 
-func (cc *GenericControllerStruct[V]) GetOne(c *fiber.Ctx) error {
+func (cc *genericController[V]) GetOne(c *fiber.Ctx) error {
 
 	itemId, err := strconv.Atoi(c.Params("id"))
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
+		return err
 	}
 
 	loggedUser := c.Locals("user").(model.User)
@@ -74,18 +68,18 @@ func (cc *GenericControllerStruct[V]) GetOne(c *fiber.Ctx) error {
 	item, err := cc.FindById(itemId, int(loggedUser.ID))
 
 	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "item": item})
+	return util.SendData(c, "success", item, int(fiber.StatusOK))
 }
 
-func (cc *GenericControllerStruct[V]) Delete(c *fiber.Ctx) error {
+func (cc *genericController[V]) Delete(c *fiber.Ctx) error {
 
 	itemId, err := strconv.Atoi(c.Params("id"))
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
+		return err
 	}
 
 	loggedUser := c.Locals("user").(model.User)
@@ -93,17 +87,17 @@ func (cc *GenericControllerStruct[V]) Delete(c *fiber.Ctx) error {
 	err = cc.DeleteRecord(itemId, int(loggedUser.ID))
 
 	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
+	return util.SendData[any](c, "success", nil, int(fiber.StatusOK))
 }
 
-func (cc *GenericControllerStruct[V]) Post(c *fiber.Ctx) error {
+func (cc *genericController[V]) Post(c *fiber.Ctx) error {
 	var payload V
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+		return err
 	}
 
 	if errors := util.ValidateStruct(payload); errors != nil {
@@ -118,17 +112,17 @@ func (cc *GenericControllerStruct[V]) Post(c *fiber.Ctx) error {
 	payload.SetUserID(loggedUser.ID)
 
 	if err := cc.Create(&payload); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+		return err
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
+	return util.SendData[any](c, "success", nil, int(fiber.StatusCreated))
 }
 
-func (cc *GenericControllerStruct[V]) PostAll(c *fiber.Ctx) error {
+func (cc *genericController[V]) PostAll(c *fiber.Ctx) error {
 	var payload []V
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+		return err
 	}
 
 	loggedUser := c.Locals("user").(model.User)
@@ -141,30 +135,30 @@ func (cc *GenericControllerStruct[V]) PostAll(c *fiber.Ctx) error {
 	}
 
 	if err := cc.CreateAll(payload); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+		return err
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
+	return util.SendData[any](c, "success", nil, int(fiber.StatusCreated))
 }
 
-func (cc *GenericControllerStruct[V]) Patch(c *fiber.Ctx) error {
+func (cc *genericController[V]) Patch(c *fiber.Ctx) error {
 	var payload *V
 
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+		return err
 	}
 
 	itemId, err := strconv.Atoi(c.Params("id"))
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
+		return err
 	}
 
 	loggedUser := c.Locals("user").(model.User)
 
 	if err = cc.Update(itemId, payload, int(loggedUser.ID)); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
+	return util.SendData[any](c, "success", nil, int(fiber.StatusOK))
 }

@@ -11,19 +11,19 @@ type BudgetRepository interface {
 	FindAllByYear(year, userId int) ([]model.Budget, error)
 }
 
-type BudgetRepositoryStruct struct {
+type budgetRepository struct {
 	generic.GenericRepository[*model.Budget]
 	*config.Database
 }
 
 func NewBudgetRepository(repository generic.GenericRepository[*model.Budget], database *config.Database) BudgetRepository {
-	return &BudgetRepositoryStruct{
+	return &budgetRepository{
 		repository,
 		database,
 	}
 }
 
-func (b *BudgetRepositoryStruct) FindAllByYear(year, userId int) ([]model.Budget, error) {
+func (b *budgetRepository) FindAllByYear(year, userId int) ([]model.Budget, error) {
 	var items []model.Budget
 
 	if err := b.DB.Model(&items).Where("year = ? AND user_id = ?", year, userId).Find(&items).Error; err != nil {

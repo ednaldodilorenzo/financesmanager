@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ednaldo-dilorenzo/iappointment/util"
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
@@ -13,6 +14,8 @@ func InitFiberApplication() *fiber.App {
 	loadApplicationConfig()
 	return fiber.New(fiber.Config{
 		ErrorHandler: util.ServerErrorHandler,
+		JSONEncoder:  json.Marshal,
+		JSONDecoder:  json.Unmarshal,
 	})
 }
 

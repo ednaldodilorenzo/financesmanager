@@ -108,7 +108,7 @@ func parseBBCurrentAccount(fileReader io.Reader, _ *time.Time) ([]TransactionImp
 func parseCreditCardData(fileReader io.Reader, date *time.Time) ([]TransactionImportedData, error) {
 
 	if date == nil {
-		return nil, NewBusinessError("Date is necessary in credit card transaction import", nil, BE_INPUT_VALIDATION_ERROR)
+		return nil, NewAPIError(ErrBusiness, []string{"Date is necessary in credit card transaction import"})
 	}
 	// Parse the CSV file
 	csvReader := csv.NewReader(fileReader)

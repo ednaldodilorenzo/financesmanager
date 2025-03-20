@@ -45,87 +45,50 @@ const (
 	BE_NOT_FOUND
 )
 
-type BusinessError struct {
-	Message string
-	Err     error
-	Code    int
+type Error struct {
+	StatusCode int
+	Message    string
 }
 
-func (b *BusinessError) Error() string {
-	return fmt.Sprintf("Business error: %s, code %d", b.Message, b.Code)
+func (e Error) Error() string {
+	return e.Message
 }
 
-func NewBusinessError(msg string, err error, code int) *BusinessError {
-	return &BusinessError{
-		Message: msg,
-		Err:     err,
-		Code:    code,
+func NewError(statusCode int, message string) *Error {
+	return &Error{
+		StatusCode: statusCode,
+		Message:    message,
 	}
 }
 
-type NotFoundError struct {
-	Message string
+var (
+	ErrNotFound     = NewError(fiber.StatusNotFound, "item not found")
+	ErrBadRequest   = NewError(fiber.StatusBadRequest, "bad request")
+	ErrBusiness     = NewError(fiber.StatusUnprocessableEntity, "business error")
+	ErrUnauthorized = NewError(fiber.StatusUnauthorized, "unauthorized")
+)
+
+type APIError struct {
+	Messages []string `json:"messages"`
+	Err      *Error
 }
 
-func (n *NotFoundError) Error() string {
-	return "Not found"
+func (ae APIError) Error() string {
+	return ae.Err.Error()
 }
 
-func NewNotFoundError(msg string) *NotFoundError {
-	return &NotFoundError{
-		Message: msg,
-	}
-}
-
-type ValidationError struct {
-	Message string
-	Errors  []*ErrorResponse
-}
-
-func (n *ValidationError) Error() string {
-	return n.Message
-}
-
-func NewValidationError(message string, errors []*ErrorResponse) *ValidationError {
-	return &ValidationError{
-		Message: message,
-		Errors:  errors,
-	}
-}
-
-type UnauthorizedError struct {
-	Message string
-}
-
-func (n *UnauthorizedError) Error() string {
-	return n.Message
-}
-
-func NewUnauthorizedError(message string) *UnauthorizedError {
-	return &UnauthorizedError{
-		Message: message,
+func NewAPIError(err *Error, messages []string) *APIError {
+	return &APIError{
+		Err:      err,
+		Messages: messages,
 	}
 }
 
 func ServerErrorHandler(ctx *fiber.Ctx, err error) error {
-	var notFoundError *NotFoundError
-	if errors.As(err, &notFoundError) {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "fail", "errors": notFoundError.Message})
-	}
 
-	var businessError *BusinessError
-	if errors.As(err, &businessError) {
-		return ctx.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": businessError.Message, "code": businessError.Code})
-	}
-
-	var validationError *ValidationError
-	if errors.As(err, &validationError) {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationError.Errors})
-	}
-
-	var unauthorizedError *UnauthorizedError
-	if errors.As(err, &unauthorizedError) {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "fail", "errors": unauthorizedError.Error()})
+	var apiError APIError
+	if errors.As(err, &apiError) {
+		return ctx.Status(apiError.Err.StatusCode).JSON(fiber.Map{"status": "fail", "errors": apiError.Messages})
 	}
 
 	var fiberError *fiber.Error

@@ -55,7 +55,7 @@ const getList = async () => {
 
   try {
     const resp = await categoryService.findAll(params);
-    items.value = resp.items.map((item) => ({
+    items.value = resp.data.map((item) => ({
       ...item,
       type_desc:
         item.type !== "D"

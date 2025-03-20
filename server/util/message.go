@@ -6,8 +6,15 @@ import (
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
+	"github.com/gofiber/fiber/v2"
 	"github.com/hibiken/asynq"
 )
+
+type ApiResponse[T any] struct {
+	Status   string   `json:"status"`
+	Data     T        `json:"data"`
+	Messages []string `json:"messages"`
+}
 
 type ErrorResponse struct {
 	Field string `json:"field"`
@@ -49,4 +56,17 @@ func (e *EmailSenderStruct) SendEmail(to, subject, body string) error {
 	_, err := client.Enqueue(task, asynq.MaxRetry(5), asynq.Timeout(30*time.Second))
 
 	return err
+}
+
+func SendData[T any](ctx *fiber.Ctx, status string, data *T, statusCode int) error {
+	var responseData T
+
+	if data != nil {
+		responseData = *data
+	}
+
+	return ctx.Status(statusCode).JSON(ApiResponse[T]{
+		Status: status,
+		Data:   responseData,
+	})
 }

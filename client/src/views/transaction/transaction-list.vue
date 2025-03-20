@@ -199,9 +199,9 @@ function loadInitalData() {
     .then((results) => {
       const [respTransactions, respCategories, respAccounts] = results;
 
-      transactions.value = mapTransactions(respTransactions.value.items);
-      accounts = respAccounts.value.items;
-      categories = respCategories.value.items;
+      transactions.value = mapTransactions(respTransactions.value.data);
+      accounts = respAccounts.value.data;
+      categories = respCategories.value.data;
     })
     .catch((err) => {
       router.push({ name: "denied" });
@@ -224,7 +224,7 @@ function getList(month, year, filter = undefined) {
   transactionService
     .findAll(params)
     .then((resp) => {
-      transactions.value = mapTransactions(resp.items);
+      transactions.value = mapTransactions(resp.data);
     })
     .catch((err) => {
       console.log(err);

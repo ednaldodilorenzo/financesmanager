@@ -32,7 +32,8 @@ services:
     volumes:
       - ./server:/app
     ports:
-      - "5000:5000"  
+      - "5000:5000"
+      - "2345:2345"
     environment:
       - DB_USERNAME=master
       - DB_PASSWORD=secret

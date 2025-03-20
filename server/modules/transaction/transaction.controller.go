@@ -7,6 +7,7 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
+	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -55,7 +56,7 @@ func (cc *TransactionControllerStruct) GetOne(c *fiber.Ctx) error {
 	itemId, err := strconv.Atoi(c.Params("id"))
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "fail"})
+		return err
 	}
 
 	loggedUser := c.Locals("user").(model.User)
@@ -63,10 +64,10 @@ func (cc *TransactionControllerStruct) GetOne(c *fiber.Ctx) error {
 	item, err := cc.service.FindById(itemId, int(loggedUser.ID))
 
 	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "item": item})
+	return util.SendData(c, "success", item, int(fiber.StatusOK))
 }
 
 func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) error {
@@ -75,7 +76,7 @@ func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) err
 
 	if month := c.Query("month"); month != "" {
 		if value, err := strconv.Atoi(month); err != nil {
-			return c.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{"status": "error", "message": "invalid parameter month value"})
+			return err
 		} else {
 			monthParam = &value
 		}
@@ -83,7 +84,7 @@ func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) err
 
 	if year := c.Query("year"); year != "" {
 		if value, err := strconv.Atoi(year); err != nil {
-			return c.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{"status": "error", "message": "invalid parameter year value"})
+			return err
 		} else {
 			yearParam = &value
 		}
@@ -94,23 +95,23 @@ func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) err
 	items, err := cc.service.FindAllRelated(monthParam, yearParam, int(loggedUser.ID))
 
 	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(items), "items": items})
+	return util.SendData(c, "success", &items, int(fiber.StatusOK))
 }
 
 func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
 	// Get the uploaded file
 	file, err := c.FormFile("file")
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Failed to get the file")
+		return err
 	}
 
 	// Open the file
 	fileReader, err := file.Open()
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to open the file")
+		return err
 	}
 	defer fileReader.Close()
 
@@ -119,7 +120,7 @@ func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
 	if accountIDStr != "" {
 		accountId, err = strconv.Atoi(accountIDStr)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to get account id!")
+			return err
 		}
 	}
 
@@ -128,7 +129,7 @@ func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
 	if dateStr != "" {
 		date, err = time.Parse("2006-01-02", dateStr)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).SendString("Failed to get account id!")
+			return err
 		}
 	}
 
@@ -137,8 +138,8 @@ func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
 
 	transactions, err := cc.service.PrepareFileImport(fileReader, uint32(accountId), &date, fileType, int(loggedUser.ID))
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to open the file")
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success", "results": len(transactions), "items": transactions})
+	return util.SendData(c, "success", &transactions, int(fiber.StatusOK))
 }

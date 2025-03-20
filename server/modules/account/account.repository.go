@@ -15,19 +15,19 @@ type AccountRepository interface {
 	FindByName(name string, userId int) (*model.Account, error)
 }
 
-type AccountRespositoryStruct struct {
+type accountRespository struct {
 	generic.GenericRepository[*model.Account]
 	dbConfig *config.Database
 }
 
 func NewAccountRepository(repository generic.GenericRepository[*model.Account], database *config.Database) AccountRepository {
-	return &AccountRespositoryStruct{
+	return &accountRespository{
 		repository,
 		database,
 	}
 }
 
-func (ar *AccountRespositoryStruct) FindByName(name string, userId int) (*model.Account, error) {
+func (ar *accountRespository) FindByName(name string, userId int) (*model.Account, error) {
 	var result model.Account
 
 	err := ar.dbConfig.DB.First(&result, "name = ? AND user_id = ?", name, userId).Error

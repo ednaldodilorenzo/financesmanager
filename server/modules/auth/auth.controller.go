@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
@@ -68,19 +66,19 @@ type AuthController interface {
 	RedefinePassword(c *fiber.Ctx) error
 }
 
-type AuthControllerStruct struct {
+type authController struct {
 	authService AuthService
 	settings    *config.Settings
 }
 
 func NewAuthController(authService AuthService, settings *config.Settings) AuthController {
-	return &AuthControllerStruct{
+	return &authController{
 		authService: authService,
 		settings:    settings,
 	}
 }
 
-func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
+func (a *authController) SigninUser(c *fiber.Ctx) error {
 
 	payload, err := util.ValidateRequestPayload[SignInInput](c.BodyParser)
 
@@ -98,7 +96,7 @@ func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 	tokenString, err := util.GenerateToken(user.ID, &a.settings.AppSettings.JwtKey, &expTime)
 
 	if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "fail", "message": fmt.Sprintf("generating JWT Token failed: %v", err)})
+		return err
 	}
 
 	response := SignInResponse{
@@ -121,10 +119,10 @@ func (a *AuthControllerStruct) SigninUser(c *fiber.Ctx) error {
 		SameSite: "Strict",
 	})
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return util.SendData(c, "success", &response, fiber.StatusOK)
 }
 
-func (a *AuthControllerStruct) SignUpUser(c *fiber.Ctx) error {
+func (a *authController) SignUpUser(c *fiber.Ctx) error {
 
 	payload, err := util.ValidateRequestPayload[SignUpInput](c.BodyParser)
 
@@ -139,7 +137,7 @@ func (a *AuthControllerStruct) SignUpUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": "success"})
 }
 
-func (a *AuthControllerStruct) LogoutUser(c *fiber.Ctx) error {
+func (a *authController) LogoutUser(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
 		Value:    "",
@@ -151,7 +149,7 @@ func (a *AuthControllerStruct) LogoutUser(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
 }
 
-func (a *AuthControllerStruct) StartRegistration(c *fiber.Ctx) error {
+func (a *authController) StartRegistration(c *fiber.Ctx) error {
 
 	payload, err := util.ValidateRequestPayload[StartRegistrationRequest](c.BodyParser)
 
@@ -166,7 +164,7 @@ func (a *AuthControllerStruct) StartRegistration(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
 }
 
-func (a *AuthControllerStruct) ChangePassword(c *fiber.Ctx) error {
+func (a *authController) ChangePassword(c *fiber.Ctx) error {
 
 	payload, err := util.ValidateRequestPayload[ChangePasswordRequest](c.BodyParser)
 
@@ -183,27 +181,21 @@ func (a *AuthControllerStruct) ChangePassword(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
 }
 
-func (a *AuthControllerStruct) RecoverPassword(c *fiber.Ctx) error {
-	var payload *StartRegistrationRequest
+func (a *authController) RecoverPassword(c *fiber.Ctx) error {
+	payload, err := util.ValidateRequestPayload[StartRegistrationRequest](c.BodyParser)
 
-	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
-	}
-
-	validationErrors := util.ValidateStruct(payload)
-
-	if validationErrors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "errors": validationErrors})
+	if err != nil {
+		return err
 	}
 
 	if err := a.authService.StartRecoverPasswordProcess(payload.Email); err != nil {
-
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
+	return util.SendData[any](c, "success", nil, fiber.StatusOK)
 }
 
-func (a *AuthControllerStruct) RedefinePassword(c *fiber.Ctx) error {
+func (a *authController) RedefinePassword(c *fiber.Ctx) error {
 	var payload *RedefinePasswordRequest
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -217,15 +209,8 @@ func (a *AuthControllerStruct) RedefinePassword(c *fiber.Ctx) error {
 	}
 
 	if err := a.authService.RedefinePassword(payload); err != nil {
-		var validationError *util.BusinessError
-		var notFoundError *util.NotFoundError
-		if errors.As(err, &validationError) {
-			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": validationError.Message, "code": validationError.Code})
-		} else if errors.As(err, &notFoundError) {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "fail", "errors": "Usuário não encontrado"})
-		}
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"status": "fail", "errors": "failed to change password"})
+		return err
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
+	return util.SendData[any](c, "success", nil, fiber.StatusOK)
 }

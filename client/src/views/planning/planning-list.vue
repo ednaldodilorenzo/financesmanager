@@ -190,7 +190,7 @@ const getData = (month, year) => {
   planningService
     .findAll({ month: month, year: year })
     .then((resp) => {
-      fullList = resp.items;
+      fullList = resp.data;
       updateState();
     })
     .finally(() => {

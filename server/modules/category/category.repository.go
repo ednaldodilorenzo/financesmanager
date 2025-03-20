@@ -15,19 +15,19 @@ type CategoryRepository interface {
 	FindByName(name string, userId int) (*model.Category, error)
 }
 
-type CategoryRespositoryStruct struct {
+type categoryRespository struct {
 	generic.GenericRepository[*model.Category]
 	dbConfig *config.Database
 }
 
 func NewAccountRepository(repository generic.GenericRepository[*model.Category], database *config.Database) CategoryRepository {
-	return &CategoryRespositoryStruct{
+	return &categoryRespository{
 		repository,
 		database,
 	}
 }
 
-func (cr *CategoryRespositoryStruct) FindByName(name string, userId int) (*model.Category, error) {
+func (cr *categoryRespository) FindByName(name string, userId int) (*model.Category, error) {
 	var result model.Category
 
 	err := cr.dbConfig.DB.First(&result, "name = ? AND user_id = ?", name, userId).Error

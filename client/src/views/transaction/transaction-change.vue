@@ -21,7 +21,6 @@
           <label class="btn btn-outline-success" for="success-outlined"
             >Receita</label
           >
-
           <input
             type="radio"
             class="btn-check"
@@ -49,6 +48,31 @@
       </div>
       <div class="col-md-6">
         <bootstrap-input
+          required-message="Por favor preencha a descrição da transação"
+          :required="true"
+          v-model="form.description"
+          id="iptDescription"
+          label="Descrição"
+          name="description"
+        />
+      </div>
+      <div
+        :class="{
+          'col-md-6': form.account?.type === 'C',
+          'col-md-12': form.account?.type !== 'C',
+        }"
+      >
+        <bootstrap-searcheable-select
+          id="iptConta"
+          label="Conta"
+          v-model="form.account"
+          display-field="name"
+          value-field="id"
+          :options="allAccounts"
+        ></bootstrap-searcheable-select>
+      </div>
+      <div class="col-md-6" v-if="form.account?.type === 'C'">
+        <bootstrap-input
           type="date"
           required-message="Por favor preencha a data da transação"
           :required="true"
@@ -59,16 +83,6 @@
         />
       </div>
       <div class="col-md-6">
-        <bootstrap-input
-          required-message="Por favor preencha a descrição da transação"
-          :required="true"
-          v-model="form.description"
-          id="iptDescription"
-          label="Descrição"
-          name="description"
-        />
-      </div>
-      <div class="col-md-6">
         <bootstrap-searcheable-select
           id="iptCategoria"
           label="Categoria"
@@ -76,16 +90,6 @@
           display-field="name"
           value-field="id"
           :options="allCategories"
-        ></bootstrap-searcheable-select>
-      </div>
-      <div class="col-md-6">
-        <bootstrap-searcheable-select
-          id="iptConta"
-          label="Conta"
-          v-model="form.account"
-          display-field="name"
-          value-field="id"
-          :options="allAccounts"
         ></bootstrap-searcheable-select>
       </div>
       <div class="col-md-6">
@@ -181,12 +185,12 @@ const rules = {
 function getDependencies() {
   Promise.allSettled([
     categoryService.findAll({ paginate: false }),
-    accountService.findAll(),
+    accountService.findAll({ paginate: false }),
   ]).then((results) => {
     const [respCategories, respAccounts] = results;
 
-    allCategories.value = respCategories.value.items;
-    allAccounts.value = respAccounts.value.items;
+    allCategories.value = respCategories.value.data;
+    allAccounts.value = respAccounts.value.data;
     if (props.item.id) {
       transactionService.findById(props.item.id).then((resp) => {
         form.value = {

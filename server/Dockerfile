@@ -5,7 +5,8 @@ FROM golang:1.24 AS development
 WORKDIR /app
 
 # Install Air for live-reloading
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@latest && \
+    go install github.com/go-delve/delve/cmd/dlv@latest
 
 # Ensure that Air is in PATH
 ENV PATH="/go/bin:$PATH"
@@ -16,7 +17,7 @@ RUN go mod download
 
 COPY . .
 
-EXPOSE 5000
+EXPOSE 5000 2345
 
 # Use Air as the entrypoint
 CMD ["air"]
@@ -35,7 +36,8 @@ RUN go mod download
 
 # Builds the application as a staticly linked one, to allow it to run on alpine
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOMAXPROCS=1
-RUN cd cmd && go build -o app .
+# -ldflags="-s -w": Strips debugging info, making the binary smaller
+RUN cd cmd && go build -o app -ldflags="-s -w" .
 
 
 # Moving the binary to the 'final Image' to make it smaller

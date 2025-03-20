@@ -99,8 +99,8 @@ function loadInitalData() {
   ])
     .then((results) => {
       const [transactionsResult, planningResults] = results;
-      transactionsList.value = transactionsResult.value.items;
-      plannedList.value = planningResults.value.items;
+      transactionsList.value = transactionsResult.value.data;
+      plannedList.value = planningResults.value.data;
     })
     .catch((err) => {
       router.push({ name: "denied" });
@@ -176,12 +176,9 @@ const chartData = computed(() => ({
 }));
 
 const getRandomColor = () => {
-  const letters = "0123456789ABCDEF";
-  let color = "#";
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
+  return `#${Math.floor(Math.random() * 0xffffff)
+    .toString(16)
+    .padStart(6, "0")}`;
 };
 
 const chartExpensesData = computed(() => ({
