@@ -17,17 +17,17 @@ type PlanningController interface {
 	GetPlanning(c *fiber.Ctx) error
 }
 
-type PlanningControllerStruct struct {
+type planningController struct {
 	service PlanningService
 }
 
 func NewPlanningController(service PlanningService) PlanningController {
-	return &PlanningControllerStruct{
+	return &planningController{
 		service: service,
 	}
 }
 
-func (p *PlanningControllerStruct) GetPlanning(c *fiber.Ctx) error {
+func (p *planningController) GetPlanning(c *fiber.Ctx) error {
 	month := c.QueryInt("month")
 	year := c.QueryInt("year")
 

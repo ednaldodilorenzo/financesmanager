@@ -12,10 +12,10 @@ RUN go install github.com/air-verse/air@latest && \
 ENV PATH="/go/bin:$PATH"
 
 # Copy all the Code and stuff to compile everything
-COPY go.mod go.sum ./
-RUN go mod download
+# COPY go.mod go.sum ./
+# RUN go mod download
 
-COPY . .
+# COPY . .
 
 EXPOSE 5000 2345
 
@@ -55,7 +55,7 @@ RUN apk -U upgrade \
     && apk add --no-cache dumb-init ca-certificates \
     && chmod +x /app/cmd/app
 
-# Exposes port 3000 because our program listens on that port
+# Exposes port 5000 because our program listens on that port
 EXPOSE 5000
 
 ENTRYPOINT ["/app/cmd/app"]

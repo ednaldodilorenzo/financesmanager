@@ -8,6 +8,7 @@
       class="form-control"
       :value="result"
       @input="onInput"
+      @change="onChange"
       :required="required"
     />
     <div class="invalid-feedback" id="live-feedback-email">
@@ -18,7 +19,7 @@
 <script>
 export default {
   name: "BootstrapInput",
-  emits: ["update:modelValue"],
+  emits: ["update:modelValue", "change"],
   props: {
     modelValue: {
       type: String,
@@ -47,6 +48,9 @@ export default {
       this.result = event.target.value;
       this.$emit("update:modelValue", this.result);
     },
+    onChange(event) {
+      this.$emit("change", event);
+    }
   },
   watch: {
     modelValue: function (newVal, oldVal) {

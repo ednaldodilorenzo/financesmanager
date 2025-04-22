@@ -13,6 +13,7 @@ type DBSettings struct {
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
 	DBName   string `yaml:"dbname"`
+	LogLevel string
 }
 
 type BrokerSettings struct {

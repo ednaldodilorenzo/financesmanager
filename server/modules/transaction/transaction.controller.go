@@ -15,10 +15,10 @@ func GetRoutes(controller TransactionController, deserializer *middleware.Deseri
 	return "/transactions", func(router fiber.Router) {
 		router.Get("/", deserializer.DeserializeUser, controller.GetAllWithRelationships)
 		router.Get("/:id", deserializer.DeserializeUser, controller.GetOne)
-		router.Post("/", deserializer.DeserializeUser, controller.Post)
+		router.Post("/", deserializer.DeserializeUser, controller.PostTransaction)
 		router.Post("/list", deserializer.DeserializeUser, controller.PostAll)
 		router.Post("/upload", deserializer.DeserializeUser, controller.UploadBatchFile)
-		router.Patch("/:id", deserializer.DeserializeUser, controller.Patch)
+		router.Patch("/:id", deserializer.DeserializeUser, controller.PatchTransaction)
 		router.Delete("/:id", deserializer.DeserializeUser, controller.Delete)
 	}
 }
@@ -34,25 +34,83 @@ type TransactionUploadSchema struct {
 	Detail          *string   `json:"detail"`
 }
 
+type TransactionPostRequest struct {
+	CategoryId      uint64                 `json:"categoryId"`
+	AccountId       int                    `json:"accountId"`
+	Description     string                 `json:"description"`
+	Value           int32                  `json:"value"`
+	PaymentDate     time.Time              `json:"paymentDate"` // Changed column name
+	PaymentMonth    int                    `json:"paymentMonth"`
+	PaymentYear     int                    `json:"paymentYear"`
+	TransactionDate time.Time              `json:"transactionDate"`
+	Detail          *string                `json:"detail"`
+	Tags            []model.TransactionTag `json:"tags"`
+}
+
 type TransactionController interface {
 	generic.GenericController[*model.Transaction]
 	GetAllWithRelationships(c *fiber.Ctx) error
 	UploadBatchFile(c *fiber.Ctx) error
+	PostTransaction(c *fiber.Ctx) error
+	PatchTransaction(c *fiber.Ctx) error
 }
 
-type TransactionControllerStruct struct {
+type transactionController struct {
 	generic.GenericController[*model.Transaction]
 	service TransactionService
 }
 
 func NewTransactionController(service TransactionService, controller generic.GenericController[*model.Transaction]) TransactionController {
-	return &TransactionControllerStruct{
+	return &transactionController{
 		controller,
 		service,
 	}
 }
 
-func (cc *TransactionControllerStruct) GetOne(c *fiber.Ctx) error {
+func (cc *transactionController) PostTransaction(c *fiber.Ctx) error {
+
+	payload, err := util.ValidateRequestPayload[TransactionPostRequest](c.BodyParser)
+
+	if err != nil {
+		return err
+	}
+
+	loggedUser := c.Locals("user").(model.User)
+
+	err = cc.service.CreateTransaction(payload, int(loggedUser.ID))
+
+	if err != nil {
+		return err
+	}
+
+	return util.SendData[any](c, "success", nil, int(fiber.StatusCreated))
+}
+
+func (cc *transactionController) PatchTransaction(c *fiber.Ctx) error {
+	itemId, err := strconv.Atoi(c.Params("id"))
+
+	if err != nil {
+		return err
+	}
+
+	payload, err := util.ValidateRequestPayload[TransactionPostRequest](c.BodyParser)
+
+	if err != nil {
+		return err
+	}
+
+	loggedUser := c.Locals("user").(model.User)
+
+	err = cc.service.UpdateTransaction(itemId, payload, int(loggedUser.ID))
+
+	if err != nil {
+		return err
+	}
+
+	return util.SendData[any](c, "success", nil, int(fiber.StatusOK))
+}
+
+func (cc *transactionController) GetOne(c *fiber.Ctx) error {
 	itemId, err := strconv.Atoi(c.Params("id"))
 
 	if err != nil {
@@ -70,7 +128,7 @@ func (cc *TransactionControllerStruct) GetOne(c *fiber.Ctx) error {
 	return util.SendData(c, "success", item, int(fiber.StatusOK))
 }
 
-func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) error {
+func (cc *transactionController) GetAllWithRelationships(c *fiber.Ctx) error {
 
 	var monthParam, yearParam *int = nil, nil
 
@@ -101,7 +159,7 @@ func (cc *TransactionControllerStruct) GetAllWithRelationships(c *fiber.Ctx) err
 	return util.SendData(c, "success", &items, int(fiber.StatusOK))
 }
 
-func (cc *TransactionControllerStruct) UploadBatchFile(c *fiber.Ctx) error {
+func (cc *transactionController) UploadBatchFile(c *fiber.Ctx) error {
 	// Get the uploaded file
 	file, err := c.FormFile("file")
 	if err != nil {

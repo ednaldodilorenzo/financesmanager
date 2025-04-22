@@ -16,6 +16,8 @@ type TransactionService interface {
 	generic.GenericService[*model.Transaction]
 	FindAllRelated(*int, *int, int) ([]model.Transaction, error)
 	PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string, userId int) ([]TransactionUploadSchema, error)
+	CreateTransaction(*TransactionPostRequest, int) error
+	UpdateTransaction(id int, item *TransactionPostRequest, userId int) error
 }
 
 type transactionService struct {
@@ -36,6 +38,91 @@ func NewTransactionService(service generic.GenericService[*model.Transaction], r
 		categoryService,
 		parserFactory,
 	}
+}
+
+func (ts *transactionService) CreateTransaction(transactionRequest *TransactionPostRequest, userId int) error {
+	account, err := ts.accountService.FindById(transactionRequest.AccountId, userId)
+
+	if err != nil {
+		return err
+	}
+
+	if account == nil {
+		return util.NewAPIError(util.ErrNotFound, []string{"Account not found"})
+	}
+
+	var definedPaymentDate time.Time
+
+	if (*account).Type == "C" {
+		definedPaymentDate = time.Date(transactionRequest.PaymentYear, time.Month(transactionRequest.PaymentMonth), (*account).DueDay, 0, 0, 0, 0, time.UTC)
+	} else {
+		definedPaymentDate = transactionRequest.TransactionDate
+	}
+
+	newTransaction := &model.Transaction{
+		CategoryId:      transactionRequest.CategoryId,
+		AccountId:       transactionRequest.AccountId,
+		Description:     transactionRequest.Description,
+		Value:           transactionRequest.Value,
+		PaymentDate:     definedPaymentDate,
+		TransactionDate: transactionRequest.TransactionDate,
+		Detail:          transactionRequest.Detail,
+		Tags:            transactionRequest.Tags,
+		UserDependent:   model.UserDependent{UserId: uint64(userId)},
+	}
+
+	err = ts.repository.Create(&newTransaction)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ts *transactionService) UpdateTransaction(id int, item *TransactionPostRequest, userId int) error {
+	_, err := ts.repository.FindById(id, userId)
+	if err != nil {
+		if errors.Is(err, util.ErrNotFound) {
+			return util.NewAPIError(util.ErrNotFound, []string{"Transaction not found"})
+		}
+	}
+
+	account, err := ts.accountService.FindById(item.AccountId, userId)
+
+	if err != nil {
+		return err
+	}
+
+	if account == nil {
+		return util.NewAPIError(util.ErrNotFound, []string{"Account not found"})
+	}
+
+	var definedPaymentDate time.Time
+
+	if (*account).Type == "C" {
+		definedPaymentDate = time.Date(item.PaymentYear, time.Month(item.PaymentMonth), (*account).DueDay, 0, 0, 0, 0, time.UTC)
+	} else {
+		definedPaymentDate = (*item).TransactionDate
+	}
+
+	updatedTransaction := &model.Transaction{
+		CategoryId:      item.CategoryId,
+		AccountId:       item.AccountId,
+		Description:     item.Description,
+		Value:           item.Value,
+		PaymentDate:     definedPaymentDate,
+		TransactionDate: item.TransactionDate,
+		Detail:          item.Detail,
+		Tags:            item.Tags,
+		UserDependent:   model.UserDependent{UserId: uint64(userId)},
+	}
+
+	if err := ts.repository.Update(id, &updatedTransaction, userId); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ts *transactionService) FindAllRelated(month *int, year *int, userId int) ([]model.Transaction, error) {

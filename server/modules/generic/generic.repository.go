@@ -10,9 +10,9 @@ import (
 )
 
 type PaginatedResponse[V model.IUserDependent] struct {
-	Page  int
-	Total int
-	Items []V
+	Page  int `json:"page"`
+	Total int `json:"total"`
+	Items []V `json:"items"`
 }
 
 type GenericRepository[V model.IUserDependent] interface {
@@ -39,7 +39,7 @@ func NewGenericRepository[V model.IUserDependent](database *config.Database) Gen
 func (g *genericRepository[V]) FindById(id int, userId int) (*V, error) {
 	var item V
 
-	if err := g.dbConfig.DB.First(&item, "id = ? AND userId = ?", id, userId).Error; err != nil {
+	if err := g.dbConfig.DB.First(&item, "id = ? AND user_id = ?", id, userId).Error; err != nil {
 		return nil, err
 	}
 
@@ -59,9 +59,9 @@ func (g *genericRepository[V]) Delete(id, userId int) error {
 func (g *genericRepository[V]) FindAll(userId int) ([]V, error) {
 	var items []V
 
-	zeroValue := new(V)
+	var zeroValue V
 
-	query := g.dbConfig.DB.Model(zeroValue)
+	query := g.dbConfig.DB.Model(&zeroValue)
 
 	query.Where("user_id = ?", userId)
 
@@ -75,15 +75,15 @@ func (g *genericRepository[V]) FindAll(userId int) ([]V, error) {
 func (g *genericRepository[V]) FindAllPaginatedAndFiltered(userId, limit, offset int, filter string) (*PaginatedResponse[V], error) {
 	var totalCount int64
 	var items []V
+	var zeroValue V
 
-	zeroValue := new(V)
-
-	query := g.dbConfig.DB.Model(zeroValue)
+	query := g.dbConfig.DB.Model(&zeroValue)
 	query = query.Where("user_id = ?", userId)
 
 	// Apply filter if it's not empty
 	if filter != "" {
-		query = query.Where("LOWER(filter) LIKE ?", "%"+strings.ToLower(filter)+"%") // Replace "name" with the actual column you want to filter by
+		filterString := "%" + strings.ToLower(filter) + "%"
+		query = query.Where("LOWER(filter) LIKE ?", filterString) // Replace "name" with the actual column you want to filter by
 	}
 
 	if err := query.Count(&totalCount).Error; err != nil {

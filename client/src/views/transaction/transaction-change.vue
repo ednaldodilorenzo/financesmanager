@@ -4,7 +4,7 @@
     :onConfirm="onSubmit"
     :title="`${form.id ? 'Alterar' : 'Nova'} Transação`"
   >
-    <form id="frmTransaction" class="row g-3 mb-3" autocomplete="off">
+    <form id="frmTransaction" class="row g-3 mb-3" autocomplete="off">  
       <div class="col-md-12">
         <div
           class="container d-flex justify-content-evenly align-items-center form-control"
@@ -44,6 +44,7 @@
           id="iptDate"
           label="Data da Transação"
           name="date"
+          @change="onTransactionChange"
         />
       </div>
       <div class="col-md-6">
@@ -72,14 +73,14 @@
         ></bootstrap-searcheable-select>
       </div>
       <div class="col-md-6" v-if="form.account?.type === 'C'">
-        <bootstrap-input
-          type="date"
+        <bootstrap-select
+          :options="creditCardDates"
           required-message="Por favor preencha a data da transação"
           :required="true"
-          v-model="form.paymentDate"
-          id="iptPaymentDate"
-          label="Data do Pagamento"
-          name="date"
+          key-field="monthYear"
+          value-field="description"
+          v-model="form.monthYear"
+          label="Fatura do Pagamento"
         />
       </div>
       <div class="col-md-6">
@@ -130,7 +131,8 @@ import BootstrapSearcheableSelect from "@/components/bootstrap-searcheable-selec
 import BootstrapTextArea from "@/components/bootstrap-textarea.vue";
 import BootstrapModalScreen from "@/components/bootstrap-modal-screen.vue";
 import BootstrapSelectTag from "@/components/bootstrap-select-tag.vue";
-import { formatDateUTC } from "@/utils/date";
+import BootstrapSelect from "@/components/bootstrap-select.vue";
+import { formatDateUTC, getAproximateMonths } from "@/utils/date";
 import { required } from "@vuelidate/validators";
 import categoryService from "@/views/category/category.service";
 import accountService from "@/views/account/account.service";
@@ -142,6 +144,12 @@ import { useToast } from "vue-toastification";
 import { formatCurrency } from "@/utils/numbers";
 
 const toast = useToast();
+let creditCardDates = ref(
+  getAproximateMonths(new Date()).map((item) => ({
+    ...item,
+    monthYear: `${item.month}/${item.year}`,
+  }))
+);
 
 // This is done because this component is loaded from another app.
 const vCurrency = CurrencyDirective;
@@ -156,7 +164,6 @@ const props = defineProps({
     required: false,
     default: () => ({
       transactionDate: formatDateUTC(new Date(), "yyyy-MM-dd"),
-      paymentDate: formatDateUTC(new Date(), "yyyy-MM-dd"),
       description: "",
       categoryId: undefined,
       category: null,
@@ -165,6 +172,7 @@ const props = defineProps({
       value: undefined,
       detail: "",
       tags: [],
+      monthYear: "",
     }),
   },
 });
@@ -182,6 +190,13 @@ const rules = {
   account: { required },
 };
 
+function onTransactionChange(event) {
+  creditCardDates.value = getAproximateMonths(new Date()).map((item) => ({
+    ...item,
+    monthYear: `${item.month}/${item.year}`,
+  }));
+}
+
 function getDependencies() {
   Promise.allSettled([
     categoryService.findAll({ paginate: false }),
@@ -191,19 +206,23 @@ function getDependencies() {
 
     allCategories.value = respCategories.value.data;
     allAccounts.value = respAccounts.value.data;
-    if (props.item.id) {
+    if (props.item.id) {      
       transactionService.findById(props.item.id).then((resp) => {
+        let itemMonthYear = formatDateUTC(resp.data.paymentDate, "MM/yyyy");
+        itemMonthYear = itemMonthYear[0] === "0" ? itemMonthYear.substring(1) : itemMonthYear;
         form.value = {
-          ...resp.item,
-          value: formatCurrency("" + resp.item.value),
-          tags: resp.item.tags.map((value) => value.tag),
+          ...resp.data,
+          value: formatCurrency("" + resp.data.value),
+          tags: resp.data.tags.map((value) => value.tag),
           transactionDate: formatDateUTC(
-            resp.item.transactionDate,
+            resp.data.transactionDate,
             "yyyy-MM-dd"
           ),
-          paymentDate: formatDateUTC(resp.item.paymentDate, "yyyy-MM-dd"),
+          monthYear: itemMonthYear,
         };
-        expense.value = resp.item.value < 0;
+        expense.value = resp.data.value < 0;
+        console.log(JSON.stringify(form.value));
+        
       });
     } else {
       form.value = props.item;
@@ -216,7 +235,7 @@ getDependencies();
 const searchTags = (filter) => {
   return tagService
     .findAll({ filter: filter })
-    .then((resp) => resp.items.map((item) => item.tag));
+    .then((resp) => resp.data.map((item) => item.tag));
 };
 
 const onSubmit = () => {
@@ -225,7 +244,15 @@ const onSubmit = () => {
     value: expense.value
       ? -parseCurrencyToNumber(form.value.value)
       : parseCurrencyToNumber(form.value.value),
-    paymentDate: new Date(form.value.paymentDate).toISOString(),
+    paymentMonth: parseInt(
+      form.value.monthYear.substring(0, form.value.monthYear.indexOf("/"))
+    ),
+    paymentYear: parseInt(
+      form.value.monthYear.substring(
+        form.value.monthYear.indexOf("/") + 1,
+        form.value.monthYear.length
+      )
+    ),
     transactionDate: new Date(form.value.transactionDate).toISOString(),
     tags: form.value.tags.map((item) => ({
       tag: item,

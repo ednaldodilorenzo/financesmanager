@@ -29,6 +29,27 @@ function getExtenseMonth(date) {
   return months[date.getUTCMonth()];
 }
 
+function getAproximateMonths(date) {
+  let year = date.getUTCFullYear();
+  let currentMonth = date.getMonth();
+
+  let result = [];
+  for (let i = 1; i < 3; i++) {
+    let month = currentMonth + i;
+    if (month > 11) {
+      month = month - 12;
+      year++;
+    }
+    result.push({
+      month: month + 1,
+      year: year,
+      description: `${months[month]}/${year}`,
+    });
+  }
+
+  return result;
+}
+
 function getDaysListPerMonth(date) {
   if (
     (date.getUTCFullYear() % 4 === 0 && date.getUTCFullYear() % 100 !== 0) ||
@@ -54,4 +75,5 @@ export {
   getExtenseMonth,
   getDaysListPerMonth,
   getMonthsListUntilDate,
+  getAproximateMonths,
 };

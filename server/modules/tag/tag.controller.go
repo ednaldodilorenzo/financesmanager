@@ -17,17 +17,17 @@ type TagController interface {
 	GetAll(c *fiber.Ctx) error
 }
 
-type TagControllerStruct struct {
+type tagController struct {
 	service TagService
 }
 
 func NewTagController(service TagService) TagController {
-	return &TagControllerStruct{
+	return &tagController{
 		service,
 	}
 }
 
-func (t *TagControllerStruct) GetAll(c *fiber.Ctx) error {
+func (t *tagController) GetAll(c *fiber.Ctx) error {
 
 	filter := c.Query("filter")
 	loggedUser := c.Locals("user").(model.User)
