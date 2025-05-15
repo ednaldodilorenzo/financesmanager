@@ -4,7 +4,7 @@
     :onConfirm="onSubmit"
     :title="`${form.id ? 'Alterar' : 'Nova'} Transação`"
   >
-    <form id="frmTransaction" class="row g-3 mb-3" autocomplete="off">  
+    <form id="frmTransaction" class="row g-3 mb-3" autocomplete="off">
       <div class="col-md-12">
         <div
           class="container d-flex justify-content-evenly align-items-center form-control"
@@ -206,10 +206,11 @@ function getDependencies() {
 
     allCategories.value = respCategories.value.data;
     allAccounts.value = respAccounts.value.data;
-    if (props.item.id) {      
+    if (props.item.id) {
       transactionService.findById(props.item.id).then((resp) => {
         let itemMonthYear = formatDateUTC(resp.data.paymentDate, "MM/yyyy");
-        itemMonthYear = itemMonthYear[0] === "0" ? itemMonthYear.substring(1) : itemMonthYear;
+        itemMonthYear =
+          itemMonthYear[0] === "0" ? itemMonthYear.substring(1) : itemMonthYear;
         form.value = {
           ...resp.data,
           value: formatCurrency("" + resp.data.value),
@@ -221,8 +222,6 @@ function getDependencies() {
           monthYear: itemMonthYear,
         };
         expense.value = resp.data.value < 0;
-        console.log(JSON.stringify(form.value));
-        
       });
     } else {
       form.value = props.item;

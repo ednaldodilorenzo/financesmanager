@@ -38,7 +38,7 @@
       </option>
     </select>
     <input
-      type="date"
+      type="month"
       v-if="fileType === 'C6CC'"
       name="paymentDate"
       class="form-control mx-3"
@@ -91,7 +91,6 @@
                   class="form-control"
                   :value="v.formatted_date.$model"
                   disabled
-                  placeholder="Jane Doe"
                 />
                 <label>Data</label>
               </div>
@@ -308,6 +307,8 @@ function importTransaction(validator, itemClicked) {
         })),
         value: parseCurrencyToNumber(itemClicked.formatted_value),
         paymentDate: new Date(itemClicked.paymentDate).toISOString(),
+        paymentMonth: new Date(itemClicked.paymentDate).getUTCMonth() + 1,
+        paymentYear: new Date(itemClicked.paymentDate).getFullYear(),
         transactionDate: new Date(itemClicked.transactionDate).toISOString(),
       };
 
@@ -378,7 +379,8 @@ function submitForm(e) {
     payload.append("accountId", e.target.elements.accountId.value);
   }
   if (e.target.elements.paymentDate) {
-    payload.append("paymentDate", e.target.elements.paymentDate.value);
+    payload.append("paymentMonth", e.target.elements.paymentDate.value.substr(5));
+    payload.append("paymentYear", e.target.elements.paymentDate.value.substr(0, 4));
   }
   payload.append("fileType", e.target.elements.fileType.value);
   transactionService

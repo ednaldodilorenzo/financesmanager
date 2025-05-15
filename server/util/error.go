@@ -73,7 +73,7 @@ type APIError struct {
 	Err      *Error
 }
 
-func (ae APIError) Error() string {
+func (ae *APIError) Error() string {
 	return ae.Err.Error()
 }
 
@@ -86,7 +86,7 @@ func NewAPIError(err *Error, messages []string) *APIError {
 
 func ServerErrorHandler(ctx *fiber.Ctx, err error) error {
 
-	var apiError APIError
+	var apiError *APIError
 	if errors.As(err, &apiError) {
 		return ctx.Status(apiError.Err.StatusCode).JSON(fiber.Map{"status": "fail", "errors": apiError.Messages})
 	}

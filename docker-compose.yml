@@ -26,7 +26,6 @@ services:
   api:
     build: 
       context: ./server
-      dockerfile: Dockerfile
       target: release
     container_name: finance-app
     environment:
@@ -51,7 +50,7 @@ services:
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
+      target: release
     container_name: finance-client
     ports:
       - "443:443"

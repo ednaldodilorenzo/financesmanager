@@ -54,14 +54,13 @@ services:
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile-dev
+      target: development
     container_name: finance-client
     ports:
       - "8080:8080"
     volumes:
       - ./client:/app
-      - /app/node_modules
-      #- ${CERT_PATH}:/certs:ro
+      - /app/node_modules      
     depends_on:
       - api
 

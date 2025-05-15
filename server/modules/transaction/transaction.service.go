@@ -15,7 +15,7 @@ import (
 type TransactionService interface {
 	generic.GenericService[*model.Transaction]
 	FindAllRelated(*int, *int, int) ([]model.Transaction, error)
-	PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string, userId int) ([]TransactionUploadSchema, error)
+	PrepareFileImport(fileReader io.Reader, accountId uint32, paymentMonth uint8, paymentYear uint16, fileType string, userId int) ([]TransactionUploadSchema, error)
 	CreateTransaction(*TransactionPostRequest, int) error
 	UpdateTransaction(id int, item *TransactionPostRequest, userId int) error
 }
@@ -54,6 +54,9 @@ func (ts *transactionService) CreateTransaction(transactionRequest *TransactionP
 	var definedPaymentDate time.Time
 
 	if (*account).Type == "C" {
+		if transactionRequest.PaymentYear == 0 || transactionRequest.PaymentMonth == 0 {
+			return util.NewAPIError(util.ErrBadRequest, []string{"Payment year and month are required"})
+		}
 		definedPaymentDate = time.Date(transactionRequest.PaymentYear, time.Month(transactionRequest.PaymentMonth), (*account).DueDay, 0, 0, 0, 0, time.UTC)
 	} else {
 		definedPaymentDate = transactionRequest.TransactionDate
@@ -150,7 +153,7 @@ func (ts *transactionService) isDuplicated(value int32, paymentDate time.Time, t
 	return duplicated, nil
 }
 
-func (ts *transactionService) PrepareFileImport(fileReader io.Reader, accountId uint32, date *time.Time, fileType string, userId int) ([]TransactionUploadSchema, error) {
+func (ts *transactionService) PrepareFileImport(fileReader io.Reader, accountId uint32, paymentMonth uint8, paymentYear uint16, fileType string, userId int) ([]TransactionUploadSchema, error) {
 	var constFileType util.FileImportType
 	switch fileType {
 	case "BBCA":
@@ -166,6 +169,24 @@ func (ts *transactionService) PrepareFileImport(fileReader io.Reader, accountId 
 	if err != nil {
 		return nil, err
 	}
+
+	account, err := ts.accountService.FindById(int(accountId), userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if account == nil {
+		return nil, util.NewAPIError(util.ErrNotFound, []string{"Account not found"})
+	}
+
+	var date time.Time
+
+	if (*account).Type == "C" {
+		date = time.Date(int(paymentYear), time.Month(paymentMonth), (*account).DueDay, 0, 0, 0, 0, time.UTC)
+	} else {
+		date = time.Now()
+	}
+
 	parsedData, err := parser(fileReader, date)
 
 	if err != nil {

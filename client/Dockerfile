@@ -1,3 +1,15 @@
+FROM node:18-slim AS development
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Start development server
+CMD ["npm", "run", "serve"]
+
+
 FROM node:18-alpine AS build-env
 
 WORKDIR /app
@@ -11,7 +23,7 @@ COPY . .
 RUN npm run build
 
 
-FROM nginx:alpine
+FROM nginx:alpine as release
 
 COPY --from=build-env /app/dist/ /usr/share/nginx/html/
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf

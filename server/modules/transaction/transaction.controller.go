@@ -182,10 +182,19 @@ func (cc *transactionController) UploadBatchFile(c *fiber.Ctx) error {
 		}
 	}
 
-	var date time.Time
-	dateStr := c.FormValue("paymentDate")
-	if dateStr != "" {
-		date, err = time.Parse("2006-01-02", dateStr)
+	month := 0
+	monthStr := c.FormValue("paymentMonth")
+	if monthStr != "" {
+		month, err = strconv.Atoi(monthStr)
+		if err != nil {
+			return err
+		}
+	}
+
+	year := 0
+	yearStr := c.FormValue("paymentYear")
+	if yearStr != "" {
+		year, err = strconv.Atoi(yearStr)
 		if err != nil {
 			return err
 		}
@@ -194,7 +203,7 @@ func (cc *transactionController) UploadBatchFile(c *fiber.Ctx) error {
 	fileType := c.FormValue("fileType")
 	loggedUser := c.Locals("user").(model.User)
 
-	transactions, err := cc.service.PrepareFileImport(fileReader, uint32(accountId), &date, fileType, int(loggedUser.ID))
+	transactions, err := cc.service.PrepareFileImport(fileReader, uint32(accountId), uint8(month), uint16(year), fileType, int(loggedUser.ID))
 	if err != nil {
 		return err
 	}

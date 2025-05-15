@@ -1,5 +1,5 @@
 # Building the binary of the App
-FROM golang:1.24 AS development
+FROM golang:1.24.3 AS development
 
 # `boilerplate` should be replaced with your project name
 WORKDIR /app
@@ -10,12 +10,6 @@ RUN go install github.com/air-verse/air@latest && \
 
 # Ensure that Air is in PATH
 ENV PATH="/go/bin:$PATH"
-
-# Copy all the Code and stuff to compile everything
-# COPY go.mod go.sum ./
-# RUN go mod download
-
-# COPY . .
 
 EXPOSE 5000 2345
 

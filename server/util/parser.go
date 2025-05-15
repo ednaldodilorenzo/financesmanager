@@ -29,7 +29,7 @@ type TransactionImportedData struct {
 }
 
 // ParserFunction defines the signature of a parser function.
-type ParserFunction func(fileReader io.Reader, date *time.Time) ([]TransactionImportedData, error)
+type ParserFunction func(io.Reader, time.Time) ([]TransactionImportedData, error)
 
 // ParserFactory holds a registry of parser functions.
 type ParserFactory struct {
@@ -61,7 +61,7 @@ func (pf *ParserFactory) GetParser(fileType FileImportType) (ParserFunction, err
 	return parser, nil
 }
 
-func parseBBCurrentAccount(fileReader io.Reader, _ *time.Time) ([]TransactionImportedData, error) {
+func parseBBCurrentAccount(fileReader io.Reader, _ time.Time) ([]TransactionImportedData, error) {
 	csvReader := csv.NewReader(fileReader)
 	csvReader.Comma = ','       // Adjust if the delimiter is different
 	csvReader.LazyQuotes = true // Handle embedded quotes
@@ -105,11 +105,8 @@ func parseBBCurrentAccount(fileReader io.Reader, _ *time.Time) ([]TransactionImp
 	return result, nil
 }
 
-func parseCreditCardData(fileReader io.Reader, date *time.Time) ([]TransactionImportedData, error) {
+func parseCreditCardData(fileReader io.Reader, date time.Time) ([]TransactionImportedData, error) {
 
-	if date == nil {
-		return nil, NewAPIError(ErrBusiness, []string{"Date is necessary in credit card transaction import"})
-	}
 	// Parse the CSV file
 	csvReader := csv.NewReader(fileReader)
 	csvReader.Comma = ';'
@@ -148,7 +145,7 @@ func parseCreditCardData(fileReader io.Reader, date *time.Time) ([]TransactionIm
 
 		monthCounter := 0
 		for i := currentStallment; i <= lastStallment; i++ {
-			currentDate := (*date).AddDate(0, monthCounter, 0)
+			currentDate := date.AddDate(0, monthCounter, 0)
 
 			description := record[4]
 			if currentStallment > 0 {
@@ -169,7 +166,7 @@ func parseCreditCardData(fileReader io.Reader, date *time.Time) ([]TransactionIm
 	return result, nil
 }
 
-func parseCustomData(fileReader io.Reader, _ *time.Time) ([]TransactionImportedData, error) {
+func parseCustomData(fileReader io.Reader, _ time.Time) ([]TransactionImportedData, error) {
 	//Parse the CSV file
 	csvReader := csv.NewReader(fileReader)
 	csvReader.Comma = '\t'
