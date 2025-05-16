@@ -17,10 +17,7 @@ class GenericService {
     1000
   );
 
-  create = throttle(
-    (item) => requester.post(`${this.url}/`, item).then((resp) => resp),
-    1000
-  );
+  create = (item) => requester.post(`${this.url}/`, item).then((resp) => resp);
 
   modify = throttle(
     (id, item) =>

@@ -1,10 +1,12 @@
 package transaction
 
 import (
+	"context"
 	"errors"
 	"io"
 	"time"
 
+	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/account"
 	"github.com/ednaldo-dilorenzo/iappointment/modules/category"
@@ -16,7 +18,8 @@ type TransactionService interface {
 	generic.GenericService[*model.Transaction]
 	FindAllRelated(*int, *int, int) ([]model.Transaction, error)
 	PrepareFileImport(fileReader io.Reader, accountId uint32, paymentMonth uint8, paymentYear uint16, fileType string, userId int) ([]TransactionUploadSchema, error)
-	CreateTransaction(*TransactionPostRequest, int) error
+	//CreateTransaction(*TransactionPostRequest, int) error
+	CreateTransaction(ctx context.Context, transactionRequest *TransactionPostRequest, userId int) error
 	UpdateTransaction(id int, item *TransactionPostRequest, userId int) error
 }
 
@@ -26,9 +29,10 @@ type transactionService struct {
 	accountService  account.AccountService
 	categoryService category.CategoryService
 	parserFactory   *util.ParserFactory
+	txManager       config.TxManager
 }
 
-func NewTransactionService(service generic.GenericService[*model.Transaction], repository TransactionRepository, accountService account.AccountService, categoryService category.CategoryService) TransactionService {
+func NewTransactionService(service generic.GenericService[*model.Transaction], repository TransactionRepository, accountService account.AccountService, categoryService category.CategoryService, txManager config.TxManager) TransactionService {
 	parserFactory := util.NewParserFactory()
 
 	return &transactionService{
@@ -37,10 +41,25 @@ func NewTransactionService(service generic.GenericService[*model.Transaction], r
 		accountService,
 		categoryService,
 		parserFactory,
+		txManager,
 	}
 }
 
-func (ts *transactionService) CreateTransaction(transactionRequest *TransactionPostRequest, userId int) error {
+func (ts *transactionService) CreateTransaction(ctx context.Context, transactionRequest *TransactionPostRequest, userId int) error {
+	tx, err := ts.txManager.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	gormTx := tx.(*config.GormTx).Tx
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
 	account, err := ts.accountService.FindById(transactionRequest.AccountId, userId)
 
 	if err != nil {
@@ -62,7 +81,7 @@ func (ts *transactionService) CreateTransaction(transactionRequest *TransactionP
 		definedPaymentDate = transactionRequest.TransactionDate
 	}
 
-	newTransaction := &model.Transaction{
+	newTransaction := model.Transaction{
 		CategoryId:      transactionRequest.CategoryId,
 		AccountId:       transactionRequest.AccountId,
 		Description:     transactionRequest.Description,
@@ -74,13 +93,14 @@ func (ts *transactionService) CreateTransaction(transactionRequest *TransactionP
 		UserDependent:   model.UserDependent{UserId: uint64(userId)},
 	}
 
-	err = ts.repository.Create(&newTransaction)
+	err = ts.repository.CreateTransaction(ctx, gormTx, newTransaction)
 
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func (ts *transactionService) UpdateTransaction(id int, item *TransactionPostRequest, userId int) error {

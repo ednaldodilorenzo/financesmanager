@@ -77,7 +77,7 @@ func (cc *transactionController) PostTransaction(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 
-	err = cc.service.CreateTransaction(payload, int(loggedUser.ID))
+	err = cc.service.CreateTransaction(c.Context(), payload, int(loggedUser.ID))
 
 	if err != nil {
 		return err

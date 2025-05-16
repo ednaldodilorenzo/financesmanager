@@ -55,6 +55,7 @@ func BuildContainer() *dig.Container {
 	container.Provide(account.NewAccountService)
 	container.Provide(category.NewAccountRepository)
 	container.Provide(category.NewAccountService)
+	container.Provide(config.NewTxManager)
 	container.Provide(transaction.NewTransactionService)
 	container.Provide(transaction.NewTransactionController)
 	container.Provide(server.NewServer)

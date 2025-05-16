@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -9,12 +10,14 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/generic"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type TransactionRepository interface {
 	generic.GenericRepository[*model.Transaction]
 	FindAllWithRelationships(*int, *int, int) ([]model.Transaction, error)
 	FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (*model.Transaction, error)
+	CreateTransaction(ctx context.Context, db *gorm.DB, item model.Transaction) error
 }
 
 type transactionRespository struct {
@@ -27,6 +30,15 @@ func NewTransactionRepository(repository generic.GenericRepository[*model.Transa
 		GenericRepository: repository,
 		dbConfig:          database,
 	}
+}
+
+func (g *transactionRespository) CreateTransaction(ctx context.Context, db *gorm.DB, item model.Transaction) error {
+
+	if err := db.Clauses(clause.Returning{}).Create(&item).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (g *transactionRespository) FindById(id, userId int) (**model.Transaction, error) {

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -42,4 +43,43 @@ func (d *Database) Connect(settings *DBSettings) error {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	return nil
+}
+
+type Tx interface {
+	Commit() error
+	Rollback() error
+}
+
+type TxManager interface {
+	Begin(ctx context.Context) (Tx, error)
+}
+
+type GormTx struct {
+	Tx *gorm.DB
+}
+
+func (t *GormTx) Commit() error {
+	return t.Tx.Commit().Error
+}
+
+func (t *GormTx) Rollback() error {
+	return t.Tx.Rollback().Error
+}
+
+type GormTxManager struct {
+	dbConfig *Database
+}
+
+func (m *GormTxManager) Begin(ctx context.Context) (Tx, error) {
+	tx := m.dbConfig.DB.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return &GormTx{Tx: tx}, nil
+}
+
+func NewTxManager(dbConfig *Database) TxManager {
+	return &GormTxManager{
+		dbConfig: dbConfig,
+	}
 }
