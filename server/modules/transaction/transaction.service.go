@@ -16,11 +16,10 @@ import (
 
 type TransactionService interface {
 	generic.GenericService[*model.Transaction]
-	FindAllRelated(*int, *int, int) ([]model.Transaction, error)
-	PrepareFileImport(fileReader io.Reader, accountId uint32, paymentMonth uint8, paymentYear uint16, fileType string, userId int) ([]TransactionUploadSchema, error)
-	//CreateTransaction(*TransactionPostRequest, int) error
+	FindAllRelated(context.Context, *int, *int, int) ([]model.Transaction, error)
+	PrepareFileImport(ctx context.Context, fileReader io.Reader, accountId uint32, paymentMonth uint8, paymentYear uint16, fileType string, userId int) ([]TransactionUploadSchema, error)
 	CreateTransaction(ctx context.Context, transactionRequest *TransactionPostRequest, userId int) error
-	UpdateTransaction(id int, item *TransactionPostRequest, userId int) error
+	UpdateTransaction(ctx context.Context, id int, item *TransactionPostRequest, userId int) error
 }
 
 type transactionService struct {
@@ -60,7 +59,7 @@ func (ts *transactionService) CreateTransaction(ctx context.Context, transaction
 		}
 	}()
 
-	account, err := ts.accountService.FindById(transactionRequest.AccountId, userId)
+	account, err := ts.accountService.FindById(ctx, transactionRequest.AccountId, userId)
 
 	if err != nil {
 		return err
@@ -103,15 +102,29 @@ func (ts *transactionService) CreateTransaction(ctx context.Context, transaction
 	return tx.Commit()
 }
 
-func (ts *transactionService) UpdateTransaction(id int, item *TransactionPostRequest, userId int) error {
-	_, err := ts.repository.FindById(id, userId)
+func (ts *transactionService) UpdateTransaction(ctx context.Context, id int, item *TransactionPostRequest, userId int) error {
+	tx, err := ts.txManager.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	gormTx := tx.(*config.GormTx).Tx
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	_, err = ts.repository.FindById(ctx, id, userId)
 	if err != nil {
 		if errors.Is(err, util.ErrNotFound) {
 			return util.NewAPIError(util.ErrNotFound, []string{"Transaction not found"})
 		}
 	}
 
-	account, err := ts.accountService.FindById(item.AccountId, userId)
+	account, err := ts.accountService.FindById(ctx, item.AccountId, userId)
 
 	if err != nil {
 		return err
@@ -141,19 +154,22 @@ func (ts *transactionService) UpdateTransaction(id int, item *TransactionPostReq
 		UserDependent:   model.UserDependent{UserId: uint64(userId)},
 	}
 
-	if err := ts.repository.Update(id, &updatedTransaction, userId); err != nil {
+	err = ts.repository.Update(ctx, gormTx, id, &updatedTransaction, userId)
+
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	return nil
+	return tx.Commit()
 }
 
-func (ts *transactionService) FindAllRelated(month *int, year *int, userId int) ([]model.Transaction, error) {
+func (ts *transactionService) FindAllRelated(ctx context.Context, month *int, year *int, userId int) ([]model.Transaction, error) {
 	return ts.repository.FindAllWithRelationships(month, year, userId)
 }
 
-func (ts *transactionService) FindById(id int, userId int) (**model.Transaction, error) {
-	return ts.repository.FindById(id, userId)
+func (ts *transactionService) FindById(ctx context.Context, id int, userId int) (**model.Transaction, error) {
+	return ts.repository.FindById(ctx, id, userId)
 }
 
 func (ts *transactionService) isDuplicated(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (bool, error) {
@@ -173,7 +189,7 @@ func (ts *transactionService) isDuplicated(value int32, paymentDate time.Time, t
 	return duplicated, nil
 }
 
-func (ts *transactionService) PrepareFileImport(fileReader io.Reader, accountId uint32, paymentMonth uint8, paymentYear uint16, fileType string, userId int) ([]TransactionUploadSchema, error) {
+func (ts *transactionService) PrepareFileImport(ctx context.Context, fileReader io.Reader, accountId uint32, paymentMonth uint8, paymentYear uint16, fileType string, userId int) ([]TransactionUploadSchema, error) {
 	var constFileType util.FileImportType
 	switch fileType {
 	case "BBCA":
@@ -190,7 +206,7 @@ func (ts *transactionService) PrepareFileImport(fileReader io.Reader, accountId 
 		return nil, err
 	}
 
-	account, err := ts.accountService.FindById(int(accountId), userId)
+	account, err := ts.accountService.FindById(ctx, int(accountId), userId)
 	if err != nil {
 		return nil, err
 	}

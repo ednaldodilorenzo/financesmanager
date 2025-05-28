@@ -37,7 +37,7 @@ func (cc *genericController[V]) GetAll(c *fiber.Ctx) error {
 	loggedUser := c.Locals("user").(model.User)
 
 	if paginate {
-		result, err := cc.FindAllPaginatedAndFiltered(int(loggedUser.ID), int(pageSize), int(pageNumber), filter)
+		result, err := cc.FindAllPaginatedAndFiltered(c.Context(), int(loggedUser.ID), int(pageSize), int(pageNumber), filter)
 
 		if err != nil {
 			return err
@@ -45,7 +45,7 @@ func (cc *genericController[V]) GetAll(c *fiber.Ctx) error {
 
 		return util.SendData(c, "success", &result, int(fiber.StatusOK))
 	} else {
-		result, err := cc.FindAll(int(loggedUser.ID))
+		result, err := cc.FindAll(c.Context(), int(loggedUser.ID))
 
 		if err != nil {
 			return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"status": "error", "message": err})
@@ -65,7 +65,7 @@ func (cc *genericController[V]) GetOne(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 
-	item, err := cc.FindById(itemId, int(loggedUser.ID))
+	item, err := cc.FindById(c.Context(), itemId, int(loggedUser.ID))
 
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (cc *genericController[V]) Delete(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 
-	err = cc.DeleteRecord(itemId, int(loggedUser.ID))
+	err = cc.DeleteRecord(c.Context(), itemId, int(loggedUser.ID))
 
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (cc *genericController[V]) Post(c *fiber.Ctx) error {
 
 	payload.SetUserID(loggedUser.ID)
 
-	if err := cc.Create(&payload); err != nil {
+	if err := cc.Create(c.Context(), &payload); err != nil {
 		return err
 	}
 
@@ -134,7 +134,7 @@ func (cc *genericController[V]) PostAll(c *fiber.Ctx) error {
 		}
 	}
 
-	if err := cc.CreateAll(payload); err != nil {
+	if err := cc.CreateAll(c.Context(), payload); err != nil {
 		return err
 	}
 
@@ -156,7 +156,7 @@ func (cc *genericController[V]) Patch(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 
-	if err = cc.Update(itemId, payload, int(loggedUser.ID)); err != nil {
+	if err = cc.Update(c.Context(), itemId, payload, int(loggedUser.ID)); err != nil {
 		return err
 	}
 

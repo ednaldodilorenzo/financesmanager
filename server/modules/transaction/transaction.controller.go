@@ -101,7 +101,7 @@ func (cc *transactionController) PatchTransaction(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 
-	err = cc.service.UpdateTransaction(itemId, payload, int(loggedUser.ID))
+	err = cc.service.UpdateTransaction(c.Context(), itemId, payload, int(loggedUser.ID))
 
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func (cc *transactionController) GetOne(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 
-	item, err := cc.service.FindById(itemId, int(loggedUser.ID))
+	item, err := cc.service.FindById(c.Context(), itemId, int(loggedUser.ID))
 
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func (cc *transactionController) GetAllWithRelationships(c *fiber.Ctx) error {
 
 	loggedUser := c.Locals("user").(model.User)
 
-	items, err := cc.service.FindAllRelated(monthParam, yearParam, int(loggedUser.ID))
+	items, err := cc.service.FindAllRelated(c.Context(), monthParam, yearParam, int(loggedUser.ID))
 
 	if err != nil {
 		return err
@@ -203,7 +203,7 @@ func (cc *transactionController) UploadBatchFile(c *fiber.Ctx) error {
 	fileType := c.FormValue("fileType")
 	loggedUser := c.Locals("user").(model.User)
 
-	transactions, err := cc.service.PrepareFileImport(fileReader, uint32(accountId), uint8(month), uint16(year), fileType, int(loggedUser.ID))
+	transactions, err := cc.service.PrepareFileImport(c.Context(), fileReader, uint32(accountId), uint8(month), uint16(year), fileType, int(loggedUser.ID))
 	if err != nil {
 		return err
 	}

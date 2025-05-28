@@ -34,18 +34,18 @@ func NewTransactionRepository(repository generic.GenericRepository[*model.Transa
 
 func (g *transactionRespository) CreateTransaction(ctx context.Context, db *gorm.DB, item model.Transaction) error {
 
-	if err := db.Clauses(clause.Returning{}).Create(&item).Error; err != nil {
+	if err := db.WithContext(ctx).Clauses(clause.Returning{}).Create(&item).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (g *transactionRespository) FindById(id, userId int) (**model.Transaction, error) {
+func (g *transactionRespository) FindById(ctx context.Context, id, userId int) (**model.Transaction, error) {
 	var item *model.Transaction
 
 	// Use Joins to enforce INNER JOIN
-	err := g.dbConfig.DB.Model(&item).
+	err := g.dbConfig.DB.WithContext(ctx).Model(&item).
 		Joins("INNER JOIN category ON transaction.category_id = category.id AND transaction.user_id = category.user_id").
 		Joins("INNER JOIN account ON transaction.account_id = account.id AND transaction.user_id = account.user_id").
 		Joins("LEFT JOIN transaction_tag ON transaction.id = transaction_tag.transaction_id AND transaction.user_id = transaction_tag.user_id").
