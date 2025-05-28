@@ -7,15 +7,11 @@ type TagService interface {
 }
 
 type tagService struct {
-	repository TagRepository
+	TagRepository
 }
 
 func NewTagService(repository TagRepository) TagService {
 	return &tagService{
 		repository,
 	}
-}
-
-func (t *tagService) FindAllWithFilter(filter string, userId int) ([]model.TransactionTag, error) {
-	return t.repository.FindAllWithFilter(filter, userId)
 }

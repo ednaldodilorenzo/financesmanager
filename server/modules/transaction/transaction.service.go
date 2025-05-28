@@ -151,7 +151,7 @@ func (ts *transactionService) UpdateTransaction(ctx context.Context, id int, ite
 		TransactionDate: item.TransactionDate,
 		Detail:          item.Detail,
 		Tags:            item.Tags,
-		UserDependent:   model.UserDependent{UserId: uint64(userId)},
+		UserDependent:   model.UserDependent{Id: uint32(id), UserId: uint64(userId)},
 	}
 
 	err = ts.repository.Update(ctx, gormTx, id, &updatedTransaction, userId)
