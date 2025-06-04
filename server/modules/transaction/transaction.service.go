@@ -154,7 +154,7 @@ func (ts *transactionService) UpdateTransaction(ctx context.Context, id int, ite
 		UserDependent:   model.UserDependent{Id: uint32(id), UserId: uint64(userId)},
 	}
 
-	err = ts.repository.Update(ctx, gormTx, id, &updatedTransaction, userId)
+	err = ts.repository.Update(ctx, gormTx, id, updatedTransaction, userId)
 
 	if err != nil {
 		tx.Rollback()
@@ -168,7 +168,7 @@ func (ts *transactionService) FindAllRelated(ctx context.Context, month *int, ye
 	return ts.repository.FindAllWithRelationships(month, year, userId)
 }
 
-func (ts *transactionService) FindById(ctx context.Context, id int, userId int) (**model.Transaction, error) {
+func (ts *transactionService) FindById(ctx context.Context, id int, userId int) (*model.Transaction, error) {
 	return ts.repository.FindById(ctx, id, userId)
 }
 

@@ -41,7 +41,7 @@ func (g *transactionRespository) CreateTransaction(ctx context.Context, db *gorm
 	return nil
 }
 
-func (g *transactionRespository) FindById(ctx context.Context, id, userId int) (**model.Transaction, error) {
+func (g *transactionRespository) FindById(ctx context.Context, id, userId int) (*model.Transaction, error) {
 	var item model.Transaction
 
 	// Use Joins to enforce INNER JOIN
@@ -60,7 +60,7 @@ func (g *transactionRespository) FindById(ctx context.Context, id, userId int) (
 
 	itemPtr := &item
 
-	return &itemPtr, nil
+	return itemPtr, nil
 }
 
 func (tr *transactionRespository) FindAllWithRelationships(month *int, year *int, userId int) ([]model.Transaction, error) {

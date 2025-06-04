@@ -12,10 +12,10 @@ import (
 type GenericService[V model.IUserDependent] interface {
 	FindAll(context.Context, int) ([]V, error)
 	FindAllPaginatedAndFiltered(ctx context.Context, userId, limit, offset int, filter string) (*PaginatedResponse[V], error)
-	Create(context.Context, *V) error
+	Create(context.Context, V) error
 	CreateAll(context.Context, []V) error
-	Update(context.Context, int, *V, int) error
-	FindById(ctx context.Context, id, userId int) (*V, error)
+	Update(context.Context, int, V, int) error
+	FindById(ctx context.Context, id, userId int) (V, error)
 	DeleteRecord(ctx context.Context, id, userId int) error
 }
 
@@ -82,21 +82,23 @@ func (c *genericService[V]) DeleteRecord(ctx context.Context, id, userId int) er
 	return tx.Commit()
 }
 
-func (c *genericService[V]) FindById(ctx context.Context, id, userId int) (*V, error) {
+func (c *genericService[V]) FindById(ctx context.Context, id, userId int) (V, error) {
 	currentItem, err := c.repository.FindById(ctx, id, userId)
+
+	var zero V
 
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
-			return nil, &util.ItemNotFoundError{Message: "Item not found!"}
+			return zero, &util.ItemNotFoundError{Message: "Item not found!"}
 		} else {
-			return nil, err
+			return zero, err
 		}
 	}
 
 	return currentItem, nil
 }
 
-func (c *genericService[V]) Create(ctx context.Context, item *V) error {
+func (c *genericService[V]) Create(ctx context.Context, item V) error {
 	tx, err := c.txManager.Begin(ctx)
 	if err != nil {
 		return err
@@ -121,7 +123,7 @@ func (c *genericService[V]) Create(ctx context.Context, item *V) error {
 	return tx.Commit()
 }
 
-func (c *genericService[V]) Update(ctx context.Context, id int, item *V, userId int) error {
+func (c *genericService[V]) Update(ctx context.Context, id int, item V, userId int) error {
 	tx, err := c.txManager.Begin(ctx)
 	if err != nil {
 		return err

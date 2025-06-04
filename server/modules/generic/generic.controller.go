@@ -71,7 +71,7 @@ func (cc *genericController[V]) GetOne(c *fiber.Ctx) error {
 		return err
 	}
 
-	return util.SendData(c, "success", item, int(fiber.StatusOK))
+	return util.SendData(c, "success", &item, int(fiber.StatusOK))
 }
 
 func (cc *genericController[V]) Delete(c *fiber.Ctx) error {
@@ -111,7 +111,7 @@ func (cc *genericController[V]) Post(c *fiber.Ctx) error {
 
 	payload.SetUserID(loggedUser.ID)
 
-	if err := cc.Create(c.Context(), &payload); err != nil {
+	if err := cc.Create(c.Context(), payload); err != nil {
 		return err
 	}
 
@@ -142,7 +142,7 @@ func (cc *genericController[V]) PostAll(c *fiber.Ctx) error {
 }
 
 func (cc *genericController[V]) Patch(c *fiber.Ctx) error {
-	var payload *V
+	var payload V
 
 	if err := c.BodyParser(&payload); err != nil {
 		return err

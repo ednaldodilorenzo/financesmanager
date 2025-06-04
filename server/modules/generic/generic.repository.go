@@ -19,10 +19,10 @@ type PaginatedResponse[V model.IUserDependent] struct {
 type GenericRepository[V model.IUserDependent] interface {
 	FindAll(context.Context, int) ([]V, error)
 	FindAllPaginatedAndFiltered(ctx context.Context, userId, limit, offset int, filter string) (*PaginatedResponse[V], error)
-	Create(context.Context, *gorm.DB, *V) error
+	Create(context.Context, *gorm.DB, V) error
 	CreateAll(context.Context, *gorm.DB, []V) error
-	Update(context.Context, *gorm.DB, int, *V, int) error
-	FindById(context.Context, int, int) (*V, error)
+	Update(context.Context, *gorm.DB, int, V, int) error
+	FindById(context.Context, int, int) (V, error)
 	Delete(context.Context, *gorm.DB, int, int) error
 }
 
@@ -36,14 +36,15 @@ func NewGenericRepository[V model.IUserDependent](database *config.Database, txM
 	}
 }
 
-func (g *genericRepository[V]) FindById(ctx context.Context, id int, userId int) (*V, error) {
+func (g *genericRepository[V]) FindById(ctx context.Context, id int, userId int) (V, error) {
 	var item V
+	var zero V
 
 	if err := g.dbConfig.DB.WithContext(ctx).First(&item, "id = ? AND user_id = ?", id, userId).Error; err != nil {
-		return nil, err
+		return zero, err
 	}
 
-	return &item, nil
+	return item, nil
 }
 
 func (g *genericRepository[V]) Delete(ctx context.Context, db *gorm.DB, id, userId int) error {
@@ -102,7 +103,7 @@ func (g *genericRepository[V]) FindAllPaginatedAndFiltered(ctx context.Context, 
 	}, nil
 }
 
-func (g *genericRepository[V]) Create(ctx context.Context, db *gorm.DB, item *V) error {
+func (g *genericRepository[V]) Create(ctx context.Context, db *gorm.DB, item V) error {
 	if err := db.Clauses(clause.Returning{}).Create(item).Error; err != nil {
 		return err
 	}
@@ -118,7 +119,7 @@ func (g *genericRepository[V]) CreateAll(ctx context.Context, db *gorm.DB, items
 	return nil
 }
 
-func (g *genericRepository[V]) Update(ctx context.Context, db *gorm.DB, id int, item *V, userId int) error {
+func (g *genericRepository[V]) Update(ctx context.Context, db *gorm.DB, id int, item V, userId int) error {
 	if err := db.Model(&item).Where("id = ? AND user_id = ?", id, userId).Updates(item).Error; err != nil {
 		return err
 	}
