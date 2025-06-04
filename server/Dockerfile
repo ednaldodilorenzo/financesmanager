@@ -17,7 +17,7 @@ EXPOSE 5000 2345
 CMD ["air"]
 
 # Building the binary of the App
-FROM golang:1.24 AS build
+FROM golang:1.24.3 AS build
 
 # `boilerplate` should be replaced with your project name
 WORKDIR /go/src/financeweb

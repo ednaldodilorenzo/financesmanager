@@ -35,17 +35,17 @@ services:
       - "5000:5000"
       - "2345:2345"
     environment:
-      - DB_USERNAME=master
-      - DB_PASSWORD=secret
-      - DB_HOST= db
-      - DB_PORT=5432
+      - DB_USERNAME=${APP_DB_USERNAME}
+      - DB_PASSWORD=${APP_DB_PASSWORD}
+      - DB_HOST=${APP_DB_HOST}
+      - DB_PORT=${APP_DB_PORT}
       - DB_NAME=finance
       - WAIT_HOSTS=db:5432
       - MB_HOST=redis
       - MB_PORT=6379
       - APP_URL=http://localhost:8080
-      - APP_JWT_KEY=d856af78a4f0db57e6638108deaef25e4f9a23d0cdbc3ce947130ca4c1e7ac225024f8f1453b7e367b9da20520f80fd66ca9aaf8ac959b47c08b99bb492987b4
-      - APP_ENVIRONMENT=DEVELOPMENT
+      - APP_JWT_KEY=${APP_JWT_KEY}
+      - APP_ENVIRONMENT=${APP_ENVIRONMENT:-DEVELOPMENT}
     depends_on:
       - db
       #- migrate
@@ -77,8 +77,8 @@ services:
     image: postgres:16.3-alpine
     container_name: postgres-db
     environment:
-      POSTGRES_PASSWORD: secret
-      POSTGRES_USER: master
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_DB: finance      
     volumes:
       - postgres_data:/var/lib/postgresql/data
