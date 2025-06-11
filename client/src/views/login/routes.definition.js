@@ -17,11 +17,6 @@ const ROUTES_DEFINITIONS = [
     component: () => import("./auth-base.vue"),
     children: [
       {
-        path: "/login",
-        name: ROUTE_NAMES.LOGIN,
-        component: () => import("./login-page.vue"),
-      },
-      {
         path: "/register/:token",
         name: ROUTE_NAMES.REGISTER,
         component: () => import("./registration-page.vue"),
@@ -47,6 +42,11 @@ const ROUTES_DEFINITIONS = [
         component: () => import("./send-mail.vue"),
       },
     ],
+  },
+  {
+    path: "/login",
+    name: ROUTE_NAMES.LOGIN,
+    component: () => import("./new-login.vue"),
   },
 ];
 
