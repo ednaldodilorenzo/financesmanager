@@ -24,6 +24,7 @@ func BuildContainer() *dig.Container {
 
 	container.Provide(config.NewSettings)
 	container.Provide(config.NewDatabase)
+	container.Provide(config.NewBroker)
 	container.Provide(util.NewEmailSender)
 	container.Provide(middleware.NewDeserializer)
 	container.Provide(auth.NewAuthRepository)

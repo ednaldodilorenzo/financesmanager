@@ -36,17 +36,17 @@ const ROUTES_DEFINITIONS = [
         name: ROUTE_NAMES.REDEFINE,
         component: () => import("./redefine-password.vue"),
       },
-      {
-        path: "/recover",
-        name: ROUTE_NAMES.RECOVER,
-        component: () => import("./send-mail.vue"),
-      },
     ],
   },
   {
     path: "/login",
     name: ROUTE_NAMES.LOGIN,
     component: () => import("./new-login.vue"),
+  },
+  {
+    path: "/recover",
+    name: ROUTE_NAMES.RECOVER,
+    component: () => import("./new-send-email.vue"),
   },
 ];
 

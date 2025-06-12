@@ -7,7 +7,7 @@ tmp_dir = "tmp"
 
 [build]
 # Just plain old shell command. You could use `make` as well.
-cmd = "CGO_ENABLED=0 go build -gcflags=all=\"-N -l\" -o bin/$(BINARY_NAME)-debug ./cmd/main.go"
+cmd = "CGO_ENABLED=0 go build -gcflags=all=\"-N -l\" -o bin/my-app-debug ./cmd/main.go"
 # Binary file yields from `cmd`.
 bin = "dlv exec ./bin/my-app-debug --headless --listen=0.0.0.0:2345 --api-version=2 --accept-multiclient --log"
 full_bin = "dlv exec ./bin/my-app-debug --headless --listen=0.0.0.0:2345 --api-version=2 --accept-multiclient --log -- "

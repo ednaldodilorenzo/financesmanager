@@ -2,12 +2,9 @@ package util
 
 import (
 	"encoding/json"
-	"fmt"
-	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/gofiber/fiber/v2"
-	"github.com/hibiken/asynq"
 )
 
 type ApiResponse[T any] struct {
@@ -30,30 +27,23 @@ type EmailTask struct {
 
 type EmailSender interface {
 	SendEmail(to, subject, body string) error
-	Config(settings *config.BrokerSettings)
 }
 
 type EmailSenderStruct struct {
-	settings *config.BrokerSettings
+	broker *config.Broker
 }
 
-func NewEmailSender() EmailSender {
-	return &EmailSenderStruct{}
-}
-
-func (e *EmailSenderStruct) Config(settings *config.BrokerSettings) {
-	e.settings = settings
+func NewEmailSender(broker *config.Broker) EmailSender {
+	return &EmailSenderStruct{
+		broker: broker,
+	}
 }
 
 func (e *EmailSenderStruct) SendEmail(to, subject, body string) error {
-	client := asynq.NewClient(asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:%s", e.settings.Host, e.settings.Port)})
-	defer client.Close()
-
 	email := EmailTask{To: to, Subject: subject, Body: body}
 	payload, _ := json.Marshal(email)
 
-	task := asynq.NewTask("email:send", payload)
-	_, err := client.Enqueue(task, asynq.MaxRetry(5), asynq.Timeout(30*time.Second))
+	err := e.broker.Enqueue("email:send", payload)
 
 	return err
 }
