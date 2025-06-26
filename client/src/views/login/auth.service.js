@@ -22,6 +22,12 @@ const authService = {
           return false;
         }
       }),
+  oauthLogin: (userId, name) =>
+    store.dispatch("currentUser/setUser", {
+      id: userId,
+      name: name,
+      token: "newToken",
+    }),
   logout: () => store.dispatch("currentUser/setUser", null),
   signup: (user) =>
     requester.post("/auth/signup", user).then((resp) => resp.data),

@@ -7,10 +7,11 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type AuthRepository interface {
-	Create(user *model.User) error
+	Create(user *model.User) (*model.User, error)
 	FindUserByEmail(email string) (*model.User, error)
 	FindById(int) (*model.User, error)
 	Update(id int, item *model.User) error
@@ -54,14 +55,15 @@ func (a *AuthRepositoryStruct) FindById(id int) (*model.User, error) {
 	return &user, nil
 }
 
-func (a *AuthRepositoryStruct) Create(user *model.User) error {
-	result := a.dbConfig.DB.Create(&user)
+func (a *AuthRepositoryStruct) Create(user *model.User) (*model.User, error) {
+	newUser := user
+	result := a.dbConfig.DB.Clauses(clause.Returning{}).Create(&newUser)
 
 	if result.Error != nil {
-		return result.Error
+		return nil, result.Error
 	}
 
-	return nil
+	return newUser, nil
 }
 
 func (g *AuthRepositoryStruct) Update(id int, item *model.User) error {

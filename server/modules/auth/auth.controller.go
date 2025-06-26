@@ -1,9 +1,12 @@
 package auth
 
 import (
+	"context"
+	"io"
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
+	"github.com/ednaldo-dilorenzo/iappointment/dto"
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
@@ -19,6 +22,8 @@ func GetRoutes(controller AuthController, deserializer *middleware.Deserializer)
 		router.Post("/changePassword", deserializer.DeserializeUser, controller.ChangePassword)
 		router.Post("/recoverPassword", controller.RecoverPassword)
 		router.Post("/redefinePassword", controller.RedefinePassword)
+		router.Get("/google/callback", controller.GoogleRegistrationCallback)
+		router.Get("/google/login", controller.SigninGoogle)
 	}
 }
 
@@ -64,12 +69,18 @@ type AuthController interface {
 	ChangePassword(c *fiber.Ctx) error
 	RecoverPassword(c *fiber.Ctx) error
 	RedefinePassword(c *fiber.Ctx) error
+	GoogleRegistrationCallback(c *fiber.Ctx) error
+	SigninGoogle(c *fiber.Ctx) error
 }
 
 type authController struct {
 	authService AuthService
 	settings    *config.Settings
 }
+
+var (
+	oauthStateString = "random-state" // use a secure random string in production
+)
 
 func NewAuthController(authService AuthService, settings *config.Settings) AuthController {
 	return &authController{
@@ -92,18 +103,6 @@ func (a *authController) SigninUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	expTime := 30 * time.Minute
-	tokenString, err := util.GenerateToken(user.ID, &a.settings.AppSettings.JwtKey, &expTime)
-
-	if err != nil {
-		return err
-	}
-
-	response := SignInResponse{
-		ID:   user.ID,
-		Name: user.Name,
-	}
-
 	secureCookie := false
 
 	if a.settings.AppSettings.Environment == config.ENVIRONMENT_PROD {
@@ -112,14 +111,14 @@ func (a *authController) SigninUser(c *fiber.Ctx) error {
 
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt",
-		Value:    *tokenString,
+		Value:    user.Token,
 		Expires:  time.Now().Add(30 * time.Minute),
 		HTTPOnly: true,         // Prevents JavaScript access
 		Secure:   secureCookie, // Use true in production (HTTPS required)
 		SameSite: "Strict",
 	})
 
-	return util.SendData(c, "success", &response, fiber.StatusOK)
+	return util.SendData(c, "success", &user, fiber.StatusOK)
 }
 
 func (a *authController) SignUpUser(c *fiber.Ctx) error {
@@ -162,6 +161,73 @@ func (a *authController) StartRegistration(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok"})
+}
+
+func (a *authController) GoogleRegistrationCallback(c *fiber.Ctx) error {
+	state := c.Query("state")
+
+	if state != oauthStateString {
+		return c.Status(fiber.StatusUnauthorized).SendString("Invalid OAuth state")
+	}
+
+	code := c.Query("code")
+	token, err := a.settings.GoogleOAuthSettings.Exchange(context.Background(), code)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Code exchange failed: " + err.Error())
+	}
+
+	client := a.settings.GoogleOAuthSettings.Client(context.Background(), token)
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed getting user info: " + err.Error())
+	}
+
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to read user info: " + err.Error())
+	}
+
+	var userInfo map[string]any
+	if err := fiber.New().Config().JSONDecoder(bodyBytes, &userInfo); err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to parse user info")
+	}
+
+	email := userInfo["email"].(string)
+	oauthUser := dto.UserOAuthRegistrationRegistration{
+		Name:  userInfo["name"].(string),
+		Email: email,
+	}
+
+	currentUser, err := a.authService.RegisterUserOAuthUser(oauthUser)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate token")
+	}
+
+	secureCookie := false
+
+	if a.settings.AppSettings.Environment == config.ENVIRONMENT_PROD {
+		secureCookie = true
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "jwt",
+		Value:    currentUser.Token,
+		Expires:  time.Now().Add(30 * time.Minute),
+		HTTPOnly: true,         // Prevents JavaScript access
+		Secure:   secureCookie, // Use true in production (HTTPS required)
+		SameSite: "Strict",
+	})
+
+	// Redirect to frontend with token (as query or fragment)
+	return c.Redirect("http://localhost:8080/oauth-login")
+}
+
+func (a *authController) SigninGoogle(c *fiber.Ctx) error {
+	url := a.settings.GoogleOAuthSettings.AuthCodeURL(oauthStateString)
+	return c.Redirect(url)
 }
 
 func (a *authController) ChangePassword(c *fiber.Ctx) error {

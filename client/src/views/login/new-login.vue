@@ -21,13 +21,13 @@
               class="form-body"
             >
               <div class="d-grid">
-                <a class="btn btn-white radius-30" href="javascript:;"
+                <a class="btn btn-white radius-30" @click="oauthLogin"
                   ><span
                     class="d-flex justify-content-center align-items-center"
                   >
                     <img
                       class="me-2"
-                      src="assets/images/icons/search.svg"
+                      src="@/assets/search.svg"
                       width="16"
                       alt=""
                     />
@@ -177,6 +177,9 @@ export default {
     };
   },
   methods: {
+    oauthLogin() {
+      window.location.href = "http://localhost:5000/api/auth/google/login";
+    },
     onSubmit() {
       this.v$.$validate();
 

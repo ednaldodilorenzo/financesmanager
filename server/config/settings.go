@@ -1,6 +1,11 @@
 package config
 
-import "os"
+import (
+	"os"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+)
 
 const (
 	ENVIRONMENT_DEV  = "DEVELOPMENT"
@@ -28,9 +33,10 @@ type AppSettings struct {
 }
 
 type Settings struct {
-	Database      DBSettings `yaml:"database"`
-	MessageBroker BrokerSettings
-	AppSettings   AppSettings
+	Database            DBSettings `yaml:"database"`
+	MessageBroker       BrokerSettings
+	AppSettings         AppSettings
+	GoogleOAuthSettings oauth2.Config
 }
 
 func NewSettings() *Settings {
@@ -55,5 +61,13 @@ func (s *Settings) LoadSettings() {
 		Url:         os.Getenv("APP_URL"),
 		JwtKey:      os.Getenv("APP_JWT_KEY"),
 		Environment: os.Getenv("APP_ENVIRONMENT"),
+	}
+
+	s.GoogleOAuthSettings = oauth2.Config{
+		RedirectURL:  "http://localhost:5000/api/auth/google/callback",
+		ClientID:     "864370761747-8ranshuk43vcu5pm69uk0q0na40s77rg.apps.googleusercontent.com", //os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: "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",                                      //os.Getenv("GOOGLE_CLIENT_SECRET"),
+		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"},
+		Endpoint:     google.Endpoint,
 	}
 }

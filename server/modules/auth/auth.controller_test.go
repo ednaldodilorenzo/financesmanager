@@ -24,7 +24,7 @@ func (a *MockAuthService) ExecuteAuthentication(username string, password string
 			ID:        1,
 			Name:      "Test",
 			Email:     "test@test.com",
-			Password:  "testing",
+			Password:  &password,
 			CreatedAt: nil,
 			UpdatedAt: nil,
 		}, nil

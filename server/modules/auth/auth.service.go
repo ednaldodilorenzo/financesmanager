@@ -6,14 +6,15 @@ import (
 	"time"
 
 	"github.com/ednaldo-dilorenzo/iappointment/config"
+	"github.com/ednaldo-dilorenzo/iappointment/dto"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
 	"github.com/ednaldo-dilorenzo/iappointment/util"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService interface {
-	ExecuteAuthentication(username string, password string) (*model.User, error)
-	RegisterUser(user *model.User) error
+	ExecuteAuthentication(username string, password string) (*SignInResponse, error)
+	RegisterUserOAuthUser(userDto dto.UserOAuthRegistrationRegistration) (*SignInResponse, error)
 	StartRegistrationProcess(string) error
 	RegisterUserWithToken(*SignUpInput) error
 	ChangePassword(int, *ChangePasswordRequest) error
@@ -35,7 +36,7 @@ func NewAuthService(authRepository AuthRepository, emailSender util.EmailSender,
 	}
 }
 
-func (a *AuthServiceStruct) ExecuteAuthentication(username string, password string) (*model.User, error) {
+func (a *AuthServiceStruct) ExecuteAuthentication(username string, password string) (*SignInResponse, error) {
 
 	user, err := a.repository.FindUserByEmail(username)
 
@@ -47,55 +48,64 @@ func (a *AuthServiceStruct) ExecuteAuthentication(username string, password stri
 		return nil, util.NewAPIError(util.ErrBusiness, []string{"invalid username or password"})
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password)); err != nil {
 		return nil, util.NewAPIError(util.ErrBusiness, []string{"password does not match"})
 	}
 
-	return user, nil
+	expTime := 30 * time.Minute
+	tokenString, err := util.GenerateToken(user.ID, &a.settings.AppSettings.JwtKey, &expTime)
+
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignInResponse{
+		ID:    user.ID,
+		Name:  user.Name,
+		Token: *tokenString,
+	}
+
+	return response, nil
 }
 
-func (a *AuthServiceStruct) RegisterUser(user *model.User) error {
+func (a *AuthServiceStruct) RegisterUserOAuthUser(userDto dto.UserOAuthRegistrationRegistration) (*SignInResponse, error) {
 
-	currentUser, err := a.repository.FindUserByEmail(user.Email)
-
-	if err != nil {
-		return err
-	}
-
-	if currentUser != nil {
-		return util.NewAPIError(util.ErrBusiness, []string{"User already registered"})
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	currentUser, err := a.repository.FindUserByEmail(userDto.Email)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	user.Password = string(hashedPassword)
-	now := time.Now().UTC()
-	user.CreatedAt = &now
+	if currentUser == nil {
+		now := time.Now().UTC()
 
-	err = a.repository.Create(user)
+		currentUser = &model.User{
+			Name:      userDto.Name,
+			Email:     userDto.Email,
+			CreatedAt: &now,
+		}
 
-	if err != nil {
-		return err
+		currentUser, err = a.repository.Create(currentUser)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	expirationTime := 30 * time.Minute
-	tokenString, err := util.GenerateToken(&user.Email, &a.settings.AppSettings.JwtKey, &expirationTime)
+	tokenString, err := util.GenerateToken(currentUser.ID, &a.settings.AppSettings.JwtKey, &expirationTime)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = a.emailSender.SendEmail(user.Email, "Confirmação de email", fmt.Sprintf("Clique no link abaixo para confirmar seu email<br><br><a href=\"%s\">Clique aqui.</a>", fmt.Sprintf("%s/verify/%s", a.settings.AppSettings.Url, *tokenString)))
-
-	if err != nil {
-		return err
+	result := &SignInResponse{
+		ID:    currentUser.ID,
+		Token: *tokenString,
+		Name:  currentUser.Name,
 	}
 
-	return nil
+	return result, nil
 }
 
 func (a *AuthServiceStruct) StartRegistrationProcess(email string) error {
@@ -149,15 +159,15 @@ func (a *AuthServiceStruct) RegisterUserWithToken(signin *SignUpInput) error {
 	}
 
 	now := time.Now()
-
+	password := string(hashedPassword)
 	newUser := &model.User{
 		Name:      signin.Name,
 		Email:     *email,
-		Password:  string(hashedPassword),
+		Password:  &password,
 		CreatedAt: &now,
 	}
 
-	if err = a.repository.Create(newUser); err != nil {
+	if _, err = a.repository.Create(newUser); err != nil {
 		return errors.New("failed to register new user")
 	}
 
@@ -175,7 +185,7 @@ func (a *AuthServiceStruct) ChangePassword(userId int, changePassword *ChangePas
 		return util.NewAPIError(util.ErrNotFound, []string{"User not Found"})
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(changePassword.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(changePassword.Password)); err != nil {
 		return util.NewAPIError(util.ErrBusiness, []string{"Senha atual não corresponde a cadastada"})
 	}
 
@@ -192,7 +202,8 @@ func (a *AuthServiceStruct) ChangePassword(userId int, changePassword *ChangePas
 	if err != nil {
 		return err
 	}
-	user.Password = string(hashedPassword)
+	password := string(hashedPassword)
+	user.Password = &password
 
 	err = a.repository.Update(userId, user)
 
@@ -257,8 +268,8 @@ func (a *AuthServiceStruct) RedefinePassword(redefinePassword *RedefinePasswordR
 	if err != nil {
 		return err
 	}
-
-	user.Password = string(hashedPassword)
+	password := string(hashedPassword)
+	user.Password = &password
 
 	if err := a.repository.Update(int(user.ID), user); err != nil {
 		return err

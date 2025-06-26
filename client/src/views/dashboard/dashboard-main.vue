@@ -76,12 +76,14 @@ import DayByDayGraph from "./daybyday-graph.vue";
 import planningService from "../planning/planning.service";
 import PlannedExecutedType from "./planned-executed-type.vue";
 import EarnsExpensesYear from "./earns-expenses-year.vue";
+import { useRouter } from "vue-router";
 
 // Register required components
 Chart.register(...registerables);
 
 const loading = useLoadingScreen();
 const currentDate = new Date();
+const router = useRouter();
 
 const transactionsList = ref([]);
 const plannedList = ref([]);

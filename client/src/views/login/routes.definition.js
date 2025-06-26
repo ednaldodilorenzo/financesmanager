@@ -3,6 +3,7 @@ const namespace = "auth";
 const ROUTE_NAMES = {
   INDEX: `${namespace}`,
   LOGIN: `${namespace}-login`,
+  OAUTH_LOGIN: `${namespace}-oauth-login`,
   REGISTER: `${namespace}-register`,
   VERIFY: `${namespace}-verify`,
   SEND_MAIL: `${namespace}-send-mail`,
@@ -42,6 +43,11 @@ const ROUTES_DEFINITIONS = [
     path: "/login",
     name: ROUTE_NAMES.LOGIN,
     component: () => import("./new-login.vue"),
+  },
+  {
+    path: "/oauth-login",
+    name: ROUTE_NAMES.OAUTH_LOGIN,
+    component: () => import("./oauth-login.vue"),
   },
   {
     path: "/recover",
