@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -222,7 +223,7 @@ func (a *authController) GoogleRegistrationCallback(c *fiber.Ctx) error {
 	})
 
 	// Redirect to frontend with token (as query or fragment)
-	return c.Redirect("http://localhost:8080/oauth-login")
+	return c.Redirect(fmt.Sprintf("%s/oauth-login", a.settings.AppSettings.Url))
 }
 
 func (a *authController) SigninGoogle(c *fiber.Ctx) error {
