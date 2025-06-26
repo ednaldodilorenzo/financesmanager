@@ -64,9 +64,9 @@ func (s *Settings) LoadSettings() {
 	}
 
 	s.GoogleOAuthSettings = oauth2.Config{
-		RedirectURL:  "http://localhost:5000/api/auth/google/callback",
-		ClientID:     "864370761747-8ranshuk43vcu5pm69uk0q0na40s77rg.apps.googleusercontent.com", //os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: "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",                                      //os.Getenv("GOOGLE_CLIENT_SECRET"),
+		RedirectURL:  os.Getenv("GOOGLE_REDIRECT_URL"),
+		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"},
 		Endpoint:     google.Endpoint,
 	}

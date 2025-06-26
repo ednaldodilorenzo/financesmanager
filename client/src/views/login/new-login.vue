@@ -178,7 +178,7 @@ export default {
   },
   methods: {
     oauthLogin() {
-      window.location.href = "http://localhost:5000/api/auth/google/login";
+      window.location.href = `${process.env.VUE_APP_API_URL}/auth/google/login`;
     },
     onSubmit() {
       this.v$.$validate();
