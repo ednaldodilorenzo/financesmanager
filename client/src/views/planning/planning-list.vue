@@ -15,9 +15,10 @@
       <div class="d-flex flex-column align-items-center my-3">
         <Calendar class="mb-3" @date-change="onChangeDebounced"></Calendar>
         <bootstrap-select
+          style="text-align: -webkit-center;"
           @change="updateState"
           v-model="type"
-          class="w-25"
+          class="w-50"
           :options="[
             { id: 'M', value: 'Mensal' },
             { id: 'Y', value: 'Anual' },
@@ -31,6 +32,48 @@
   </div>
   <div class="card">
     <div class="card-body p-2">
+      <bootstrap-table
+        :fields="[
+          { title: 'Investimentos', name: 'name' },
+          {
+            title: '',
+            name: 'formatted_value',
+          },
+          {
+            title: { value: 'Planejado', clazz: 'text-end' },
+            name: 'formatted_planned',
+          },
+        ]"
+        :showPagination="false"
+        :showNav="false"
+        :items="investmentsList"
+        :showFilter="false"
+      >
+        <template #first-row>
+          <tr>
+            <td class="w-25">Total</td>
+            <td class="w-50">
+              <bootstrap-plan-exec-bar
+                :planned="investmentsSumary.planned"
+                :executed="investmentsSumary.executed"
+                :percent-divider="percentDivider"
+              />
+            </td>
+            <td class="text-end text-primary w-25">
+              {{ currencyBRL(investmentsSumary.planned) }}
+            </td>
+          </tr>
+        </template>
+        <template #custom-td-formatted_value="{ item, field }">
+          <td>
+            <bootstrap-plan-exec-bar
+              :planned="item.planned"
+              :executed="item.executed"
+              :percent-divider="percentDivider"
+            />
+          </td>
+        </template>
+      </bootstrap-table>
       <bootstrap-table
         :fields="[
           { title: 'Receitas', name: 'name' },
@@ -133,9 +176,20 @@ const loading = useLoadingScreen();
 
 const expensesList = ref([]);
 const earnsList = ref([]);
+const investmentsList = ref([]);
 let fullList = [];
 const type = ref("M");
 const percentDivider = ref(0);
+
+const investmentsSumary = computed(() => 
+  investmentsList.value.reduce(
+    (previous, current) => ({
+      planned: previous.planned + current.planned,
+      executed: previous.executed + current.executed,
+    }),
+    { planned: 0.0, executed: 0.0 }
+  )
+);
 
 const earnsSummary = computed(() =>
   earnsList.value.reduce(
@@ -183,6 +237,7 @@ const updateState = () => {
 
   expensesList.value = respList.filter((item) => item.type === "D");
   earnsList.value = respList.filter((item) => item.type === "R");
+  investmentsList.value = respList.filter((item) => item.type === "I");
 };
 
 const getData = (month, year) => {

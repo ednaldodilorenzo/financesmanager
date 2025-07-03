@@ -9,7 +9,7 @@ services:
       - redis_data:/data
     expose:
       - "6379"
-      
+
   worker:
     build: ./taskexecutor
     container_name: task_executor
@@ -63,7 +63,6 @@ services:
     depends_on:
       - api
 
-  
   migrate:
     build:
       context: ./database
@@ -78,12 +77,42 @@ services:
     environment:
       POSTGRES_PASSWORD: secret
       POSTGRES_USER: master
-      POSTGRES_DB: finance      
+      POSTGRES_DB: finance
     volumes:
       - postgres_data:/var/lib/postgresql/data
     expose:
       - "5432"
 
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000" # 3000 is default, remap to avoid clash with app
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"     # gRPC OTLP
+      - "55681:55681"   # legacy HTTP
+      - "8888:8888"     # metrics for Prometheus to scrape
+      - "4318:4318"     # OTLP HTTP (optional)
+
 volumes:
   postgres_data:
   redis_data:
+  grafana-data:

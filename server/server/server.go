@@ -2,12 +2,12 @@ package server
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/ednaldo-dilorenzo/iappointment/config"
 	"github.com/ednaldo-dilorenzo/iappointment/middleware"
 	"github.com/ednaldo-dilorenzo/iappointment/model"
@@ -22,6 +22,13 @@ import (
 	"github.com/ednaldo-dilorenzo/iappointment/modules/transaction"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.uber.org/dig"
 )
 
@@ -42,6 +49,19 @@ type ServerDependencies struct {
 	DB                    config.Database
 }
 
+func initTracer() func() {
+	exporter, _ := stdouttrace.New(stdouttrace.WithPrettyPrint())
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceName("fiber-app"),
+		)),
+	)
+	otel.SetTracerProvider(tp)
+	return func() { _ = tp.Shutdown(context.Background()) }
+}
+
 func NewServer(authController auth.AuthController,
 	accountController generic.GenericController[*model.Account],
 	transactionController transaction.TransactionController,
@@ -60,7 +80,6 @@ func NewServer(authController auth.AuthController,
 		settings: settings,
 	}
 
-	server.App.Use(recover.New())
 	api := server.App.Group("/api")
 	api.Route(auth.GetRoutes(authController, deserializer))
 	api.Route(category.GetRoutes(categoryController, deserializer))
@@ -73,10 +92,29 @@ func NewServer(authController auth.AuthController,
 }
 
 func (s *Server) Setup() {
+	shutdown := initTracer()
+	defer shutdown()
+
+	tracer := otel.Tracer("fiber-tracer")
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	if s.App == nil {
-		log.Fatalln("Server Incorrectly setup")
+		log.Fatal().Msg("Server Incorrectly setup")
 	}
 
+	prometheus := fiberprometheus.New("financecockpit")
+	prometheus.RegisterAt(s.App, "/metrics")
+	prometheus.SetSkipPaths([]string{"/ping"})            // Optional: Remove some paths from metrics
+	prometheus.SetIgnoreStatusCodes([]int{401, 403, 404}) // Optional: Skip metrics for these status codes
+	s.App.Use(func(c *fiber.Ctx) error {
+		_, span := tracer.Start(c.Context(), c.Path())
+		defer span.End()
+		return c.Next()
+	})
+	s.App.Use(prometheus.Middleware)
+
+	s.App.Use(recover.New())
+	s.App.Use(middleware.LogRequests)
 	api := s.App.Group("/api")
 	routes.SetRoutes(&api)
 	s.settings.LoadSettings()
@@ -87,7 +125,7 @@ func (s *Server) Setup() {
 
 func (s *Server) BasicSetup(prefix string, f func(router fiber.Router)) {
 	if s.App == nil {
-		log.Fatalln("Server Incorrectly setup")
+		log.Fatal().Msg("Server Incorrectly setup")
 	}
 
 	api := s.App.Group("/api")
@@ -101,7 +139,7 @@ func (s *Server) Start() <-chan os.Signal {
 
 	go func() {
 		if err := s.App.Listen(":5000"); err != nil {
-			log.Fatal(err)
+			log.Fatal().AnErr("Error", err)
 		}
 	}()
 
@@ -121,19 +159,19 @@ func (s *Server) ShutdownGracefully() {
 
 	select {
 	case <-timeout.Done():
-		log.Fatal("Server Shutdown Timed out before shutdown.")
+		log.Fatal().Msg("Server Shutdown Timed out before shutdown.")
 	case err := <-shutdownChan:
 		if err != nil {
-			log.Fatal("Error while shutting down server", err)
+			log.Debug().AnErr("Error while shutting down server", err)
 		} else {
-			log.Println("Server Shutdown Successful")
+			log.Debug().Msg("Server Shutdown Successful")
 		}
 	}
 
 	// Close message broker client (asynq.Client)
 	if err := s.mb.Close(); err != nil {
-		log.Printf("Failed to close broker client: %v", err)
+		log.Error().AnErr("Failed to close broker client: %v", err)
 	} else {
-		log.Println("Broker client closed successfully")
+		log.Debug().Msg("Broker client closed successfully")
 	}
 }
