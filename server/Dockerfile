@@ -22,16 +22,16 @@ FROM golang:1.24.3-alpine3.22 AS build
 # `boilerplate` should be replaced with your project name
 WORKDIR /go/src/financeweb
 
-# Copy all the Code and stuff to compile everything
-COPY . .
-
 # Downloads all the dependencies in advance (could be left out, but it's more clear this way)
 RUN go mod download
+
+# Copy all the Code and stuff to compile everything
+COPY . .
 
 # Builds the application as a staticly linked one, to allow it to run on alpine
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOMAXPROCS=1
 # -ldflags="-s -w": Strips debugging info, making the binary smaller
-RUN cd cmd && go build -o app -ldflags="-s -w" .
+RUN cd cmd && go build -ldflags="-s -w" -o app .
 
 
 # Moving the binary to the 'final Image' to make it smaller

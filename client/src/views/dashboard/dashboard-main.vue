@@ -130,7 +130,7 @@ const valuesByTypeData = computed(() =>
     (previous, current) => {
       if (current.category.type === "D") {
         const result = [...previous];
-        result[1] = result[1] + Math.abs(current.value / 100);
+        result[1] = result[1] + current.value / 100;
         return result;
       }
       if (current.category.type === "R") {
@@ -153,11 +153,11 @@ const valuesByCategory = computed(() =>
       (value) => value.category === current.category.name
     );
     if (item) {
-      item.value += Math.abs(current.value / 100);
+      item.value += current.value / 100;
     } else {
       previous.push({
         category: current.category.name,
-        value: Math.abs(current.value / 100),
+        value: current.value / 100,
         type: current.category.type,
       });
     }
@@ -189,7 +189,7 @@ const chartExpensesData = computed(() => ({
     .map((item) => item.category),
   datasets: [
     {
-      label: "Sales",
+      label: "Despesas",
       data: valuesByCategory.value
         .filter((item) => item.type === "D")
         .map((item) => item.value),

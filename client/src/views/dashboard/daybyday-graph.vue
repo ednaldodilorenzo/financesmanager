@@ -10,7 +10,7 @@
   </div>
 </template>
 <script setup>
-import { computed } from 'vue';
+import { computed } from "vue";
 import { LineChart } from "vue-chart-3";
 import { getDaysListPerMonth } from "@/utils/date";
 
@@ -54,10 +54,12 @@ const evolutionDayByDay = computed(() => {
     (previous, current) => {
       const day = new Date(current.paymentDate).getUTCDate();
       const item = previous.find((value) => value.day === day);
-      if (current.category.type === "D") {
-        item["expensesSum"] += current.value;
-      } else if (current.category.type === "R") {
-        item["earnsSum"] += current.value;
+      if (item) {
+        if (current.category.type === "D") {
+          item["expensesSum"] += current.value;
+        } else if (current.category.type === "R") {
+          item["earnsSum"] += current.value;
+        }
       }
 
       return previous;
