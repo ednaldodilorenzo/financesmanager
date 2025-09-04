@@ -1,5 +1,5 @@
 # Building the binary of the App
-FROM golang:1.24.5-alpine3.22 AS development
+FROM golang:1.25-alpine3.22 AS development
 
 # `boilerplate` should be replaced with your project name
 WORKDIR /app
@@ -17,7 +17,7 @@ EXPOSE 5000 2345
 CMD ["air"]
 
 # Building the binary of the App
-FROM golang:1.24.5-alpine3.22 AS build
+FROM golang:1.25-alpine3.22 AS build
 
 # `boilerplate` should be replaced with your project name
 WORKDIR /go/src/financeweb
