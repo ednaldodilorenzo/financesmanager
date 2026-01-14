@@ -25,13 +25,14 @@
       "showLog": true
     },
     {
-      "name": "Attach to Air + Delve",
+      "name": "Attach to Air + Delve (legacy)",
       "type": "go",
       "request": "attach",
       "mode": "remote",
       "host": "127.0.0.1",
       "port": 2345,
       "apiVersion": 2,
+      "debugAdapter": "legacy",
       "showLog": true,
       "trace": "verbose"
     }

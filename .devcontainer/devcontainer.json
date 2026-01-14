@@ -1,0 +1,36 @@
+{
+  "name": "FinanceManager (Go + Node)",
+  "dockerComposeFile": [
+    "../docker-compose-dev.yml"
+  ],
+  "service": "api",
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  "runServices": [
+    "db",
+    "migrate",
+    "api",
+    "client"
+  ],
+  "forwardPorts": [
+    5000,
+    2345,
+    8080,
+    5432
+  ],
+  "postCreateCommand": "go version && air -v && dlv version",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.Go",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.useLanguageServer": true
+      }
+    }
+  }
+}

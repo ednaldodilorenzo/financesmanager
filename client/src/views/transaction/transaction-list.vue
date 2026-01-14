@@ -35,7 +35,7 @@
       },
       {
         title: 'Investido',
-        value: Math.abs(summary.investments),
+        value: -summary.investments,
       },
     ]"
   />

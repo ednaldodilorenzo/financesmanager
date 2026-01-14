@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   #redis:
   #  image: redis:latest
@@ -26,11 +24,11 @@ services:
   api:
     build: 
       context: ./server
-      dockerfile: Dockerfile
       target: development
-    container_name: finance-app
     volumes:
       - ./server:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
     ports:
       - "5000:5000"
       - "2345:2345"
@@ -55,7 +53,6 @@ services:
     build:
       context: ./client
       target: development
-    container_name: finance-client
     ports:
       - "8080:8080"
     volumes:
@@ -66,16 +63,23 @@ services:
 
   
   migrate:
-    build:
-      context: ./database
-    container_name: migrate
+    image: migrate/migrate
+    volumes:
+      - ./database/migrations:/migrations
+    environment:
+      - DB_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@db:5432/finance?sslmode=disable
+    # The entrypoint waits for 'db' on port 5432 before running the migration
+    entrypoint: >
+      sh -c "while ! nc -z db 5432; do 
+               echo 'Waiting for database...'; 
+               sleep 1; 
+             done; 
+             /migrate -path=/migrations/ -database $$DB_URL up"
     depends_on:
       - db
-    entrypoint: ["sh", "/wait-for-it.sh", "db", "--", "migrate", "-path", "/migrations", "-database", "postgres://master:secret@db:5432/finance?sslmode=disable", "up"]
 
   db:
     image: postgres:16.3-alpine
-    container_name: postgres-db
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USERNAME}
@@ -86,6 +90,6 @@ services:
       - "5432:5432"
 
 volumes:
-  postgres_data:  
-  redis_data:
-  grafana-data:
+  postgres_data:
+  go-mod-cache:
+  go-build-cache:

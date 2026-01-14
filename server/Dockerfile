@@ -1,20 +1,15 @@
 # Building the binary of the App
 FROM golang:1.25-alpine3.22 AS development
-
-# `boilerplate` should be replaced with your project name
 WORKDIR /app
 
-# Install Air for live-reloading
-RUN go install github.com/air-verse/air@latest && \
-    go install github.com/go-delve/delve/cmd/dlv@latest
+RUN apk add --no-cache git bash curl \
+  && go install github.com/air-verse/air@latest \
+  && go install github.com/go-delve/delve/cmd/dlv@latest
 
-# Ensure that Air is in PATH
 ENV PATH="/go/bin:$PATH"
-
 EXPOSE 5000 2345
-
-# Use Air as the entrypoint
 CMD ["air"]
+
 
 # Building the binary of the App
 FROM golang:1.25-alpine3.22 AS build
