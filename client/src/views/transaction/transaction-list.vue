@@ -238,6 +238,7 @@ function getList(month, year, filter = undefined) {
 function mapTransactions(transactionList) {
   return transactionList.map((item) => ({
     ...item,
+    description: item.account.type === "C" ? `${item.description} - (${formatDateUTC(item.transactionDate, "dd/MM/yyyy")})` : item.description,
     formatted_date: formatDateUTC(item.paymentDate, "dd/MM/yyyy"), //new Date(item.paymentDate).toLocaleDateString("pt-BR"),
     formatted_value: {
       value: currencyBRL(Math.abs(item.value)),
