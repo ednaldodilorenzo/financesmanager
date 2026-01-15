@@ -16,22 +16,20 @@ services:
       - MAIL_PORT=${MAIL_PORT}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
-      - MB_HOST=redis
-      - MB_PORT=6379
+      - MB_HOST=${MB_HOST}
+      - MB_PORT=${MB_PORT}
 
   api:
     build:
       context: ./server
-      target: release
     environment:
-      - DB_USERNAME=master
-      - DB_PASSWORD=secret
-      - DB_HOST= db
-      - DB_PORT=5432
-      - DB_NAME=finance
-      - WAIT_HOSTS=db:5432
-      - MB_HOST=redis
-      - MB_PORT=6379
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - MB_HOST=${MB_HOST}
+      - MB_PORT=${MB_PORT}
       - APP_URL=${APP_URL}
       - APP_JWT_KEY=${JWT_KEY}
       - APP_ENVIRONMENT=PRODUCTION
@@ -41,36 +39,41 @@ services:
     depends_on:
       - db
       - migrate
-      - redis
     expose:
       - "5000"
 
   client:
     build:
       context: ./client
-      target: release
     ports:
       - "443:443"
     volumes:
-      - ./client:/app
       - ${CERT_PATH}:/certs:ro
     depends_on:
       - api
 
   migrate:
-    build:
-      context: ./database
-    container_name: migrate
+    image: migrate/migrate
+    volumes:
+      - ./database/migrations:/migrations
+    environment:
+      - DB_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
+    # The entrypoint waits for 'db' on port 5432 before running the migration
+    entrypoint: >
+      sh -c "while ! nc -z db 5432; do 
+               echo 'Waiting for database...'; 
+               sleep 1; 
+             done; 
+             /migrate -path=/migrations/ -database $$DB_URL up"
     depends_on:
       - db
-    entrypoint: ["sh", "/wait-for-it.sh", "db", "--", "migrate", "-path", "/migrations", "-database", "postgres://master:secret@db:5432/finance?sslmode=disable", "up"]
 
   db:
     image: postgres:16.3-alpine
     environment:
-      POSTGRES_PASSWORD: secret
-      POSTGRES_USER: master
-      POSTGRES_DB: finance
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     expose:
@@ -108,4 +111,3 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  grafana-data:

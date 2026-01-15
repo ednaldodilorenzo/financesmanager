@@ -12,7 +12,7 @@
   </div>
   <div class="card mb-3">
     <div class="card-body p-2">
-      <div class="d-flex justify-content-center my-3">
+      <div class="d-flex justify-content-center my-1">
         <h3>{{ getExtenseMonth(currentDate) }}</h3>
       </div>
     </div>

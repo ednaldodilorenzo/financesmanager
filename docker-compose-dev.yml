@@ -1,30 +1,7 @@
 services:
-  #redis:
-  #  image: redis:latest
-  #  container_name: redis
-  #  restart: always
-  #  volumes:
-  #    - redis_data:/data
-  #  expose:
-  #    - "6379"
-      
-  #worker:
-  #  build: ./taskexecutor
-  #  container_name: task_executor
-  #  depends_on:
-  #    - redis
-  #  environment:
-  #    - MAIL_HOST=${MAIL_HOST}
-  #    - MAIL_PORT=${MAIL_PORT}
-  #    - MAIL_USERNAME=${MAIL_USERNAME}
-  #    - MAIL_PASSWORD=${MAIL_PASSWORD}
-  #    - MB_HOST=redis
-  #    - MB_PORT=6379
-      
   api:
-    build: 
-      context: ./server
-      target: development
+    build:
+      dockerfile: Dockerfile-dev
     volumes:
       - ./server:/app
       - go-mod-cache:/go/pkg/mod
@@ -32,60 +9,17 @@ services:
     ports:
       - "5000:5000"
       - "2345:2345"
-    environment:
-      - DB_USERNAME=${APP_DB_USERNAME}
-      - DB_PASSWORD=${APP_DB_PASSWORD}
-      - DB_HOST=${APP_DB_HOST}
-      - DB_PORT=${APP_DB_PORT}
-      - DB_NAME=finance
-      - WAIT_HOSTS=db:5432
-      - MB_HOST=redis
-      - MB_PORT=6379
-      - APP_URL=http://localhost:8080
-      - APP_JWT_KEY=${APP_JWT_KEY}
-      - APP_ENVIRONMENT=${APP_ENVIRONMENT:-DEVELOPMENT}
-    depends_on:
-      - db
-      - migrate
-      #- redis    
-
+    
   client:
     build:
-      context: ./client
-      target: development
+      dockerfile: Dockerfile-dev
     ports:
       - "8080:8080"
     volumes:
       - ./client:/app
-      - /app/node_modules      
-    depends_on:
-      - api
-
-  
-  migrate:
-    image: migrate/migrate
-    volumes:
-      - ./database/migrations:/migrations
-    environment:
-      - DB_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@db:5432/finance?sslmode=disable
-    # The entrypoint waits for 'db' on port 5432 before running the migration
-    entrypoint: >
-      sh -c "while ! nc -z db 5432; do 
-               echo 'Waiting for database...'; 
-               sleep 1; 
-             done; 
-             /migrate -path=/migrations/ -database $$DB_URL up"
-    depends_on:
-      - db
+      - /app/node_modules
 
   db:
-    image: postgres:16.3-alpine
-    environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_DB: finance      
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 

@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS public."user"
     CONSTRAINT user_pk PRIMARY KEY (id)
 );
 
-insert into public.user (name, email, password, created_at) values ('Ednaldo', 'ednaldo.dilorenzo@gmail.com', '$2a$10$I2bEvoneiS72A0wGgkDfNei0M1QasNuJFWp.NvlfNbBsnSVYSBpJG', '2024-11-02');
-
+insert into public.user (name, email, password, created_at) values ('Ednaldo', 'ednaldo.dilorenzo@gmail.com', '$2a$10$sxVjfTimmeiQ1lvN2azUo.LARKJ3lvDX8zRnEKhVcV9F3Vq.HynQi', '2024-11-02');
+-- 123456
 -- Table: public.category
 
 -- DROP TABLE IF EXISTS public.category;

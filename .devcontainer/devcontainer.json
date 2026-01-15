@@ -1,6 +1,7 @@
 {
   "name": "FinanceManager (Go + Node)",
   "dockerComposeFile": [
+    "../docker-compose.yml",
     "../docker-compose-dev.yml"
   ],
   "service": "api",

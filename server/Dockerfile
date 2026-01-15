@@ -1,17 +1,4 @@
 # Building the binary of the App
-FROM golang:1.25-alpine3.22 AS development
-WORKDIR /app
-
-RUN apk add --no-cache git bash curl \
-  && go install github.com/air-verse/air@latest \
-  && go install github.com/go-delve/delve/cmd/dlv@latest
-
-ENV PATH="/go/bin:$PATH"
-EXPOSE 5000 2345
-CMD ["air"]
-
-
-# Building the binary of the App
 FROM golang:1.25-alpine3.22 AS build
 
 # `boilerplate` should be replaced with your project name
