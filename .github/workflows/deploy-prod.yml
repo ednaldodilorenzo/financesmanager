@@ -9,6 +9,24 @@ jobs:
   execute-docker-compose:
     runs-on: ubuntu-latest
     environment: production
+    env:
+      APP_URL: {{ secrets.APP_URL }}
+      CERT_PATH: {{ secrets.CERT_PATH }}
+      DB_HOST: {{ secrets.DB_HOST }}
+      DB_NAME: {{ secrets.DB_NAME }}
+      DB_PASSWORD: {{ secrets.DB_PASSWORD }}
+      DB_PORT: {{ secrets.DB_PORT }}
+      DB_USERNAME: {{ secrets.DB_USERNAME }}
+      EMAIL_HOST: {{ secrets.EMAIL_HOST }}
+      EMAIL_PASSWORD: {{ secrets.EMAIL_PASSWORD }}
+      EMAIL_PORT: {{ secrets.EMAIL_PORT }}
+      EMAIL_USERNAME: {{ secrets.EMAIL_USERNAME }}
+      GOOGLE_CLIENT_ID: {{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: {{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REDIRECT_URL: {{ secrets.GOOGLE_REDIRECT_URL }}
+      JWT_KEY: {{ secrets.JWT_KEY }}
+      MB_HOST: {{ secrets.MB_HOST }}
+      MB_PORT: {{ secrets.MB_PORT }}
 
     steps:
     - name: Checkout Code
@@ -33,4 +51,4 @@ jobs:
 
     - name: Execute Docker Compose Up
       run: |
-        CERT_PATH=${{ secrets.CERT_PATH }} MAIL_HOST=${{ secrets.EMAIL_HOST }} MAIL_PORT=${{ secrets.EMAIL_PORT }} MAIL_USERNAME=${{ secrets.EMAIL_USERNAME }} MAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} APP_URL=${{ secrets.APP_URL }} JWT_KEY=${{ secrets.JWT_KEY }} docker-compose -H "ssh://root@147.93.35.35" up --build -d
+        docker-compose -H "ssh://root@147.93.35.35" up --build -d
