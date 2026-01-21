@@ -46,14 +46,14 @@
     <button type="submit" class="btn btn-primary mx-3">Enviar</button>
   </form>
   <div v-if="state.collection.length > 0" class="d-flex justify-content-center">
-    <div class="col-auto">
+    <!-- <div class="col-auto">
       <button
-        @click.prevent="importSelectedTransactions"
+        @click.prevent="importSelected"
         class="btn btn-success mx-3"
       >
         Importar Selecionados
       </button>
-    </div>
+    </div> -->
     <div class="col-auto">
       <button @click.prevent="importNonDuplicated" class="btn btn-primary mx-3">
         Importar Não Duplicados
@@ -286,6 +286,17 @@ function importNonDuplicated() {
     if (result) {
       const filteredTransactions = state.value.collection.filter(
         (item) => !item.duplicated
+      );
+      sendBatchData(filteredTransactions);
+    }
+  });
+}
+
+function importSelected() {
+  validate().then((result) => {
+    if (result) {
+      const filteredTransactions = state.value.collection.filter(
+        (item) => item.checked
       );
       sendBatchData(filteredTransactions);
     }

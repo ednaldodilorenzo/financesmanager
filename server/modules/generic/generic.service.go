@@ -13,7 +13,7 @@ type GenericService[V model.IUserDependent] interface {
 	FindAll(context.Context, int) ([]V, error)
 	FindAllPaginatedAndFiltered(ctx context.Context, userId, limit, offset int, filter string) (*PaginatedResponse[V], error)
 	Create(context.Context, V) error
-	CreateAll(context.Context, []V) error
+	CreateAll(context.Context, []V, int) error
 	Update(context.Context, int, V, int) error
 	FindById(ctx context.Context, id, userId int) (V, error)
 	DeleteRecord(ctx context.Context, id, userId int) error
@@ -39,10 +39,14 @@ func (c *genericService[V]) FindAllPaginatedAndFiltered(ctx context.Context, use
 	return c.repository.FindAllPaginatedAndFiltered(ctx, userId, limit, offset, filter)
 }
 
-func (c *genericService[V]) CreateAll(ctx context.Context, items []V) error {
+func (c *genericService[V]) CreateAll(ctx context.Context, items []V, userId int) error {
 	tx, err := c.txManager.Begin(ctx)
 	if err != nil {
 		return err
+	}
+
+	for i := range items {
+		items[i].SetUserID(uint64(userId))
 	}
 
 	gormTx := tx.(*config.GormTx).Tx

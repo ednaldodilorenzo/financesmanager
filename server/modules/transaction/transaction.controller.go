@@ -16,7 +16,7 @@ func GetRoutes(controller TransactionController, deserializer *middleware.Deseri
 		router.Get("/", deserializer.DeserializeUser, controller.GetAllWithRelationships)
 		router.Get("/:id", deserializer.DeserializeUser, controller.GetOne)
 		router.Post("/", deserializer.DeserializeUser, controller.PostTransaction)
-		router.Post("/list", deserializer.DeserializeUser, controller.PostAll)
+		router.Post("/list", deserializer.DeserializeUser, controller.PostTransactionList)
 		router.Post("/upload", deserializer.DeserializeUser, controller.UploadBatchFile)
 		router.Patch("/:id", deserializer.DeserializeUser, controller.PatchTransaction)
 		router.Delete("/:id", deserializer.DeserializeUser, controller.Delete)
@@ -52,6 +52,7 @@ type TransactionController interface {
 	GetAllWithRelationships(c *fiber.Ctx) error
 	UploadBatchFile(c *fiber.Ctx) error
 	PostTransaction(c *fiber.Ctx) error
+	PostTransactionList(c *fiber.Ctx) error
 	PatchTransaction(c *fiber.Ctx) error
 }
 
@@ -80,6 +81,23 @@ func (cc *transactionController) PostTransaction(c *fiber.Ctx) error {
 	err = cc.service.CreateTransaction(c.Context(), payload, int(loggedUser.ID))
 
 	if err != nil {
+		return err
+	}
+
+	return util.SendData[any](c, "success", nil, int(fiber.StatusCreated))
+}
+
+func (cc *transactionController) PostTransactionList(c *fiber.Ctx) error {
+
+	var payload []*model.Transaction
+
+	if err := c.BodyParser(&payload); err != nil {
+		return err
+	}
+
+	loggedUser := c.Locals("user").(model.User)
+
+	if err := cc.service.CreateTransactionList(c.Context(), payload, int(loggedUser.ID)); err != nil {
 		return err
 	}
 

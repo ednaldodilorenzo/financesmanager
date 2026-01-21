@@ -18,6 +18,7 @@ type TransactionRepository interface {
 	FindAllWithRelationships(*int, *int, int) ([]model.Transaction, error)
 	FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (*model.Transaction, error)
 	CreateTransaction(ctx context.Context, db *gorm.DB, item model.Transaction) error
+	CreateTransactionList(ctx context.Context, db *gorm.DB, items []*model.Transaction) error
 }
 
 type transactionRespository struct {
@@ -35,6 +36,14 @@ func NewTransactionRepository(repository generic.GenericRepository[*model.Transa
 func (g *transactionRespository) CreateTransaction(ctx context.Context, db *gorm.DB, item model.Transaction) error {
 
 	if err := db.WithContext(ctx).Clauses(clause.Returning{}).Create(&item).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *transactionRespository) CreateTransactionList(ctx context.Context, db *gorm.DB, items []*model.Transaction) error {
+	if err := db.WithContext(ctx).Clauses(clause.Returning{}).Create(&items).Error; err != nil {
 		return err
 	}
 

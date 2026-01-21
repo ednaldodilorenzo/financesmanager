@@ -19,6 +19,7 @@ type TransactionService interface {
 	FindAllRelated(context.Context, *int, *int, int) ([]model.Transaction, error)
 	PrepareFileImport(ctx context.Context, fileReader io.Reader, accountId uint32, paymentMonth uint8, paymentYear uint16, fileType string, userId int) ([]TransactionUploadSchema, error)
 	CreateTransaction(ctx context.Context, transactionRequest *TransactionPostRequest, userId int) error
+	CreateTransactionList(ctx context.Context, transactions []*model.Transaction, userId int) error
 	UpdateTransaction(ctx context.Context, id int, item *TransactionPostRequest, userId int) error
 }
 
@@ -93,6 +94,35 @@ func (ts *transactionService) CreateTransaction(ctx context.Context, transaction
 	}
 
 	err = ts.repository.CreateTransaction(ctx, gormTx, newTransaction)
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (ts *transactionService) CreateTransactionList(ctx context.Context, transactions []*model.Transaction, userId int) error {
+	tx, err := ts.txManager.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	gormTx := tx.(*config.GormTx).Tx
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	for i := range transactions {
+		transactions[i].SetUserID(uint64(userId))
+	}
+
+	err = ts.repository.CreateTransactionList(ctx, gormTx, transactions)
 
 	if err != nil {
 		tx.Rollback()

@@ -134,7 +134,7 @@ func (cc *genericController[V]) PostAll(c *fiber.Ctx) error {
 		}
 	}
 
-	if err := cc.CreateAll(c.Context(), payload); err != nil {
+	if err := cc.CreateAll(c.Context(), payload, 1); err != nil {
 		return err
 	}
 
