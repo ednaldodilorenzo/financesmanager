@@ -12,7 +12,7 @@ import (
 type GenericService[V model.IUserDependent] interface {
 	FindAll(context.Context, int) ([]V, error)
 	FindAllPaginatedAndFiltered(ctx context.Context, userId, limit, offset int, filter string) (*PaginatedResponse[V], error)
-	Create(context.Context, V) error
+	Create(ctx context.Context, item V) error
 	CreateAll(context.Context, []V, int) error
 	Update(context.Context, int, V, int) error
 	FindById(ctx context.Context, id, userId int) (V, error)
