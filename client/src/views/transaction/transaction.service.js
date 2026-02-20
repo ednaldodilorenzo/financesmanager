@@ -21,6 +21,10 @@ class TransactionService extends GenericService {
   sendBatchImport(items) {
     return requester.post(`${this.url}/list`, items).then((resp) => resp.data);
   }
+
+  getAllByYear(year) {
+    return requester.get(`${this.url}/summary/${year}`).then((resp) => resp.data);
+  }
 }
 
 const transactionService = new TransactionService();

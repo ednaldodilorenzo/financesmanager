@@ -29,3 +29,10 @@ type TransactionTag struct {
 func (TransactionTag) TableName() string {
 	return "transaction_tag"
 }
+
+type TransactionSummary struct {
+	Month int    `json:"month"`
+	Year  int    `json:"year"`
+	Total int32  `json:"total"`
+	Type  string `json:"type"`
+}

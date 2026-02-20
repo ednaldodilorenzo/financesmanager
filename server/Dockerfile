@@ -1,5 +1,5 @@
 # Building the binary of the App
-FROM golang:1.25-alpine3.22 AS build
+FROM golang:1.26.0-alpine3.23 AS build
 
 # `boilerplate` should be replaced with your project name
 WORKDIR /go/src/financeweb

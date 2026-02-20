@@ -19,6 +19,7 @@ type TransactionRepository interface {
 	FindOneByValuePaymentDateAndTransactionDate(value int32, paymentDate time.Time, transactionDate time.Time, userId int) (*model.Transaction, error)
 	CreateTransaction(ctx context.Context, db *gorm.DB, item model.Transaction) error
 	CreateTransactionList(ctx context.Context, db *gorm.DB, items []*model.Transaction) error
+	FindSummaryByYear(year int, userId int) ([]model.TransactionSummary, error)
 }
 
 type transactionRespository struct {
@@ -107,4 +108,22 @@ func (tr *transactionRespository) FindOneByValuePaymentDateAndTransactionDate(va
 
 	return &result, nil
 
+}
+
+func (tr *transactionRespository) FindSummaryByYear(year int, userId int) ([]model.TransactionSummary, error) {
+	var results []model.TransactionSummary
+
+	err := tr.dbConfig.DB.Table("transaction").
+		Select("EXTRACT(MONTH FROM payment_date) AS month, EXTRACT(YEAR FROM payment_date) AS year, SUM(value) AS total, category.type AS type").
+		Joins("INNER JOIN category ON transaction.category_id = category.id AND transaction.user_id = category.user_id").
+		Where("EXTRACT(YEAR FROM payment_date) = ? AND transaction.user_id = ?", year, userId).
+		Group("month, year, category.type").
+		Order("month ASC").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }

@@ -21,6 +21,7 @@ type TransactionService interface {
 	CreateTransaction(ctx context.Context, transactionRequest *TransactionPostRequest, userId int) error
 	CreateTransactionList(ctx context.Context, transactions []*model.Transaction, userId int) error
 	UpdateTransaction(ctx context.Context, id int, item *TransactionPostRequest, userId int) error
+	FindSummaryByYear(ctx context.Context, year int, userId int) ([]model.TransactionSummary, error)
 }
 
 type transactionService struct {
@@ -305,4 +306,8 @@ func (ts *transactionService) PrepareFileImport(ctx context.Context, fileReader 
 		transactionData = append(transactionData, newRecord)
 	}
 	return transactionData, nil
+}
+
+func (ts *transactionService) FindSummaryByYear(ctx context.Context, year int, userId int) ([]model.TransactionSummary, error) {
+	return ts.repository.FindSummaryByYear(year, userId)
 }

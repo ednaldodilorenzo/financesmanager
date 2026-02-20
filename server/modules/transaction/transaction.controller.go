@@ -20,6 +20,7 @@ func GetRoutes(controller TransactionController, deserializer *middleware.Deseri
 		router.Post("/upload", deserializer.DeserializeUser, controller.UploadBatchFile)
 		router.Patch("/:id", deserializer.DeserializeUser, controller.PatchTransaction)
 		router.Delete("/:id", deserializer.DeserializeUser, controller.Delete)
+		router.Get("/summary/:year", deserializer.DeserializeUser, controller.GetSummaryByYear)
 	}
 }
 
@@ -54,6 +55,7 @@ type TransactionController interface {
 	PostTransaction(c *fiber.Ctx) error
 	PostTransactionList(c *fiber.Ctx) error
 	PatchTransaction(c *fiber.Ctx) error
+	GetSummaryByYear(c *fiber.Ctx) error
 }
 
 type transactionController struct {
@@ -227,4 +229,21 @@ func (cc *transactionController) UploadBatchFile(c *fiber.Ctx) error {
 	}
 
 	return util.SendData(c, "success", &transactions, int(fiber.StatusOK))
+}
+
+func (cc *transactionController) GetSummaryByYear(c *fiber.Ctx) error {
+	year, err := strconv.Atoi(c.Params("year"))
+
+	if err != nil {
+		return util.NewAPIError(util.ErrBadRequest, []string{"Invalid year query parameter"})
+	}
+
+	loggedUser := c.Locals("user").(model.User)
+
+	transactionData, err := cc.service.FindSummaryByYear(c.Context(), year, int(loggedUser.ID))
+	if err != nil {
+		return err
+	}
+
+	return util.SendData(c, "success", &transactionData, int(fiber.StatusOK))
 }

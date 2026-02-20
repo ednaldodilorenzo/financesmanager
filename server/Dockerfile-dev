@@ -1,5 +1,5 @@
 # Building the binary of the App
-FROM golang:1.25-alpine3.22 AS development
+FROM golang:1.26.0-alpine3.23 AS development
 WORKDIR /app
 
 RUN apk add --no-cache git bash curl \

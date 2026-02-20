@@ -27,12 +27,12 @@ const props = defineProps({
 const monthsList = ref(getMonthsListUntilDate(props.date));
 
 // Computed chart data
-const chartLineData = computed(() => ({
+const chartLineData = computed(() => ({  
   labels: monthsList.value,
   datasets: [
     {
       label: "Despesa",
-      data: chartValues.value.map((item) => Math.abs(item.expenses / 100)),
+      data: props.dataList.filter((item) => item.type === "D").map((item) => Math.abs(item.total / 100)),
       borderColor: "#FF0000",
       backgroundColor: "rgba(213, 63, 21, 0.2)",
       fill: true,
@@ -40,34 +40,22 @@ const chartLineData = computed(() => ({
     },
     {
       label: "Receita",
-      data: chartValues.value.map((item) => item.earns / 100),
+      data: props.dataList.filter((item) => item.type === "R").map((item) => item.total / 100),
       borderColor: "#42A5F5",
       backgroundColor: "rgba(66, 165, 245, 0.2)",
       fill: true,
       tension: 0.4, // Smooth curve
     },
+    {
+      label: "Investimentos",
+      data: props.dataList.filter((item) => item.type === "I").map((item) => -item.total / 100),
+      borderColor: "#4CAF50", // Green 500
+      backgroundColor: "rgba(76, 175, 80, 0.2)", // Green 500 with 20% opacity
+      fill: true,
+      tension: 0.4, // Smooth curve
+    },
   ],
 }));
-
-const chartValues = computed(() =>
-  props.dataList.reduce(
-    (previous, current) => {
-      if (current.type === "D") {
-        previous.forEach((month, index) => {
-          month.expenses +=
-            (current.accumulated / monthsList.value.length) * (index + 1);
-        });
-      } else if (current.type === "R") {
-        previous.forEach((month, index) => {
-          month.earns +=
-            (current.accumulated / monthsList.value.length) * (index + 1);
-        });
-      }
-      return previous;
-    },
-    monthsList.value.map((value) => ({ earns: 0.0, expenses: 0.0 }))
-  )
-);
 
 // Chart options
 const chartLineOptions = {

@@ -51,7 +51,7 @@
     <div class="col-4">
       <EarnsExpensesYear
         :date="currentDate"
-        :data-list="plannedList"
+        :data-list="transactionYearSummaryList"
       ></EarnsExpensesYear>
     </div>
     <div class="col-4">
@@ -87,6 +87,7 @@ const router = useRouter();
 
 const transactionsList = ref([]);
 const plannedList = ref([]);
+const transactionYearSummaryList = ref([]);
 
 function loadInitalData() {
   loading.show();
@@ -98,11 +99,13 @@ function loadInitalData() {
   Promise.allSettled([
     transactionService.findAll(params),
     planningService.findAll(params),
+    transactionService.getAllByYear(params.year),
   ])
     .then((results) => {
-      const [transactionsResult, planningResults] = results;
+      const [transactionsResult, planningResults, yearSummaryResult] = results;
       transactionsList.value = transactionsResult.value.data;
       plannedList.value = planningResults.value.data;
+      transactionYearSummaryList.value = yearSummaryResult.value.data;
     })
     .catch((err) => {
       router.push({ name: "denied" });
