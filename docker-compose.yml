@@ -60,10 +60,10 @@ services:
       - DB_URL=postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
     # The entrypoint waits for 'db' on port 5432 before running the migration
     entrypoint: >
-      sh -c "while ! nc -z db 5432; do 
-               echo 'Waiting for database...'; 
-               sleep 1; 
-             done; 
+      sh -c "while ! nc -z db 5432; do
+               echo 'Waiting for database...';
+               sleep 1;
+             done;
              /migrate -path=/migrations/ -database $$DB_URL up"
     depends_on:
       - db
