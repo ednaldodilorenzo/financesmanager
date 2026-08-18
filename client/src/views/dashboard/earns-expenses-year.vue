@@ -22,7 +22,7 @@ const allMonths = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set"
 const monthCount = computed(() => props.date.getMonth() + 1);
 const labels = computed(() => allMonths.slice(0, monthCount.value));
 const selectedMonth = computed(() => new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(props.date));
-function typeValues(type) { return props.dataList.filter((item) => item.type === type).slice(0, monthCount.value).map((item) => Math.abs(Number(item.total) || 0) / 100); }
+function typeValues(type) { return props.dataList.filter((item) => item.type === type).slice(0, monthCount.value).map((item) => Math.abs(Number(item.total) || 0)); }
 const chartData = computed(() => ({
   labels: labels.value, datasets: [
     { label: "Receitas", data: typeValues("R"), borderColor: "#10b981", backgroundColor: "rgba(16,185,129,.08)", tension: .35, fill: false },

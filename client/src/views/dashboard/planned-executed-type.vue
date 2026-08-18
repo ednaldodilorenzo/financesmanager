@@ -20,8 +20,8 @@ import { currencyBRL } from "@/components/filters/currency.filter";
 const props = defineProps({ dataList: { type: Array, default: () => [] } });
 const totals = computed(() => props.dataList.reduce((sum, item) => {
   const key = item.type === "R" ? "earns" : item.type === "D" ? "expenses" : "investments";
-  sum[key].planned += Math.abs(Number(item.planned) || 0) / 12 / 100;
-  sum[key].executed += Math.abs(Number(item.total) || 0) / 100;
+  sum[key].planned += Math.abs(Number(item.planned) || 0) / 12;
+  sum[key].executed += Math.abs(Number(item.total) || 0);
   return sum;
 }, { earns: { planned: 0, executed: 0 }, expenses: { planned: 0, executed: 0 }, investments: { planned: 0, executed: 0 } }));
 const chartData = computed(() => ({

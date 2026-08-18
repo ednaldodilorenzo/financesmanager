@@ -32,7 +32,7 @@ const evolution = computed(() => {
     const day = new Date(item.paymentDate).getUTCDate();
     const entry = daily.get(day);
     if (!entry) return;
-    const value = Math.abs(Number(item.value) || 0) / 100;
+    const value = Math.abs(Number(item.value) || 0);
     if (item.category?.type === "R") entry.earns += value;
     if (item.category?.type === "D") entry.expenses += value;
   });
