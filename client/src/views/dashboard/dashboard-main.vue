@@ -111,13 +111,15 @@ const transactionYearSummaryList = ref([]);
 const palette = ["#4f46e5", "#06b6d4", "#f59e0b", "#8b5cf6", "#10b981", "#ef4444", "#3b82f6", "#ec4899"];
 
 const periodLabel = computed(() => new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(currentDate.value));
+
 const totals = computed(() => transactionsList.value.reduce((sum, item) => {
-  const value = Math.abs(Number(item.value) || 0) / 100;
+  const value = Math.abs(Number(item.value) || 0);
   if (item.category?.type === "R") sum.earns += value;
   if (item.category?.type === "D") sum.expenses += value;
   if (item.category?.type === "I") sum.investments += value;
   return sum;
 }, { earns: 0, expenses: 0, investments: 0 }));
+
 const monthBalance = computed(() => totals.value.earns - totals.value.expenses);
 const availableBalance = computed(() => monthBalance.value - totals.value.investments);
 const metrics = computed(() => [
@@ -132,7 +134,7 @@ const valuesByCategory = computed(() => transactionsList.value.reduce((result, i
   if (!["R", "D"].includes(type)) return result;
   const name = item.category?.name || "Sem categoria";
   const existing = result.find((entry) => entry.category === name && entry.type === type);
-  const value = Math.abs(Number(item.value) || 0) / 100;
+  const value = Math.abs(Number(item.value) || 0);
   if (existing) existing.value += value; else result.push({ category: name, value, type });
   return result;
 }, []));
@@ -150,21 +152,26 @@ async function loadData() {
   loading.show();
   const params = { month: currentDate.value.getMonth() + 1, year: currentDate.value.getFullYear() };
   try {
-    const [transactions, planning, yearly] = await Promise.all([transactionService.findAll(params), planningService.findAll(params), transactionService.getAllByYear(params.year)]);
+    const [transactions, planning, yearly] = 
+      await Promise.all([transactionService.findAll(params), planningService.findAll(params), transactionService.getAllByYear(params.year)]);
     transactionsList.value = transactions.data;
     plannedList.value = planning.data;
     transactionYearSummaryList.value = yearly.data;
-  } catch (error) { router.push({ name: "denied" }); }
+  } catch (error) { 
+    router.push({ name: "denied" }); 
+  }
   finally { loading.hide(); }
 }
-function onDateChange(date) { currentDate.value = date; loadData(); }
+
+function onDateChange(date) { 
+  currentDate.value = date; loadData(); 
+}
 loadData();
 </script>
 
 <style scoped>
 .period-card,
-.metric-card,
-.chart-card {
+.metric-card {
   border-radius: .85rem
 }
 
@@ -183,53 +190,5 @@ loadData();
   place-items: center;
   flex: 0 0 auto;
   border-radius: .75rem
-}
-
-.is-income {
-  color: var(--bs-success);
-  background: rgba(var(--bs-success-rgb), .1)
-}
-
-.is-expense {
-  color: var(--bs-danger);
-  background: rgba(var(--bs-danger-rgb), .1)
-}
-
-.is-investment,
-.is-balance {
-  color: var(--bs-primary);
-  background: rgba(var(--bs-primary-rgb), .1)
-}
-
-.is-available {
-  color: var(--bs-success);
-  background: rgba(var(--bs-success-rgb), .1)
-}
-
-.chart-card .card-header {
-  border-radius: .85rem .85rem 0 0
-}
-
-.chart-body {
-  height: 20rem;
-  position: relative
-}
-
-.min-w-0 {
-  min-width: 0
-}
-
-.pie-chart-container {
-  position: relative;
-  width: 100%;
-  height: 260px;
-  max-height: 260px;
-}
-
-.pie-chart-container :deep(canvas) {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 260px !important;
 }
 </style>

@@ -175,18 +175,6 @@ getData();
   border-radius: .85rem .85rem 0 0;
 }
 
-thead th {
-  padding: .8rem 1rem;
-  background: var(--bs-tertiary-bg);
-  border-bottom-width: 1px;
-  color: var(--bs-secondary-color);
-  font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .035em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 .actions-column {
   width: 8.5rem;
 }

@@ -79,23 +79,11 @@ async function onSubmit() {
   place-items: center;
   flex: 0 0 auto;
   border-radius: .8rem;
-  background: rgba(var(--bs-primary-rgb), .1);
-  color: var(--bs-primary);
   font-size: 1.15rem
 }
 
-.intro-icon.is-income {
-  color: var(--bs-success);
-  background: rgba(var(--bs-success-rgb), .1)
-}
-
-.intro-icon.is-expense {
-  color: var(--bs-danger);
-  background: rgba(var(--bs-danger-rgb), .1)
-}
-
-.intro-icon.is-investment {
-  color: var(--bs-primary);
-  background: rgba(var(--bs-primary-rgb), .1)
+.intro-icon:not(.is-income):not(.is-expense):not(.is-investment) {
+  background: rgba(var(--bs-primary-rgb), .1);
+  color: var(--bs-primary)
 }
 </style>

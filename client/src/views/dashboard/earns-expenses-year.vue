@@ -32,31 +32,3 @@ const chartData = computed(() => ({
 }));
 const chartOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, plugins: { legend: { position: "bottom", labels: { usePointStyle: true } }, tooltip: { callbacks: { label: (context) => ` ${context.dataset.label}: ${currencyBRL(context.raw)}` } } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: (value) => currencyBRL(value) } } } };
 </script>
-<style scoped>
-.chart-card {
-  border-radius: .85rem
-}
-
-.chart-card .card-header {
-  border-radius: .85rem .85rem 0 0
-}
-
-.chart-body {
-  height: 20rem;
-  position: relative
-}
-
-.chart-container {
-  position: relative;
-  width: 100%;
-  height: 260px;
-  max-height: 260px;
-}
-
-.chart-container :deep(canvas) {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 260px !important;
-}
-</style>

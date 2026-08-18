@@ -1,0 +1,20 @@
+// Shared income/expense/investment color coding used by icon badges
+// throughout account, category, budget, transaction and dashboard views.
+@mixin type-tone($color) {
+  color: var(--bs-#{$color});
+  background: rgba(var(--bs-#{$color}-rgb), .1);
+}
+
+.is-income,
+.is-available {
+  @include type-tone(success);
+}
+
+.is-expense {
+  @include type-tone(danger);
+}
+
+.is-investment,
+.is-balance {
+  @include type-tone(primary);
+}

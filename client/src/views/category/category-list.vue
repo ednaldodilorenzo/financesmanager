@@ -155,21 +155,6 @@ getList();
   border-radius: .75rem
 }
 
-.is-income {
-  color: var(--bs-success);
-  background: rgba(var(--bs-success-rgb), .1)
-}
-
-.is-expense {
-  color: var(--bs-danger);
-  background: rgba(var(--bs-danger-rgb), .1)
-}
-
-.is-investment {
-  color: var(--bs-primary);
-  background: rgba(var(--bs-primary-rgb), .1)
-}
-
 .new-category-card {
   color: var(--bs-body-color);
   background: rgba(var(--bs-primary-rgb), .035);
@@ -183,40 +168,6 @@ getList();
 
 .categories-card .card-header {
   border-radius: .85rem .85rem 0 0
-}
-
-.search-box {
-  position: relative;
-  width: min(100%, 22rem)
-}
-
-.search-box i {
-  position: absolute;
-  left: .9rem;
-  top: 50%;
-  z-index: 2;
-  transform: translateY(-50%);
-  color: var(--bs-secondary-color)
-}
-
-.search-box .form-control {
-  padding-left: 2.4rem
-}
-
-thead th {
-  padding: .8rem 1rem;
-  background: var(--bs-tertiary-bg);
-  border-bottom-width: 1px;
-  color: var(--bs-secondary-color);
-  font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .035em;
-  text-transform: uppercase
-}
-
-tbody td {
-  padding: .85rem 1rem;
-  border-color: var(--bs-border-color-translucent)
 }
 
 .actions-column {

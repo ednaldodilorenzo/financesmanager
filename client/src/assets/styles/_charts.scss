@@ -1,0 +1,29 @@
+// Shared shell for dashboard chart cards (chart-card + chart-container pair).
+.chart-card {
+  border-radius: .85rem;
+}
+
+.chart-card .card-header {
+  border-radius: .85rem .85rem 0 0;
+}
+
+.chart-body {
+  height: 20rem;
+  position: relative;
+}
+
+.chart-container,
+.pie-chart-container {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  max-height: 260px;
+}
+
+.chart-container canvas,
+.pie-chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 260px !important;
+}

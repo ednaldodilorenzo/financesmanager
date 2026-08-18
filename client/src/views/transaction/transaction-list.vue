@@ -318,32 +318,16 @@ loadData();
   place-items: center;
   flex: 0 0 auto;
   border-radius: .65rem;
+}
+
+.transaction-icon:not(.is-income):not(.is-expense):not(.is-investment) {
   background: var(--bs-light);
   color: var(--bs-secondary);
-}
-
-.transaction-icon.is-income {
-  color: var(--bs-success);
-  background: rgba(var(--bs-success-rgb), .12);
-}
-
-.transaction-icon.is-expense {
-  color: var(--bs-danger);
-  background: rgba(var(--bs-danger-rgb), .10);
-}
-
-.transaction-icon.is-investment {
-  color: var(--bs-primary);
-  background: rgba(var(--bs-primary-rgb), .12);
 }
 
 .transaction-value {
   min-width: 7.5rem;
   text-align: right;
-}
-
-.min-w-0 {
-  min-width: 0;
 }
 
 @media (max-width: 575.98px) {

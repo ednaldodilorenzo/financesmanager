@@ -145,23 +145,11 @@ td {
   place-items: center;
   flex: 0 0 auto;
   border-radius: .65rem;
+}
+
+.category-icon:not(.is-income):not(.is-expense):not(.is-investment) {
   background: var(--bs-light);
   color: var(--bs-secondary);
-}
-
-.category-icon.is-income {
-  color: var(--bs-success);
-  background: rgba(var(--bs-success-rgb), .12);
-}
-
-.category-icon.is-expense {
-  color: var(--bs-danger);
-  background: rgba(var(--bs-danger-rgb), .1);
-}
-
-.category-icon.is-investment {
-  color: var(--bs-primary);
-  background: rgba(var(--bs-primary-rgb), .12);
 }
 
 .value-column {
@@ -170,10 +158,6 @@ td {
 
 .value-input {
   max-width: 12rem;
-}
-
-.min-w-0 {
-  min-width: 0;
 }
 
 @media (max-width: 575.98px) {

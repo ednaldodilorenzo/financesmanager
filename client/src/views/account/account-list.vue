@@ -98,24 +98,6 @@ getList();
 </script>
 
 <style scoped>
-.search-box {
-  position: relative;
-  width: min(100%, 22rem);
-}
-
-.search-box i {
-  position: absolute;
-  left: .9rem;
-  top: 50%;
-  z-index: 2;
-  transform: translateY(-50%);
-  color: var(--bs-secondary-color);
-}
-
-.search-box .form-control {
-  padding-left: 2.4rem;
-}
-
 .new-account-card {
   min-height: 8.5rem;
   color: var(--bs-body-color);

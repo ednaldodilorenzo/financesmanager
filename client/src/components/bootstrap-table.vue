@@ -158,41 +158,6 @@ onMounted(() => loadData());
   border-radius: .85rem;
 }
 
-.search-box {
-  position: relative;
-  width: min(100%, 22rem);
-}
-
-.search-box>i {
-  position: absolute;
-  left: .9rem;
-  top: 50%;
-  z-index: 2;
-  transform: translateY(-50%);
-  color: var(--bs-secondary-color);
-}
-
-.search-box .form-control {
-  padding-left: 2.4rem;
-}
-
-thead th {
-  padding: .8rem 1rem;
-  border-bottom-width: 1px;
-  background: var(--bs-tertiary-bg);
-  color: var(--bs-secondary-color);
-  font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .035em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-tbody td {
-  padding: .85rem 1rem;
-  border-color: var(--bs-border-color-translucent);
-}
-
 .actions-column {
   width: 8rem;
 }

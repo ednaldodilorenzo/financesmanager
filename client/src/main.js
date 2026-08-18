@@ -5,7 +5,7 @@ import store from "./store";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "./assets/styles.css";
+import "./assets/styles/main.scss";
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 import currencyDirective from "./components/currency.directive";

@@ -1,0 +1,16 @@
+.table thead th {
+  padding: .8rem 1rem;
+  background: var(--bs-tertiary-bg);
+  border-bottom-width: 1px;
+  color: var(--bs-secondary-color);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: .85rem 1rem;
+  border-color: var(--bs-border-color-translucent);
+}
