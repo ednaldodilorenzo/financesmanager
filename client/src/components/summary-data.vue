@@ -1,49 +1,51 @@
 <template>
-  <div
-    class="row row-cols-xxl-5 row-cols-md-3 row-cols-1 g-0 text-center align-items-center justify-content-center my-3"
-  >
-    <div v-for="item in data" class="col border-end border-light border-dashed">
-      <div class="card m-3">
-        <div class="mt-md-0 p-3">
-          <h6 title="Number of Orders" class="text-muted fs-13 text-uppercase">
-            {{ item.title }}
-          </h6>
-          <div
-            class="d-flex align-items-center justify-content-center gap-2 my-3"
-          >
-            <div class="avatar-sm flex-shrink-0">
-              <span
-                class="avatar-title bg-primary-subtle fs-22 rounded-circle text-primary"
-                ><iconify-icon
-                  icon="solar:bill-list-bold-duotone"
-                ></iconify-icon
-              ></span>
+  <div :class="layout === 'sidebar' ? 'd-grid gap-3' : 'row row-cols-1 row-cols-md-2 row-cols-xxl-4 g-3'">
+    <div v-for="item in data" :key="item.title" :class="layout === 'sidebar' ? '' : 'col'">
+      <div class="summary-card card border-0 h-100 shadow-sm">
+        <div class="card-body p-3 p-lg-4">
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div>
+              <p class="small fw-semibold text-body-secondary mb-2">{{ item.title }}</p>
+              <h3 class="h4 fw-bold mb-0" :class="valueClass(item)">{{ $filters.currencyBRL(item.value || 0) }}</h3>
             </div>
-            <h4
-              :class="{
-                'text-danger': item.value && item.value < 0,
-              }"
-              class="mb-0 fw-bold"
-            >
-              {{ $filters.currencyBRL(item.value) }}
-            </h4>
+            <span :class="['summary-icon', `text-bg-${item.tone || 'primary'}`]">
+              <i :class="['bi', item.icon || 'bi-wallet2']"></i>
+            </span>
           </div>
-          <p class="mb-0 text-muted">
-            <span class="text-success me-2"
-              ><i class="ti ti-caret-up-filled"></i>
-              {{ $filters.percentageBRL(item.percent) }}</span
-            ><span class="text-nowrap">{{ item.percentMessage }}</span>
+          <p v-if="item.percentMessage" class="small text-body-secondary mt-3 mb-0">
+            <span class="fw-semibold me-1">{{ $filters.percentageBRL(item.percent || 0) }}</span>{{ item.percentMessage
+            }}
           </p>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 <script setup>
-const props = defineProps({
-  data: {
-    type: Array,
-    default: () => [],
-  },
+defineProps({
+  data: { type: Array, default: () => [] },
+  layout: { type: String, default: "grid", validator: (value) => ["grid", "sidebar"].includes(value) },
 });
+const valueClass = (item) => item.value < 0 ? "text-danger" : item.tone ? `text-${item.tone}` : "text-body";
 </script>
+
+<style scoped>
+.summary-card {
+  background: var(--bs-tertiary-bg);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+}
+
+.summary-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: .75rem;
+  --bs-bg-opacity: .12;
+}
+</style>

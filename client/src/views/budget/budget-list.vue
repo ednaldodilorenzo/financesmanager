@@ -46,7 +46,7 @@
       },
     ]"
   />
-  <div class="card">
+  <div class="card mt-3">
     <div class="card-body p-2">
       <nav class="navbar bg-body-tertiary mb-3">
         <div class="d-flex w-100">

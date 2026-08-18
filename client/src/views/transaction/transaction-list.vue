@@ -1,250 +1,199 @@
 <template>
-  <div class="mt-3">
-    <div class="d-flex justify-content-between">
-      <h2 class="fs-4">Transações</h2>
-      <nav style="--bs-breadcrumb-divider: '>'" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Home</a></li>
-          <li class="breadcrumb-item active"><a href="#">Transações</a></li>
-        </ol>
-      </nav>
+  <section class="transactions-page py-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 fw-bold mb-1">Transações</h1>
+        <p class="text-body-secondary small mb-0">Acompanhe seus lançamentos do período</p>
+      </div>
+      <button class="btn btn-primary px-3" type="button" @click="onNewClicked">
+        <i class="bi bi-plus-lg me-1"></i>Adicionar lançamento
+      </button>
     </div>
-  </div>
-  <div class="card mb-3">
-    <div class="card-body p-2">
-      <div class="d-flex justify-content-center my-3">
-        <Calendar @date-change="onChangeDebounced"></Calendar>
+
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body p-3">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <Calendar class="me-auto" @date-change="onChangeDebounced" />
+          <select v-model="selectedType" class="form-select filter-control" aria-label="Tipo">
+            <option value="">Todos os tipos</option>
+            <option value="R">Receitas</option>
+            <option value="D">Despesas</option>
+            <option value="I">Investimentos</option>
+          </select>
+          <select v-model="selectedAccount" class="form-select filter-control" aria-label="Conta">
+            <option value="">Todas as contas</option>
+            <option v-for="account in accounts" :key="account.id" :value="account.name">
+              {{ account.name }}
+            </option>
+          </select>
+          <div class="category-filter">
+            <BootstrapSearcheableSelect displayField="name" valueField="id" v-model="selectedCategory"
+              :options="categories" />
+          </div>
+          <button class="btn btn-outline-success" type="button" @click="exportToCSV" title="Exportar CSV">
+            <i class="bi bi-download me-1"></i>CSV
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-  <summary-data
-    :data="[
-      {
-        title: 'Receitas',
-        value: summary.earns,
-      },
-      {
-        title: 'Despesas',
-        value: Math.abs(summary.expenses),
-        percent: Math.abs(summary.expenses / summary.earns),
-        percentMessage: 'do Total de Receitas',
-      },
-      {
-        title: 'Saldo',
-        value: summary.earns + summary.expenses,
-      },
-      {
-        title: 'Investido',
-        value: -summary.investments,
-      },
-    ]"
-  />
-  <div class="card">
-    <div class="card-body p-2">
-      <nav class="navbar bg-body-tertiary">
-        <div class="d-inline-flex w-100 justify-content-around">
-          <div class="d-flex align-items-center" style="width: 30%">
-            <label for="exampleDataList" class="form-label me-3">Tipo</label>
-            <select @change="onTypeChange" class="form-control">
-              <option value=""></option>
-              <option value="R">Receita</option>
-              <option value="D">Despesa</option>
-            </select>
+
+    <div class="row g-4 align-items-start">
+      <div class="col-xl-8">
+        <div class="card border-0 shadow-sm transaction-list-card">
+          <div class="card-header bg-white border-bottom px-3 py-3 d-flex align-items-center justify-content-between">
+            <h2 class="h5 fw-bold mb-0 text-capitalize">{{ monthTitle }}</h2>
+            <span class="badge rounded-pill text-bg-light">{{ filteredItems.length }} lançamentos</span>
           </div>
-          <div class="d-flex align-items-center" style="width: 30%">
-            <label for="exampleDataList" class="form-label me-3">Conta</label>
-            <select @change="onAccountChange" class="form-control">
-              <option></option>
-              <option v-for="account in accounts" :key="account">
-                {{ account.name }}
-              </option>
-            </select>
+
+          <div v-if="groupedTransactions.length">
+            <section v-for="group in groupedTransactions" :key="group.key" class="transaction-group">
+              <div class="day-header d-flex justify-content-between align-items-center px-3 py-2">
+                <strong>{{ group.label }}</strong>
+                <strong :class="amountClass(group.total)">{{ currencyBRL(group.total) }}</strong>
+              </div>
+
+              <article v-for="item in group.items" :key="item.id"
+                class="transaction-row d-flex align-items-center gap-3 px-3 py-3">
+                <div :class="['transaction-icon', iconTone(item.categoryType)]">
+                  <i :class="transactionIcon(item.categoryType)"></i>
+                </div>
+                <div class="min-w-0 flex-grow-1">
+                  <div class="fw-semibold text-truncate">{{ item.description }}</div>
+                  <div class="small text-body-secondary text-truncate">
+                    {{ item.category }} <span class="mx-1">•</span> {{ item.account }}
+                  </div>
+                </div>
+                <strong class="transaction-value text-nowrap" :class="amountClass(item.value)">
+                  {{ currencyBRL(item.value) }}
+                </strong>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-light rounded-circle" type="button" aria-label="Ações"
+                    aria-haspopup="true" :aria-expanded="openDropdownId === item.id"
+                    @click.stop="toggleDropdown(item.id)">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0"
+                    :class="{ show: openDropdownId === item.id }" @click.stop>
+                    <li><button class="dropdown-item" type="button" @click="handleEdit(item)"><i
+                          class="bi bi-pencil me-2"></i>Editar</button></li>
+                    <li><button class="dropdown-item text-danger" type="button" @click="handleDelete(item)"><i
+                          class="bi bi-trash me-2"></i>Excluir</button></li>
+                  </ul>
+                </div>
+              </article>
+            </section>
           </div>
-          <div class="d-flex align-items-center" style="width: 30%">
-            <label for="exampleDataList" class="form-label me-3"
-              >Categoria</label
-            >
-            <bootstrap-searcheable-select
-              displayField="name"
-              valueField="id"
-              v-model="selectedCategory"
-              :options="categories"
-            ></bootstrap-searcheable-select>
+          <div v-else class="text-center py-5 px-3">
+            <i class="bi bi-receipt display-5 text-body-tertiary"></i>
+            <h3 class="h6 mt-3 mb-1">Nenhum lançamento encontrado</h3>
+            <p class="small text-body-secondary mb-0">Tente alterar os filtros selecionados.</p>
           </div>
         </div>
-      </nav>
-      <Table
-        :fields="fields"
-        :showCSVButton="true"
-        :csvHandler="exportToCSV"
-        :showPagination="false"
-        :items="filteredItems"
-        :showFilter="true"
-        :striped="true"
-        :actions="[
-          {
-            name: 'edit',
-            title: 'Editar Transação',
-            icon: 'bi bi-pencil-fill',
-            clazz: 'link-primary',
-            handler: handleEdit,
-          },
-          {
-            name: 'delete',
-            title: 'Excluir Transação',
-            icon: 'bi bi-trash-fill',
-            clazz: 'link-danger',
-            handler: handleDelete,
-          },
-        ]"
-        @trigger-page="getList"
-        @new-clicked="onNewClicked()"
-      ></Table>
+      </div>
+
+      <div class="col-xl-4">
+        <SummaryData :data="summaryCards" layout="sidebar" />
+      </div>
     </div>
-  </div>
+  </section>
 </template>
+
 <script setup>
-import Table from "@/components/bootstrap-table.vue";
-import BootstrapSearcheableSelect from "@/components/bootstrap-searcheable-select.vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 import Calendar from "@/components/bootstrap-calendar.vue";
+import BootstrapSearcheableSelect from "@/components/bootstrap-searcheable-select.vue";
+import SummaryData from "@/components/summary-data.vue";
+import TransactionChange from "./transaction-change.vue";
 import transactionService from "./transaction.service";
 import categoryService from "../category/category.service";
 import accountService from "../account/account.service";
-import { formatDateUTC } from "@/utils/date";
-import { debounce } from "@/utils/support";
-import TransactionChange from "./transaction-change.vue";
-import { ref, computed } from "vue";
 import { useModalScreen } from "@/components/modal/use-modal-screen";
-import { useRouter } from "vue-router";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import { useDialogScreen } from "@/components/dialog/use-dialog-screen";
-import { useToast } from "vue-toastification";
-import SummaryData from "@/components/summary-data.vue";
 import { currencyBRL } from "@/components/filters/currency.filter";
-import { formatCurrency } from "@/utils/numbers";
-
-const fields = [
-  { title: "Data", name: "formatted_date" },
-  { title: "Descrição", name: "description" },
-  { title: "Categoria", name: "category" },
-  { title: "Conta", name: "account" },
-  { title: { value: "Valor", clazz: "text-end" }, name: "formatted_value" },
-];
-
-const toast = useToast();
-const modal = useModalScreen(TransactionChange);
-
-const dialog = useDialogScreen(
-  "Deseja realmente excluir a transação?",
-  "Exclusão"
-);
+import { formatDateUTC } from "@/utils/date";
+import { debounce } from "@/utils/support";
 
 const router = useRouter();
+const toast = useToast();
+const modal = useModalScreen(TransactionChange);
+const loading = useLoadingScreen();
+const dialog = useDialogScreen("Deseja realmente excluir a transação?", "Exclusão");
 
-let categories = [],
-  accounts = [];
-let transactions = ref([]);
+const transactions = ref([]);
+const categories = ref([]);
+const accounts = ref([]);
 const selectedType = ref("");
 const selectedAccount = ref("");
 const selectedCategory = ref(null);
-const loading = useLoadingScreen();
-let currentDate = new Date();
+const currentDate = ref(new Date());
+const openDropdownId = ref(null);
 
-const filteredItems = computed(() =>
-  transactions.value.filter((item) => {
-    const typeMatch =
-      !selectedType.value || item.categoryType === selectedType.value;
-    const accountMatch =
-      !selectedAccount.value || item.account === selectedAccount.value;
-    const categoryMatch =
-      !selectedCategory.value || item.categoryId === selectedCategory.value.id;
+const closeDropdown = () => { openDropdownId.value = null; };
+const toggleDropdown = (id) => {
+  openDropdownId.value = openDropdownId.value === id ? null : id;
+};
 
-    return typeMatch && accountMatch && categoryMatch;
-  })
-);
+onMounted(() => document.addEventListener("click", closeDropdown));
+onBeforeUnmount(() => document.removeEventListener("click", closeDropdown));
 
-// Computed property for dynamically updating the summary
-const summary = computed(() =>
-  filteredItems.value.reduce(
-    (previous, current) => ({
-      earns:
-        current.categoryType === "R"
-          ? previous.earns + current.value
-          : previous.earns,
-      expenses:
-        current.categoryType === "D"
-          ? previous.expenses + current.value
-          : previous.expenses,
-      investments:
-        current.categoryType === "I"
-          ? previous.investments + current.value
-          : previous.investments,
-    }),
-    { earns: 0.0, expenses: 0.0, investments: 0.0 }
-  )
-);
+const filteredItems = computed(() => transactions.value.filter((item) =>
+  (!selectedType.value || item.categoryType === selectedType.value) &&
+  (!selectedAccount.value || item.account === selectedAccount.value) &&
+  (!selectedCategory.value || item.categoryId === selectedCategory.value.id)
+));
 
-function loadInitalData() {
-  loading.show();
-  const params = {
-    month: currentDate.getMonth() + 1,
-    year: currentDate.getFullYear(),
-  };
+const summary = computed(() => filteredItems.value.reduce((acc, item) => {
+  if (item.categoryType === "R") acc.earns += item.value;
+  if (item.categoryType === "D") acc.expenses += item.value;
+  if (item.categoryType === "I") acc.investments += item.value;
+  return acc;
+}, { earns: 0, expenses: 0, investments: 0 }));
 
-  Promise.allSettled([
-    transactionService.findAll(params),
-    categoryService.findAll({ paginate: false }),
-    accountService.findAll(),
-  ])
-    .then((results) => {
-      const [respTransactions, respCategories, respAccounts] = results;
+const summaryCards = computed(() => [
+  { title: "Saldo do período", value: summary.value.earns + summary.value.expenses + summary.value.investments, icon: "bi-wallet2" },
+  { title: "Receitas", value: summary.value.earns, icon: "bi-arrow-down-left", tone: "success" },
+  { title: "Despesas", value: summary.value.expenses, icon: "bi-arrow-up-right", tone: "danger" },
+  { title: "Investimentos", value: summary.value.investments, icon: "bi-graph-up-arrow", tone: "primary" },
+]);
 
-      transactions.value = mapTransactions(respTransactions.value.data);
-      accounts = respAccounts.value.data;
-      categories = respCategories.value.data;
-    })
-    .catch((err) => {
-      router.push({ name: "denied" });
-    })
-    .finally(() => {
-      loading.hide();
+const monthTitle = computed(() => new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(currentDate.value));
+
+const dateKey = (value) => {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value).slice(0, 10);
+};
+
+const groupedTransactions = computed(() => {
+  const groups = new Map();
+  [...filteredItems.value]
+    .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate))
+    .forEach((item) => {
+      const key = dateKey(item.paymentDate);
+      const date = new Date(`${key}T12:00:00`);
+      if (!groups.has(key)) groups.set(key, {
+        key,
+        label: new Intl.DateTimeFormat("pt-BR", { day: "2-digit", weekday: "long" }).format(date),
+        total: 0,
+        items: [],
+      });
+      const group = groups.get(key);
+      group.items.push(item);
+      group.total += item.value;
     });
-}
+  return [...groups.values()];
+});
 
-function getList(month, year, filter = undefined) {
-  loading.show();
-  const params = {
-    month: month,
-    year: year,
-  };
-  if (filter) {
-    params.search = filter;
-  }
+const amountClass = (value) => value > 0 ? "text-primary" : value < 0 ? "text-danger" : "text-body";
+const iconTone = (type) => ({ R: "is-income", D: "is-expense", I: "is-investment" }[type] || "");
+const transactionIcon = (type) => ({ R: "bi bi-arrow-down-left", D: "bi bi-bag", I: "bi bi-graph-up-arrow" }[type] || "bi bi-receipt");
 
-  transactionService
-    .findAll(params)
-    .then((resp) => {
-      transactions.value = mapTransactions(resp.data);
-    })
-    .catch((err) => {
-      console.log(err);
-      router.push({ name: "denied" });
-    })
-    .finally(() => {
-      loading.hide();
-    });
-}
-
-function mapTransactions(transactionList) {
-  return transactionList.map((item) => ({
+function mapTransactions(list) {
+  return list.map((item) => ({
     ...item,
     description: item.account.type === "C" ? `${item.description} - (${formatDateUTC(item.transactionDate, "dd/MM/yyyy")})` : item.description,
-    formatted_date: formatDateUTC(item.paymentDate, "dd/MM/yyyy"), //new Date(item.paymentDate).toLocaleDateString("pt-BR"),
-    formatted_value: {
-      value: currencyBRL(Math.abs(item.value)),
-      clazz: item.value > 0 ? "text-success text-end" : "text-danger text-end",
-    },
-    value: item.value,
     category: item.category.name,
     categoryId: item.category.id,
     categoryType: item.category.type,
@@ -252,115 +201,165 @@ function mapTransactions(transactionList) {
   }));
 }
 
+async function loadData() {
+  loading.show();
+  try {
+    const params = { month: currentDate.value.getMonth() + 1, year: currentDate.value.getFullYear() };
+    const [tx, cats, accs] = await Promise.all([
+      transactionService.findAll(params),
+      categoryService.findAll({ paginate: false }),
+      accountService.findAll(),
+    ]);
+    transactions.value = mapTransactions(tx.data);
+    categories.value = cats.data;
+    accounts.value = accs.data;
+  } catch (error) {
+    router.push({ name: "denied" });
+  } finally {
+    loading.hide();
+  }
+}
+
+async function getList() {
+  loading.show();
+  try {
+    const response = await transactionService.findAll({ month: currentDate.value.getMonth() + 1, year: currentDate.value.getFullYear() });
+    transactions.value = mapTransactions(response.data);
+  } finally { loading.hide(); }
+}
+
+const onChangeDebounced = debounce((date) => { currentDate.value = date; getList(); }, 500);
+
+async function handleEdit(clicked) {
+  closeDropdown();
+  const saved = await modal.show({
+    ...clicked,
+    value: clicked.value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    transactionDate: formatDateUTC(clicked.transactionDate, "yyyy-MM-dd"),
+    paymentDate: formatDateUTC(clicked.paymentDate, "yyyy-MM-dd"),
+  });
+  if (saved) getList();
+}
+
+async function handleDelete(clicked) {
+  closeDropdown();
+  if (!await dialog.show()) return;
+  loading.show();
+  try {
+    await transactionService.delete(clicked.id);
+    transactions.value = transactions.value.filter(({ id }) => id !== clicked.id);
+    toast.success("Transação excluída com sucesso!", { position: "top-center" });
+  } finally { loading.hide(); }
+}
+
+async function onNewClicked() { if (await modal.show()) getList(); }
+
 function exportToCSV() {
-  const headers = "Data;Descrição;Valor;Categoria;Conta;Data Efetiva;Tags;Nota";
-
-  const rows = transactions.value.map(
-    (item) =>
-      `${item.formatted_date};${item.description};${
-        item.value < 0
-          ? "-" + formatCurrency("" + item.value)
-          : formatCurrency("" + item.value)
-      };${item.category};${item.account};${formatDateUTC(
-        item.transactionDate,
-        "dd/MM/yyyy"
-      )};;${item.detail}`
-  );
-
-  // Combine headers and rows
-  const csvContent = [
-    headers, // Header row
-    ...rows, // Data rows
-  ].join("\n");
-
-  // Create a Blob
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-
-  // Create a download link
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", "table_data.csv");
-  link.style.display = "none";
-
-  // Append the link to the body and trigger download
-  document.body.appendChild(link);
+  const escape = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const rows = filteredItems.value.map((item) => [formatDateUTC(item.paymentDate, "dd/MM/yyyy"), item.description, item.value, item.category, item.account].map(escape).join(";"));
+  const blob = new Blob(["\uFEFFData;Descrição;Valor;Categoria;Conta\n", ...rows.map((row) => `${row}\n`)], { type: "text/csv;charset=utf-8" });
+  const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "transacoes.csv" });
   link.click();
-  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
 }
 
-function onTypeChange(event) {
-  selectedType.value = event.target.value;
-}
-
-function onAccountChange(event) {
-  selectedAccount.value = event.target.value;
-}
-
-const onChangeDebounced = debounce((newDate) => {
-  currentDate = newDate;
-  getList(newDate.getMonth() + 1, newDate.getFullYear());
-}, 1000);
-
-loadInitalData();
-
-const handleEdit = async (itemClicked) => {
-  const item = {
-    ...itemClicked,
-    value: itemClicked.value.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }),
-    categoryId: itemClicked.categoryId,
-    transactionDate: formatDateUTC(itemClicked.transactionDate, "yyyy-MM-dd"),
-    paymentDate: formatDateUTC(itemClicked.paymentDate, "yyyy-MM-dd"),
-  };
-  const saved = await modal.show(item);
-  if (saved) {
-    getList(currentDate.getMonth() + 1, currentDate.getFullYear());
-  }
-};
-
-const handleDelete = async (itemClicked) => {
-  const confirmed = await dialog.show();
-  if (confirmed) {
-    loading.show();
-    transactionService
-      .delete(itemClicked.id)
-      .then(() => {
-        toast.success("Transação Excluída com Sucesso!", {
-          position: "top-center",
-        });
-        transactions.value = transactions.value.filter(
-          (transaction) => transaction.id != itemClicked.id
-        );
-      })
-      .finally(() => {
-        loading.hide();
-      });
-  }
-};
-
-async function onNewClicked() {
-  const saved = await modal.show();
-  if (saved) {
-    getList(currentDate.getMonth() + 1, currentDate.getFullYear());
-  }
-}
+loadData();
 </script>
+
 <style scoped>
-.value-summary {
-  border: solid 1px black;
-  border-radius: 3.125rem;
+.transactions-page {
+  --surface-muted: #f3f4f6;
 }
 
-.value-summary.expense {
-  color: red;
-  border-color: red;
+.transaction-list-card {
+  border-radius: .85rem;
 }
 
-.value-summary.earn {
-  color: green;
-  border-color: green;
+.transaction-list-card .card-header {
+  border-radius: .85rem .85rem 0 0;
+}
+
+.dropdown-menu.show {
+  display: block;
+  z-index: 1080;
+}
+
+.filter-control {
+  width: min(100%, 180px);
+}
+
+.category-filter {
+  width: min(100%, 220px);
+}
+
+.day-header {
+  background: var(--surface-muted);
+  color: var(--bs-secondary-color);
+  font-size: .875rem;
+}
+
+.transaction-row {
+  border-bottom: 1px solid var(--bs-border-color-translucent);
+  transition: background-color .15s ease;
+}
+
+.transaction-row:hover {
+  background: rgba(var(--bs-primary-rgb), .035);
+}
+
+.transaction-row:last-child {
+  border-bottom: 0;
+}
+
+.transaction-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: .65rem;
+  background: var(--bs-light);
+  color: var(--bs-secondary);
+}
+
+.transaction-icon.is-income {
+  color: var(--bs-success);
+  background: rgba(var(--bs-success-rgb), .12);
+}
+
+.transaction-icon.is-expense {
+  color: var(--bs-danger);
+  background: rgba(var(--bs-danger-rgb), .10);
+}
+
+.transaction-icon.is-investment {
+  color: var(--bs-primary);
+  background: rgba(var(--bs-primary-rgb), .12);
+}
+
+.transaction-value {
+  min-width: 7.5rem;
+  text-align: right;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+@media (max-width: 575.98px) {
+
+  .filter-control,
+  .category-filter {
+    width: 100%;
+  }
+
+  .transaction-row {
+    gap: .65rem !important;
+  }
+
+  .transaction-value {
+    min-width: auto;
+    font-size: .9rem;
+  }
 }
 </style>
