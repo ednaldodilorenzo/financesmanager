@@ -1,104 +1,77 @@
 <template>
-  <div class="card">
-    <div class="card-body">
-      <h4 class="card-title">Receitas x Despesas Dia a Dia</h4>
-      <LineChart
-        :chart-data="chartLineEarnsExpensesEvolutionData"
-        :options="chartLineOptions"
-      ></LineChart>
+  <div class="card chart-card border-0 shadow-sm h-100">
+    <div class="card-header bg-white border-bottom p-3">
+      <h2 class="h6 fw-bold mb-1">Evolução diária</h2><span class="small text-body-secondary">Receitas e despesas
+        acumuladas no mês</span>
+    </div>
+    <div class="card-body chart-body">
+      <div class="chart-container">
+        <LineChart v-if="transactionsList.length" :chart-data="chartData" :options="chartOptions" />
+        <div v-else class="h-100 d-flex flex-column align-items-center justify-content-center text-body-secondary"><i
+            class="bi bi-graph-up fs-2"></i><span class="small mt-2">Sem dados para este período</span></div>
+      </div>
     </div>
   </div>
 </template>
 <script setup>
 import { computed } from "vue";
 import { LineChart } from "vue-chart-3";
-import { getDaysListPerMonth } from "@/utils/date";
+import { currencyBRL } from "@/components/filters/currency.filter";
 
-const props = defineProps({
-  transactionsList: {
-    type: Array,
-    default: () => [],
-  },
-  date: {
-    type: Date,
-    default: () => new Date(),
-  },
+const props = defineProps({ transactionsList: { type: Array, default: () => [] }, date: { type: Date, default: () => new Date() } });
+const days = computed(() => {
+  const total = new Date(props.date.getFullYear(), props.date.getMonth() + 1, 0).getDate();
+  const today = new Date();
+  const isCurrent = props.date.getFullYear() === today.getFullYear() && props.date.getMonth() === today.getMonth();
+  const limit = isCurrent ? today.getDate() : total;
+  return Array.from({ length: limit }, (_, index) => index + 1);
 });
-
-const chartLineEarnsExpensesEvolutionData = computed(() => ({
-  labels: getDaysListPerMonth(props.date),
-  datasets: [
-    {
-      label: "Despesa",
-      data: evolutionDayByDay.value.map((value) =>
-        Math.abs(value.expensesSum / 100)
-      ),
-      borderColor: "#FF0000",
-      backgroundColor: "rgba(213, 63, 21, 0.2)",
-      fill: true,
-      tension: 0.4, // Smooth curve
-    },
-    {
-      label: "Receita",
-      data: evolutionDayByDay.value.map((value) => value.earnsSum / 100),
-      borderColor: "#42A5F5",
-      backgroundColor: "rgba(66, 165, 245, 0.2)",
-      fill: true,
-      tension: 0.4, // Smooth curve
-    },
-  ],
+const evolution = computed(() => {
+  const daily = new Map(days.value.map((day) => [day, { earns: 0, expenses: 0 }]));
+  props.transactionsList.forEach((item) => {
+    const day = new Date(item.paymentDate).getUTCDate();
+    const entry = daily.get(day);
+    if (!entry) return;
+    const value = Math.abs(Number(item.value) || 0) / 100;
+    if (item.category?.type === "R") entry.earns += value;
+    if (item.category?.type === "D") entry.expenses += value;
+  });
+  let earns = 0, expenses = 0;
+  return days.value.map((day) => { const item = daily.get(day); earns += item.earns; expenses += item.expenses; return { day, earns, expenses }; });
+});
+const chartData = computed(() => ({
+  labels: days.value, datasets: [
+    { label: "Receitas", data: evolution.value.map((item) => item.earns), borderColor: "#10b981", backgroundColor: "rgba(16,185,129,.1)", fill: true, tension: .35, pointRadius: 1.5 },
+    { label: "Despesas", data: evolution.value.map((item) => item.expenses), borderColor: "#ef4444", backgroundColor: "rgba(239,68,68,.08)", fill: true, tension: .35, pointRadius: 1.5 },
+  ]
 }));
-
-const evolutionDayByDay = computed(() => {
-  const orderedSummary = props.transactionsList.reduce(
-    (previous, current) => {
-      const day = new Date(current.paymentDate).getUTCDate();
-      const item = previous.find((value) => value.day === day);
-      if (item) {
-        if (current.category.type === "D") {
-          item["expensesSum"] += current.value;
-        } else if (current.category.type === "R") {
-          item["earnsSum"] += current.value;
-        }
-      }
-
-      return previous;
-    },
-    getDaysListPerMonth(props.date)
-      .filter((value) => value <= props.date.getUTCDate())
-      .map((value) => ({
-        day: value,
-        expensesSum: 0.0,
-        earnsSum: 0.0,
-      }))
-  );
-
-  return orderedSummary.reduce((previous, current) => {
-    if (previous.length > 0) {
-      const lastInserted = previous[previous.length - 1];
-      previous.push({
-        day: current.day,
-        expensesSum: lastInserted.expensesSum + current.expensesSum,
-        earnsSum: lastInserted.earnsSum + current.earnsSum,
-      });
-    } else {
-      previous.push({
-        day: current.day,
-        expensesSum: current.expensesSum,
-        earnsSum: current.earnsSum,
-      });
-    }
-    return previous;
-  }, []);
-});
-
-const chartLineOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    y: {
-      beginAtZero: true,
-    },
-  },
-};
+const chartOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, plugins: { legend: { position: "bottom", labels: { usePointStyle: true } }, tooltip: { callbacks: { label: (context) => ` ${context.dataset.label}: ${currencyBRL(context.raw)}` } } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: (value) => currencyBRL(value) } } } };
 </script>
+<style scoped>
+.chart-card {
+  border-radius: .85rem
+}
+
+.chart-card .card-header {
+  border-radius: .85rem .85rem 0 0
+}
+
+.chart-body {
+  height: 20rem;
+  position: relative
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  max-height: 260px;
+} 
+
+.chart-container :deep(canvas) {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 260px !important;
+}
+</style>

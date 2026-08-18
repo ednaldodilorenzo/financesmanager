@@ -1,187 +1,204 @@
 <template>
-  <div class="mt-3">
-    <div class="d-flex justify-content-between">
-      <h2 class="fs-4">Orçamento</h2>
-      <nav style="--bs-breadcrumb-divider: '>'" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Home</a></li>
-          <li class="breadcrumb-item active"><a href="#">Orçamento</a></li>
-        </ol>
-      </nav>
-    </div>
-  </div>
-  <div class="card mb-3">
-    <div class="card-body p-2">
-      <div class="d-flex justify-content-center my-3">
-        <Calendar
-          @date-change="onChangeDebounced"
-          :only-years="true"
-        ></Calendar>
+  <section class="budget-page py-3">
+    <header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 fw-bold mb-1">Orçamento</h1>
+        <p class="small text-body-secondary mb-0">Planeje receitas, despesas e investimentos do ano</p>
+      </div>
+      <button class="btn btn-primary px-3" type="button" @click="clickNew">
+        <i class="bi bi-plus-lg me-1"></i>Adicionar categoria
+      </button>
+    </header>
+
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body p-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div>
+            <span class="small fw-semibold text-body-secondary d-block mb-1">Período do orçamento</span>
+            <strong class="h5 mb-0">{{ currentYear }}</strong>
+          </div>
+          <Calendar @date-change="onChangeDebounced" :only-years="true" />
+        </div>
       </div>
     </div>
-  </div>
-  <summary-data
-    :data="[
-      {
-        title: 'Total de Receitas',
-        value: summary.earns,
-      },
-      {
-        title: 'Total de Despesas',
-        value: Math.abs(summary.expenses),
-        percent: Math.abs(summary.expenses / summary.earns),
-        percentMessage: 'do Total de Receitas',
-      },
-      {
-        title: 'Saldo Total',
-        value: summary.earns - summary.expenses,
-        percent: Math.abs((summary.earns - summary.expenses) / summary.earns),
-        percentMessage: 'do Total de Receitas',
-      },
-      {
-        title: 'Investimento Total',
-        value: summary.investments,
-        percent: Math.abs(summary.investments / summary.earns),
-        percentMessage: 'do Total de Receitas',
-      },
-    ]"
-  />
-  <div class="card mt-3">
-    <div class="card-body p-2">
-      <nav class="navbar bg-body-tertiary mb-3">
-        <div class="d-flex w-100">
-          <div style="width: 15%">
-            <a href="#" @click="clickNew()" class="btn btn-primary">+ Novo</a>
-          </div>
+
+    <SummaryData :data="summaryCards" />
+
+    <div class="card border-0 shadow-sm mt-4 budget-table-card">
+      <div
+        class="card-header bg-white border-bottom p-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+          <h2 class="h5 fw-bold mb-1">Categorias planejadas</h2>
+          <p class="small text-body-secondary mb-0">{{ filteredItems.length }} categorias no orçamento de {{ currentYear
+            }}</p>
         </div>
-      </nav>
-      <table class="table table-striped table-hover table-responsive">
-        <thead>
-          <tr>
-            <!-- loop through each value of the fields to get the table header -->
-            <th>Categoria</th>
-            <th class="text-end">Valor</th>
-            <th class="text-center">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          <budget-record
-            v-for="item of filteredItems"
-            :budget-item="item"
-            :options="allCategories"
-            @cancel-item="cancelRecord"
-            @delete-item="handleDelete"
-            @change-item="handleChange"
-          ></budget-record>
-        </tbody>
-      </table>
+        <button class="btn btn-sm btn-outline-primary" type="button" @click="clickNew">
+          <i class="bi bi-plus-lg me-1"></i>Nova categoria
+        </button>
+      </div>
+
+      <div v-if="filteredItems.length" class="table-responsive">
+        <table class="table align-middle table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Categoria</th>
+              <th class="text-end">Valor planejado</th>
+              <th class="text-center actions-column">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <BudgetRecord v-for="(item, index) in filteredItems" :key="item.id || `new-${index}`" :budget-item="item"
+              :options="allCategories" @cancel-item="cancelRecord" @delete-item="handleDelete"
+              @change-item="handleChange" />
+          </tbody>
+        </table>
+      </div>
+
+      <div v-else class="text-center py-5 px-3">
+        <span class="empty-icon"><i class="bi bi-pie-chart"></i></span>
+        <h3 class="h6 mt-3 mb-1">Seu orçamento está vazio</h3>
+        <p class="small text-body-secondary mb-3">Adicione uma categoria para começar o planejamento.</p>
+        <button class="btn btn-primary btn-sm" type="button" @click="clickNew">
+          <i class="bi bi-plus-lg me-1"></i>Adicionar categoria
+        </button>
+      </div>
     </div>
-  </div>
+  </section>
 </template>
+
 <script setup>
+import { computed, ref } from "vue";
 import Calendar from "@/components/bootstrap-calendar.vue";
-import budgetService from "./budget.service";
-import categoryService from "@/views/category/category.service";
+import SummaryData from "@/components/summary-data.vue";
 import { debounce } from "@/utils/support";
-import { ref, computed } from "vue";
 import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
 import BudgetRecord from "./budget-record.vue";
 import BudgetItem from "./budget-item";
-import SummaryData from "@/components/summary-data.vue";
+import budgetService from "./budget.service";
+import categoryService from "@/views/category/category.service";
 
 const loading = useLoadingScreen();
-let currentDate = new Date();
-
+const currentDate = ref(new Date());
 const filteredItems = ref([]);
-let allCategories = [];
+const allCategories = ref([]);
 
-const summary = computed(() =>
-  filteredItems.value.reduce(
-    (previous, current) => ({
-      earns:
-        current.category.type === "R"
-          ? previous.earns + current.value
-          : previous.earns,
-      expenses:
-        current.category.type === "D"
-          ? previous.expenses + current.value
-          : previous.expenses,
-      investments:
-        current.category.type === "I"
-          ? previous.investments + current.value
-          : previous.investments,
-    }),
-    { earns: 0.0, expenses: 0.0, investments: 0.0 }
-  )
-);
+const currentYear = computed(() => currentDate.value.getFullYear());
 
-const handleDelete = (item) => {
-  filteredItems.value = filteredItems.value.filter(
-    (value) => value.id !== item.id
-  );
-};
+const summary = computed(() => filteredItems.value.reduce((total, item) => {
+  const value = Number(item.value) || 0;
+  if (item.category?.type === "R") total.earns += value;
+  if (item.category?.type === "D") total.expenses += value;
+  if (item.category?.type === "I") total.investments += value;
+  return total;
+}, { earns: 0, expenses: 0, investments: 0 }));
 
-const cancelRecord = (item) => {
+const ratio = (value) => summary.value.earns ? Math.abs(value / summary.value.earns) : 0;
+
+const summaryCards = computed(() => {
+  const balance = summary.value.earns - Math.abs(summary.value.expenses) - Math.abs(summary.value.investments);
+  return [
+    { title: "Total de receitas", value: summary.value.earns, icon: "bi-arrow-down-left", tone: "success" },
+    { title: "Total de despesas", value: Math.abs(summary.value.expenses), percent: ratio(summary.value.expenses), percentMessage: "das receitas", icon: "bi-arrow-up-right", tone: "danger" },
+    { title: "Saldo planejado", value: balance, percent: ratio(balance), percentMessage: "das receitas", icon: "bi-wallet2", tone: balance < 0 ? "danger" : "primary" },
+    { title: "Investimento total", value: Math.abs(summary.value.investments), percent: ratio(summary.value.investments), percentMessage: "das receitas", icon: "bi-graph-up-arrow", tone: "primary" },
+  ];
+});
+
+function handleDelete(item) {
+  filteredItems.value = filteredItems.value.filter(({ id }) => id !== item.id);
+}
+
+function cancelRecord(item) {
   filteredItems.value = filteredItems.value.filter((value) => value !== item);
-};
+}
 
-const handleChange = (updatedItem) => {
-  const index = filteredItems.value.findIndex(
-    (item) => item.id === updatedItem.id
+function handleChange(updatedItem, originalItem) {
+  const index = filteredItems.value.findIndex((item) =>
+    item === originalItem || (updatedItem.id && item.id === updatedItem.id)
   );
+  if (index !== -1) {
+    filteredItems.value.splice(index, 1, updatedItem);
+  } else {
+    filteredItems.value.unshift(updatedItem);
+  }
+}
 
-  if (index !== -1) filteredItems.value[index] = updatedItem;
-};
-
-const getData = () => {
+async function getData() {
   loading.show();
-  Promise.allSettled([
-    categoryService.findAll({ paginate: false }),
-    budgetService.findAll({ year: currentDate.getFullYear() }),
-  ])
-    .then((results) => {
-      const [categoryResults, budgetResults] = results;
-      allCategories = categoryResults.value.data;
-      parseBudgetResponse(budgetResults.value);
-    })
-    .finally(() => {
-      loading.hide();
-    });
-};
+  try {
+    const [categoriesResponse, budgetResponse] = await Promise.all([
+      categoryService.findAll({ paginate: false }),
+      budgetService.findAll({ year: currentYear.value }),
+    ]);
+    allCategories.value = categoriesResponse.data;
+    parseBudgetResponse(budgetResponse);
+  } finally {
+    loading.hide();
+  }
+}
 
-const clickNew = () => {
-  filteredItems.value.push(
-    new BudgetItem(
-      {
-        year: currentDate.getFullYear(),
-        value: 0,
-        categoryId: 0,
-      },
-      allCategories
-    )
-  );
-};
+function clickNew() {
+  filteredItems.value.unshift(new BudgetItem({
+    year: currentYear.value,
+    value: 0,
+    categoryId: 0,
+  }, allCategories.value));
+}
 
-const parseBudgetResponse = (resp) => {
-  filteredItems.value = resp.data.map(
-    (item) => new BudgetItem(item, allCategories)
-  );
-};
+function parseBudgetResponse(response) {
+  filteredItems.value = response.data.map((item) => new BudgetItem(item, allCategories.value));
+}
 
-const getBudget = (year) => {
+async function getBudget(year) {
   loading.show();
-  budgetService
-    .findAll({ year: year })
-    .then(parseBudgetResponse)
-    .finally(() => {
-      loading.hide();
-    });
-};
+  try {
+    parseBudgetResponse(await budgetService.findAll({ year }));
+  } finally {
+    loading.hide();
+  }
+}
+
+const onChangeDebounced = debounce((date) => {
+  currentDate.value = date;
+  getBudget(currentYear.value);
+}, 500);
 
 getData();
-
-const onChangeDebounced = debounce((newDate) => {
-  currentDate = newDate;
-  getBudget(currentDate.getFullYear());
-}, 1000);
 </script>
+
+<style scoped>
+.budget-table-card {
+  border-radius: .85rem;
+}
+
+.budget-table-card .card-header {
+  border-radius: .85rem .85rem 0 0;
+}
+
+thead th {
+  padding: .8rem 1rem;
+  background: var(--bs-tertiary-bg);
+  border-bottom-width: 1px;
+  color: var(--bs-secondary-color);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.actions-column {
+  width: 8.5rem;
+}
+
+.empty-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 1rem;
+  background: rgba(var(--bs-primary-rgb), .1);
+  color: var(--bs-primary);
+  font-size: 1.4rem;
+}
+</style>

@@ -1,420 +1,434 @@
 <template>
-  <div class="mt-3">
-    <loading-screen :loading="loading" />
-    <div class="d-flex justify-content-between">
-      <h2 class="fs-4">Transações</h2>
-      <nav style="--bs-breadcrumb-divider: '>'" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Home</a></li>
-          <li class="breadcrumb-item active"><a href="#">Importar</a></li>
-        </ol>
-      </nav>
-    </div>
-  </div>
-  <hr />
-  <form class="d-flex justify-content-center my-3" @submit.prevent="submitForm">
-    <select name="fileType" v-model="fileType" class="form-control mx-3">
-      <option value="BBCA">Conta Corrente BB</option>
-      <option value="C6CC">Cartão de Crédito C6</option>
-      <option value="CUAL">Arquivo Customizado</option>
-    </select>
-    <input
-      @change="handleFileUpload"
-      name="file"
-      class="form-control"
-      type="file"
-      id="formFile"
-    />
+  <section class="import-page py-3">
+    <header class="mb-3">
+      <h1 class="h4 fw-bold mb-1">Importar transações</h1>
+      <p class="small text-body-secondary mb-0">Envie um extrato, revise os lançamentos e escolha o que deseja importar
+      </p>
+    </header>
 
-    <select
-      name="accountId"
-      v-if="['BBCA', 'C6CC'].includes(fileType)"
-      class="form-control mx-3"
-      v-model="currentAccount"
-    >
-      <option></option>
-      <option :value="account.id" v-for="account in accounts" :key="account.id">
-        {{ account.name }}
-      </option>
-    </select>
-    <input
-      type="month"
-      v-if="fileType === 'C6CC'"
-      name="paymentDate"
-      class="form-control mx-3"
-    />
-    <button type="submit" class="btn btn-primary mx-3">Enviar</button>
-  </form>
-  <div v-if="state.collection.length > 0" class="d-flex justify-content-center">
-    <!-- <div class="col-auto">
-      <button
-        @click.prevent="importSelected"
-        class="btn btn-success mx-3"
-      >
-        Importar Selecionados
-      </button>
-    </div> -->
-    <div class="col-auto">
-      <button @click.prevent="importNonDuplicated" class="btn btn-primary mx-3">
-        Importar Não Duplicados
-      </button>
-    </div>
-    <div class="col-auto">
-      <button @click.prevent="discardDuplicated" class="btn btn-danger mx-3">
-        Descartar Duplicados
-      </button>
-    </div>
-  </div>
-  <ValidateEach
-    v-for="item in state.collection"
-    :key="item"
-    :state="item"
-    :rules="rules"
-  >
-    <template #default="{ v }">
-      <div class="card my-3" :class="{ 'border-danger': item.duplicated }">
-        <div v-if="item.duplicated" class="card-header text-danger">
-          Duplicado
-        </div>
-        <div class="card-body">
-          <form class="row gy-2 gx-3 align-items-center">
-            <div class="col-auto d-flex align-items-center">
-              <input
-                class="form-check-input me-3"
-                type="checkbox"
-                v-model="item.checked"
-                id="flexCheckDefault"
-              />
-              <div class="form-floating">
-                <input
-                  type="date"
-                  class="form-control"
-                  :value="v.formatted_date.$model"
-                  disabled
-                />
-                <label>Data</label>
+    <div class="row g-4 align-items-start">
+      <div class="col-xl-4">
+        <form class="card border-0 shadow-sm import-config sticky-xl-top" @submit.prevent="submitForm">
+          <div class="card-header bg-white border-bottom p-3">
+            <div class="d-flex align-items-center gap-3">
+              <span class="step-icon">1</span>
+              <div>
+                <h2 class="h6 fw-bold mb-1">Selecionar arquivo</h2>
+                <p class="small text-body-secondary mb-0">Configure a origem da importação</p>
               </div>
             </div>
-            <div class="col">
-              <div class="form-floating">
-                <input
-                  type="text"
-                  v-model="v.description.$model"
-                  class="form-control"
-                  :class="{ 'is-invalid': v.description.$errors.length > 0 }"
-                  placeholder="Descrição"
-                />
-                <label for="floatingInput">Descrição</label>
-              </div>
-            </div>
-            <div class="col">
-              <div class="form-floating">
-                <select
-                  v-model="v.category.$model"
-                  class="form-select"
-                  :class="{ 'is-invalid': v.category.$errors.length > 0 }"
-                >
-                  <option></option>
-                  <option
-                    :value="category.id"
-                    v-for="category in categories"
-                    :key="category.id"
-                  >
-                    {{ category.name }}
-                  </option>
-                </select>
-                <label>Categoria</label>
-              </div>
-            </div>
-            <div class="col">
-              <div class="form-floating">
-                <input
-                  type="text"
-                  v-model="item.detail"
-                  class="form-control"
-                  placeholder="Anotação"
-                />
-                <label for="floatingInput">Anotação</label>
-              </div>
-            </div>
-            <div class="col">
-              <div class="form-floating">
-                <bootstrap-select-tag
-                  v-model="item.tags"
-                  :options="searchTags"
-                  :floating="true"
-                  id="iptTags"
-                  name="tags"
-                />
-              </div>
-            </div>
-            <div class="col-2">
-              <div class="input-group">
-                <span class="input-group-text">R$</span>
-                <div class="form-floating">
-                  <input
-                    type="text"
-                    v-currency
-                    v-model="v.formatted_value.$model"
-                    :class="{
-                      'is-invalid': v.formatted_value.$errors.length > 0,
-                    }"
-                    class="form-control"
-                    placeholder="Valor"
-                  />
-                  <label>Valor</label>
+          </div>
+          <div class="card-body p-3">
+            <label for="fileType" class="form-label small fw-semibold">Formato do arquivo</label>
+            <select id="fileType" v-model="fileType" class="form-select mb-3">
+              <option value="BBCA">Conta Corrente BB</option>
+              <option value="C6CC">Cartão de Crédito C6</option>
+              <option value="CUAL">Arquivo customizado</option>
+            </select>
+
+            <label v-if="requiresAccount" for="accountId" class="form-label small fw-semibold">Conta de destino</label>
+            <select v-if="requiresAccount" id="accountId" v-model="currentAccount" class="form-select mb-3">
+              <option :value="null" disabled>Selecione uma conta</option>
+              <option v-for="account in accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
+            </select>
+
+            <template v-if="fileType === 'C6CC'">
+              <label for="paymentDate" class="form-label small fw-semibold">Mês da fatura</label>
+              <input id="paymentDate" v-model="paymentDate" type="month" class="form-control mb-3" />
+            </template>
+
+            <label for="transactionFile" class="upload-zone" :class="{ 'has-file': formData.file }">
+              <input id="transactionFile" class="visually-hidden" type="file" accept=".csv,.ofx,.txt"
+                @change="handleFileUpload" />
+              <span class="upload-icon"><i
+                  :class="formData.file ? 'bi bi-file-earmark-check' : 'bi bi-cloud-arrow-up'"></i></span>
+              <strong class="d-block mt-2">{{ formData.file?.name || 'Escolha o arquivo' }}</strong>
+              <span class="small text-body-secondary">CSV, OFX ou TXT</span>
+            </label>
+          </div>
+          <div class="card-footer bg-white border-top p-3">
+            <button type="submit" class="btn btn-primary w-100" :disabled="!canPrepare">
+              <i class="bi bi-search me-1"></i>Preparar importação
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-xl-8">
+        <div class="card border-0 shadow-sm review-card">
+          <div class="card-header bg-white border-bottom p-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <span class="step-icon">2</span>
+                <div>
+                  <h2 class="h6 fw-bold mb-1">Revisar lançamentos</h2>
+                  <p class="small text-body-secondary mb-0">Confira as informações antes de importar</p>
                 </div>
               </div>
-            </div>
-            <div class="col-auto">
-              <div
-                class="btn-group"
-                role="group"
-                aria-label="Basic outlined example"
-              >
-                <button
-                  type="button"
-                  class="btn btn-primary"
-                  @click.prevent="importTransaction(v, item)"
-                >
-                  <i class="bi bi-arrow-down-circle-fill"></i>
-                </button>
-              </div>
-              <div
-                class="btn-group"
-                role="group"
-                aria-label="Basic outlined example"
-              >
-                <button
-                  type="button"
-                  class="btn btn-danger mx-3"
-                  @click.prevent="removeItem(item)"
-                >
-                  <i class="bi bi-x-circle-fill"></i>
-                </button>
+              <div v-if="collection.length" class="d-flex flex-wrap gap-2">
+                <span class="badge rounded-pill text-bg-light">{{ collection.length }} pendentes</span>
+                <span v-if="selectedCount" class="badge rounded-pill text-bg-primary">{{ selectedCount }}
+                  selecionados</span>
+                <span v-if="duplicatedCount" class="badge rounded-pill text-bg-danger">{{ duplicatedCount }}
+                  duplicados</span>
               </div>
             </div>
-          </form>
+          </div>
+
+          <div v-if="collection.length" class="batch-toolbar border-bottom p-3">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <button class="btn btn-primary btn-sm" type="button" @click="importNonDuplicated">
+                <i class="bi bi-box-arrow-in-down me-1"></i>Importar não duplicados
+              </button>
+              <button class="btn btn-outline-primary btn-sm" type="button" :disabled="!selectedCount"
+                @click="importSelected">
+                Importar selecionados
+              </button>
+              <button class="btn btn-outline-danger btn-sm ms-sm-auto" type="button" :disabled="!duplicatedCount"
+                @click="discardDuplicated">
+                <i class="bi bi-trash3 me-1"></i>Descartar duplicados
+              </button>
+            </div>
+          </div>
+
+          <div v-if="collection.length" class="transaction-review-list">
+            <ValidateEach v-for="item in collection" :key="item._key" :state="item" :rules="rules">
+              <template #default="{ v }">
+                <article class="import-row p-3" :class="{ 'is-duplicated': item.duplicated }">
+                  <div class="d-flex align-items-start gap-3">
+                    <input v-model="item.checked" class="form-check-input mt-2" type="checkbox"
+                      :aria-label="`Selecionar ${item.description}`" />
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                          <span :class="['transaction-type-icon', item.duplicated ? 'is-duplicate' : '']"><i
+                              class="bi bi-receipt"></i></span>
+                          <div>
+                            <span class="small text-body-secondary d-block">{{ formatDisplayDate(item.paymentDate)
+                              }}</span>
+                            <span v-if="item.duplicated" class="badge text-bg-danger">Possível duplicidade</span>
+                          </div>
+                        </div>
+                        <strong :class="amountClass(item.formatted_value)">{{ item.formatted_value }}</strong>
+                      </div>
+
+                      <div class="row g-3">
+                        <div class="col-lg-6">
+                          <label class="form-label small fw-semibold">Descrição</label>
+                          <input v-model="v.description.$model" type="text" class="form-control"
+                            :class="{ 'is-invalid': v.description.$errors.length }" />
+                          <div class="invalid-feedback">Informe a descrição.</div>
+                        </div>
+                        <div class="col-lg-6">
+                          <label class="form-label small fw-semibold">Categoria</label>
+                          <select v-model="v.category.$model" class="form-select"
+                            :class="{ 'is-invalid': v.category.$errors.length }">
+                            <option value="" disabled>Selecione uma categoria</option>
+                            <option v-for="category in categories" :key="category.id" :value="category.id">{{
+                              category.name }}</option>
+                          </select>
+                          <div class="invalid-feedback">Selecione uma categoria.</div>
+                        </div>
+                        <div class="col-lg-6">
+                          <label class="form-label small fw-semibold">Anotação</label>
+                          <input v-model="item.detail" type="text" class="form-control" placeholder="Opcional" />
+                        </div>
+                        <div class="col-lg-6">
+                          <label class="form-label small fw-semibold">Tags</label>
+                          <BootstrapSelectTag v-model="item.tags" :options="searchTags" :id="`tags-${item._key}`"
+                            name="tags" />
+                        </div>
+                        <div class="col-sm-6 col-lg-4">
+                          <label class="form-label small fw-semibold">Data</label>
+                          <input v-model="v.formatted_date.$model" type="date" class="form-control" disabled />
+                        </div>
+                        <div class="col-sm-6 col-lg-4">
+                          <label class="form-label small fw-semibold">Valor</label>
+                          <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input v-model="v.formatted_value.$model" v-currency type="text"
+                              class="form-control text-end"
+                              :class="{ 'is-invalid': v.formatted_value.$errors.length }" />
+                          </div>
+                        </div>
+                        <div class="col-lg-4 d-flex align-items-end justify-content-lg-end gap-2">
+                          <button class="btn btn-success" type="button" @click="importTransaction(v, item)">
+                            <i class="bi bi-check-lg me-1"></i>Importar
+                          </button>
+                          <button class="btn btn-outline-danger" type="button" title="Descartar"
+                            @click="removeItem(item)">
+                            <i class="bi bi-x-lg"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </template>
+            </ValidateEach>
+          </div>
+
+          <div v-else class="text-center py-5 px-3">
+            <span class="empty-icon"><i class="bi bi-file-earmark-arrow-up"></i></span>
+            <h3 class="h6 mt-3 mb-1">Nenhum lançamento para revisar</h3>
+            <p class="small text-body-secondary mb-0">Selecione um arquivo e prepare a importação.</p>
+          </div>
         </div>
       </div>
-    </template>
-  </ValidateEach>
+    </div>
+  </section>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useVuelidate } from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { ValidateEach } from "@vuelidate/components";
 import transactionService from "./transaction.service";
-import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
-import { formatDateUTC } from "@/utils/date";
 import categoryService from "../category/category.service";
 import accountService from "../account/account.service";
+import tagService from "@/views/tag/tag.service";
+import BootstrapSelectTag from "@/components/bootstrap-select-tag.vue";
+import { useLoadingScreen } from "@/components/loading/useLoadingScreen";
+import { formatDateUTC } from "@/utils/date";
 import { parseCurrencyToNumber } from "@/utils/numbers";
 import { useToast } from "vue-toastification";
 import { currencyBRL } from "@/components/filters/currency.filter";
-import BootstrapSelectTag from "@/components/bootstrap-select-tag.vue";
-import tagService from "@/views/tag/tag.service";
 
 const loading = useLoadingScreen();
 const toast = useToast();
-let currentAccount = ref(null);
+const currentAccount = ref(null);
+const categories = ref([]);
+const accounts = ref([]);
+const fileType = ref("BBCA");
+const paymentDate = ref("");
+const formData = ref({ file: null });
+const state = ref({ collection: [] });
+const v$ = useVuelidate();
 
-let categories = [],
-  accounts = [];
-
-const state = ref({
-  collection: [],
-});
-
-let fileType = ref("");
-
-function getDependencies() {
-  loading.show();
-  Promise.allSettled([
-    categoryService.findAll({ paginate: false }),
-    accountService.findAll({ paginate: false }),
-  ])
-    .then((results) => {
-      const [respCategories, respAccounts] = results;
-      categories = respCategories.value.data;
-      accounts = respAccounts.value.data;
-    })
-    .finally(() => {
-      loading.hide();
-    });
-}
-
-getDependencies();
-
-const searchTags = (filter) => {
-  return tagService
-    .findAll({ filter: filter })
-    .then((resp) => resp.items.map((item) => item.tag));
-};
+const collection = computed(() => state.value.collection);
+const selectedCount = computed(() => collection.value.filter(({ checked }) => checked).length);
+const duplicatedCount = computed(() => collection.value.filter(({ duplicated }) => duplicated).length);
+const requiresAccount = computed(() => ["BBCA", "C6CC"].includes(fileType.value));
+const canPrepare = computed(() => Boolean(formData.value.file && (!requiresAccount.value || currentAccount.value) && (fileType.value !== "C6CC" || paymentDate.value)));
 
 const rules = {
-  formatted_date: {
-    required,
-  },
-  description: {
-    required,
-  },
-  category: {
-    required,
-  },
-  formatted_value: {
-    required,
-  },
+  formatted_date: { required },
+  description: { required },
+  category: { required },
+  formatted_value: { required },
 };
 
-function removeItem(itemClicked) {
-  state.value.collection = state.value.collection.filter(
-    (value) => value !== itemClicked
-  );
+async function getDependencies() {
+  loading.show();
+  try {
+    const [categoryResponse, accountResponse] = await Promise.all([
+      categoryService.findAll({ paginate: false }),
+      accountService.findAll({ paginate: false }),
+    ]);
+    categories.value = categoryResponse.data;
+    accounts.value = accountResponse.data;
+  } finally { loading.hide(); }
 }
 
-let v$ = useVuelidate();
+const searchTags = (filter) => tagService.findAll({ filter }).then((response) => response.items.map(({ tag }) => tag));
+const formatDisplayDate = (date) => formatDateUTC(date, "dd/MM/yyyy");
+const amountClass = (value) => parseCurrencyToNumber(value) < 0 ? "text-danger" : "text-primary";
 
-function validate() {
-  return v$.value.$validate();
+function removeItem(clicked) {
+  state.value.collection = collection.value.filter((item) => item !== clicked);
 }
 
-function importNonDuplicated() {
-  validate().then((result) => {
-    if (result) {
-      const filteredTransactions = state.value.collection.filter(
-        (item) => !item.duplicated
-      );
-      sendBatchData(filteredTransactions);
-    }
-  });
+async function importNonDuplicated() {
+  if (!await v$.value.$validate()) return;
+  sendBatchData(collection.value.filter(({ duplicated }) => !duplicated));
 }
 
-function importSelected() {
-  validate().then((result) => {
-    if (result) {
-      const filteredTransactions = state.value.collection.filter(
-        (item) => item.checked
-      );
-      sendBatchData(filteredTransactions);
-    }
-  });
+async function importSelected() {
+  if (!await v$.value.$validate()) return;
+  sendBatchData(collection.value.filter(({ checked }) => checked));
 }
 
-function importTransaction(validator, itemClicked) {
-  validator.$validate().then((isValid) => {
-    if (isValid) {
-      loading.show();
-
-      const payload = {
-        categoryId: itemClicked.category,
-        accountId: currentAccount.value,
-        detail: itemClicked.detail,
-        description: itemClicked.description,
-        tags: itemClicked.tags.map((item) => ({
-          tag: item,
-        })),
-        value: parseCurrencyToNumber(itemClicked.formatted_value),
-        paymentDate: new Date(itemClicked.paymentDate).toISOString(),
-        paymentMonth: new Date(itemClicked.paymentDate).getUTCMonth() + 1,
-        paymentYear: new Date(itemClicked.paymentDate).getFullYear(),
-        transactionDate: new Date(itemClicked.transactionDate).toISOString(),
-      };
-
-      transactionService
-        .create(payload)
-        .then(() => {
-          toast.success(`Transação criada com sucesso!`, {
-            position: "top-center",
-          });
-          state.value.collection = state.value.collection.filter(
-            (value) => value != itemClicked
-          );
-        })
-        .finally(() => {
-          loading.hide();
-        });
-    }
-  });
+async function importTransaction(validator, item) {
+  if (!await validator.$validate()) return;
+  loading.show();
+  try {
+    await transactionService.create(toPayload(item));
+    removeItem(item);
+    toast.success("Transação criada com sucesso!", { position: "top-center" });
+  } finally { loading.hide(); }
 }
 
 function discardDuplicated() {
-  state.value.collection = state.value.collection.filter(
-    (value) => !value.duplicated
-  );
+  state.value.collection = collection.value.filter(({ duplicated }) => !duplicated);
 }
 
-function sendBatchData(data) {
-  const payload = data.map(({ category, account, clazz, ...item }) => ({
-    ...item,
-    value: parseCurrencyToNumber(item.formatted_value),
-    categoryId: category,
+function toPayload(item) {
+  const payment = new Date(item.paymentDate);
+  return {
+    categoryId: item.category,
     accountId: currentAccount.value,
-    tags: item.tags.map((value) => ({
-      tag: value,
-    })),
-    paymentDate: new Date(item.paymentDate).toISOString(),
+    detail: item.detail,
+    description: item.description,
+    tags: (item.tags || []).map((tag) => ({ tag })),
+    value: parseCurrencyToNumber(item.formatted_value),
+    paymentDate: payment.toISOString(),
+    paymentMonth: payment.getUTCMonth() + 1,
+    paymentYear: payment.getUTCFullYear(),
     transactionDate: new Date(item.transactionDate).toISOString(),
-  }));
-  loading.show();
-  transactionService
-    .sendBatchImport(payload)
-    .then(() => {
-      toast.success(`Transações criadas com sucesso!`, {
-        position: "top-center",
-      });
-      state.value.collection = state.value.collection.filter(
-        (value) => !data.includes(value)
-      );
-    })
-    .finally(() => {
-      loading.hide();
-    });
+  };
 }
 
-let formData = ref({
-  file: null, // File will be stored here
-});
+async function sendBatchData(items) {
+  if (!items.length) return;
+  loading.show();
+  try {
+    await transactionService.sendBatchImport(items.map(toPayload));
+    state.value.collection = collection.value.filter((item) => !items.includes(item));
+    toast.success(`${items.length} transações importadas com sucesso!`, { position: "top-center" });
+  } finally { loading.hide(); }
+}
 
 function handleFileUpload(event) {
-  formData.value.file = event.target.files[0]; // Capture the uploaded file
+  formData.value.file = event.target.files?.[0] || null;
 }
 
-function submitForm(e) {
-  loading.show();
+async function submitForm() {
+  if (!canPrepare.value) {
+    toast.warning("Preencha os dados da importação e selecione um arquivo.", { position: "top-center" });
+    return;
+  }
   const payload = new FormData();
-  payload.append("file", formData.value.file); // Add the file
-  if (e.target.elements.accountId) {
-    payload.append("accountId", e.target.elements.accountId.value);
+  payload.append("file", formData.value.file);
+  payload.append("fileType", fileType.value);
+  if (requiresAccount.value) payload.append("accountId", currentAccount.value);
+  if (fileType.value === "C6CC") {
+    const [year, month] = paymentDate.value.split("-");
+    payload.append("paymentMonth", month);
+    payload.append("paymentYear", year);
   }
-  if (e.target.elements.paymentDate) {
-    payload.append("paymentMonth", e.target.elements.paymentDate.value.substr(5));
-    payload.append("paymentYear", e.target.elements.paymentDate.value.substr(0, 4));
-  }
-  payload.append("fileType", e.target.elements.fileType.value);
-  transactionService
-    .prepareForImport(payload)
-    .then((resp) => {
-      state.value.collection = resp.data.map((item) => ({
-        ...item,
-        formatted_date: formatDateUTC(item.paymentDate, "yyyy-MM-dd"),
-        formatted_value: currencyBRL(item.value),
-        category: item.categoryId ? item.categoryId : "",
-        checked: false,
-        tags: [],
-        clazz: item.duplicated ? "table-danger" : null,
-      }));
-    })
-    .finally(() => {
-      loading.hide();
-    });
+  loading.show();
+  try {
+    const response = await transactionService.prepareForImport(payload);
+    state.value.collection = response.data.map((item, index) => ({
+      ...item,
+      _key: `${item.transactionDate}-${item.description}-${index}`,
+      formatted_date: formatDateUTC(item.paymentDate, "yyyy-MM-dd"),
+      formatted_value: currencyBRL(item.value),
+      category: item.categoryId || "",
+      checked: false,
+      tags: [],
+    }));
+  } finally { loading.hide(); }
 }
+
+getDependencies();
 </script>
 
-<style>
-.error {
-  color: tomato;
+<style scoped>
+.import-config,
+.review-card {
+  border-radius: .85rem;
+}
+
+.import-config {
+  top: 1rem;
+}
+
+.import-config .card-header,
+.review-card .card-header {
+  border-radius: .85rem .85rem 0 0;
+}
+
+.step-icon {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgba(var(--bs-primary-rgb), .12);
+  color: var(--bs-primary);
+  font-weight: 700;
+}
+
+.upload-zone {
+  display: block;
+  padding: 1.5rem 1rem;
+  border: 2px dashed var(--bs-border-color);
+  border-radius: .75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.upload-zone:hover,
+.upload-zone.has-file {
+  border-color: var(--bs-primary);
+  background: rgba(var(--bs-primary-rgb), .035);
+}
+
+.upload-icon,
+.empty-icon {
+  display: inline-grid;
+  place-items: center;
+  background: rgba(var(--bs-primary-rgb), .1);
+  color: var(--bs-primary);
+}
+
+.upload-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: .8rem;
+  font-size: 1.25rem;
+}
+
+.empty-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 1rem;
+  font-size: 1.4rem;
+}
+
+.batch-toolbar {
+  background: var(--bs-tertiary-bg);
+}
+
+.import-row {
+  border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.import-row:last-child {
+  border-bottom: 0;
+}
+
+.import-row.is-duplicated {
+  border-left: 3px solid var(--bs-danger);
+  background: rgba(var(--bs-danger-rgb), .025);
+}
+
+.transaction-type-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: .65rem;
+  background: rgba(var(--bs-primary-rgb), .1);
+  color: var(--bs-primary);
+}
+
+.transaction-type-icon.is-duplicate {
+  background: rgba(var(--bs-danger-rgb), .1);
+  color: var(--bs-danger);
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+@media (max-width: 1199.98px) {
+  .import-config {
+    position: static !important;
+  }
 }
 </style>
