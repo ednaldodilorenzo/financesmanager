@@ -113,18 +113,18 @@ const palette = ["#4f46e5", "#06b6d4", "#f59e0b", "#8b5cf6", "#10b981", "#ef4444
 const periodLabel = computed(() => new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(currentDate.value));
 
 const totals = computed(() => transactionsList.value.reduce((sum, item) => {
-  const value = Math.abs(Number(item.value) || 0);
+  const value = Number(item.value) || 0;
   if (item.category?.type === "R") sum.earns += value;
   if (item.category?.type === "D") sum.expenses += value;
   if (item.category?.type === "I") sum.investments -= value;
   return sum;
 }, { earns: 0, expenses: 0, investments: 0 }));
 
-const monthBalance = computed(() => totals.value.earns - totals.value.expenses);
+const monthBalance = computed(() => totals.value.earns + totals.value.expenses);
 const availableBalance = computed(() => monthBalance.value - totals.value.investments);
 const metrics = computed(() => [
   { title: "Receitas", value: totals.value.earns, description: "Entradas no mês", icon: "bi-arrow-down-left", tone: "is-income", valueClass: "text-success" },
-  { title: "Despesas", value: totals.value.expenses, description: "Saídas no mês", icon: "bi-arrow-up-right", tone: "is-expense", valueClass: "text-danger" },
+  { title: "Despesas", value: Math.abs(totals.value.expenses), description: "Saídas no mês", icon: "bi-arrow-up-right", tone: "is-expense", valueClass: "text-danger" },
   { title: "Saldo do mês", value: monthBalance.value, description: "Receitas menos despesas", icon: "bi-wallet2", tone: monthBalance.value < 0 ? "is-expense" : "is-balance", valueClass: monthBalance.value < 0 ? "text-danger" : "text-primary" },
   { title: "Valor investido", value: totals.value.investments, description: "Aportes realizados", icon: "bi-graph-up-arrow", tone: "is-investment", valueClass: "text-primary" },
   { title: "Saldo disponível", value: availableBalance.value, description: "Saldo após investimentos", icon: "bi-piggy-bank", tone: availableBalance.value < 0 ? "is-expense" : "is-available", valueClass: availableBalance.value < 0 ? "text-danger" : "text-success" },

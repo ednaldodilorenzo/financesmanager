@@ -153,10 +153,10 @@ const summary = computed(() => filteredItems.value.reduce((acc, item) => {
 }, { earns: 0, expenses: 0, investments: 0 }));
 
 const summaryCards = computed(() => [
-  { title: "Saldo do período", value: summary.value.earns + summary.value.expenses + summary.value.investments, icon: "bi-wallet2" },
+  { title: "Saldo do período", value: summary.value.earns + summary.value.expenses - summary.value.investments, icon: "bi-wallet2" },
   { title: "Saldo sem investimentos", value: summary.value.earns + summary.value.expenses, icon: "bi-wallet2" },
   { title: "Receitas", value: summary.value.earns, icon: "bi-arrow-down-left", tone: "success" },
-  { title: "Despesas", value: summary.value.expenses, icon: "bi-arrow-up-right", tone: "danger" },
+  { title: "Despesas", value: Math.abs(summary.value.expenses), icon: "bi-arrow-up-right", tone: "danger" },
   { title: "Investimentos", value: summary.value.investments, icon: "bi-graph-up-arrow", tone: "primary" },
 ]);
 
