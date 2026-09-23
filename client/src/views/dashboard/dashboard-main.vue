@@ -116,7 +116,7 @@ const totals = computed(() => transactionsList.value.reduce((sum, item) => {
   const value = Math.abs(Number(item.value) || 0);
   if (item.category?.type === "R") sum.earns += value;
   if (item.category?.type === "D") sum.expenses += value;
-  if (item.category?.type === "I") sum.investments += value;
+  if (item.category?.type === "I") sum.investments -= value;
   return sum;
 }, { earns: 0, expenses: 0, investments: 0 }));
 
