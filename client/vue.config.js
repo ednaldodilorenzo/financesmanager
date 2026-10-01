@@ -7,7 +7,7 @@ module.exports = defineConfig({
 
 module.exports = {
   devServer: {
-    proxy: "http://api:5000",
+    proxy: "http://app:8080",
   },
   configureWebpack: {
     devtool: "source-map",

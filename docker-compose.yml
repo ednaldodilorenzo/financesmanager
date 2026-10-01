@@ -19,6 +19,15 @@ services:
       - MB_HOST=${MB_HOST}
       - MB_PORT=${MB_PORT}
 
+  app:
+    build:
+      context: ./api
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - APP_JWT_KEY=${JWT_KEY}
+
   api:
     build:
       context: ./server

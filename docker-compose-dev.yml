@@ -9,12 +9,26 @@ services:
     ports:
       - "5000:5000"
       - "2345:2345"
-    
+
+  app:
+    build:
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./api/src/main:/workspace/src/main
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+    develop:
+      watch:
+        - path: ./api/build.gradle.kts
+          action: rebuild
+
   client:
     build:
       dockerfile: Dockerfile-dev
     ports:
-      - "8080:8080"
+      - "8180:8080"
     volumes:
       - ./client:/app
       - /app/node_modules
