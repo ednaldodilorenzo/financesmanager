@@ -11,8 +11,8 @@ public class TransactionDto {
             Instant paymentDate,
             Instant transactionDate,
             String detail,
-            CategoryDto category,
-            AccountDto account) {}
+            CategoryDto.Response category,
+            AccountDto.Response account) {}
 
     public record TransactionYearlySummary(
             Integer month,

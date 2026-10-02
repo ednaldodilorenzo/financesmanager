@@ -1,6 +1,16 @@
 package br.com.d2s.financesmanager.api.dto;
 
 import br.com.d2s.financesmanager.api.model.CategoryType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-public record CategoryDto(Long id, String name, CategoryType type) {
+public class CategoryDto {
+
+    public record Request(
+            @NotBlank(message = "Category must be set.")
+            String name,
+            @NotNull(message = "Category type must be set.")
+            CategoryType type){}
+
+    public record Response(Long id, String name, CategoryType type){}
 }

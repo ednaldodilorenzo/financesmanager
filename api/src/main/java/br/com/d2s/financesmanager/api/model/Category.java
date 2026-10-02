@@ -2,9 +2,11 @@ package br.com.d2s.financesmanager.api.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 public class Category {
     @EmbeddedId
     private CategoryId categoryId;
@@ -15,4 +17,7 @@ public class Category {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CategoryType type;
+
+    @Column(nullable = false)
+    private String filter;
 }

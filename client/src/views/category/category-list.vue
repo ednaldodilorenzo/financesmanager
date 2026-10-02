@@ -98,7 +98,10 @@ const types = {
   I: { label: "Investimento", plural: "Investimentos", icon: "bi-graph-up-arrow", tone: "is-investment", badge: "text-bg-primary" },
 };
 const typeInfo = (type) => types[type] || { label: "Categoria", icon: "bi-tag", tone: "", badge: "text-bg-secondary" };
-const summaries = computed(() => Object.entries(types).map(([type, info]) => ({ type, label: info.plural, icon: info.icon, tone: info.tone, count: items.value.filter((item) => item.type === type).length })));
+const summaries = computed(() =>   
+  Object.entries(types)
+  .map(([type, info]) => ({ type, label: info.plural, icon: info.icon, tone: info.tone, count: items.value.filter((item) => item.type === type).length }))
+);
 const filteredItems = computed(() => {
   const term = search.value.trim().toLocaleLowerCase("pt-BR");
   return items.value.filter((item) => (!typeFilter.value || item.type === typeFilter.value) && (!term || item.name.toLocaleLowerCase("pt-BR").includes(term)));
@@ -107,7 +110,10 @@ const toggleType = (type) => { typeFilter.value = typeFilter.value === type ? ""
 
 async function getList() {
   loading.show();
-  try { items.value = (await categoryService.findAll({ paginate: false })).data; }
+  try {     
+    items.value = (await categoryService.findAll({ paginate: false }));
+    console.log("Fetching categories..." + items.value.length + " categories found.");
+  }
   catch (error) { router.push({ name: "denied" }); }
   finally { loading.hide(); }
 }

@@ -3,7 +3,6 @@ package br.com.d2s.financesmanager.api.modules.planning;
 import br.com.d2s.financesmanager.api.dto.PlanningDto;
 import br.com.d2s.financesmanager.api.modules.planning.service.PlanningService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;

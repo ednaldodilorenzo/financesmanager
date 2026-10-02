@@ -80,7 +80,7 @@ async function getList() {
   loading.show();
   try {
     const response = await accountService.findAll({ paginate: false });
-    items.value = response.data;
+    items.value = response;
   } catch (error) {
     router.push({ name: "denied" });
   } finally { loading.hide(); }

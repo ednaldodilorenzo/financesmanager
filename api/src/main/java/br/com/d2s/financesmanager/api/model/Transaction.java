@@ -3,7 +3,6 @@ package br.com.d2s.financesmanager.api.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity

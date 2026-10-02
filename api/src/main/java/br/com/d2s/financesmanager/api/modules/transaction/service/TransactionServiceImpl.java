@@ -24,8 +24,9 @@ public class TransactionServiceImpl implements TransactionService {
                                 t.getPaymentDate(),
                                 t.getTransactionDate(),
                                 t.getDetail(),
-                                new CategoryDto(t.getCategory().getCategoryId().getId(), t.getCategory().getName(), t.getCategory().getType()),
-                                new AccountDto(t.getAccount().getId().getId(), t.getAccount().getName(), t.getAccount().getType())))
+                                new CategoryDto.Response(t.getCategory().getCategoryId().getId(), t.getCategory().getName(), t.getCategory().getType()),
+                                new AccountDto.Response(t.getAccount().getId().getId(), t.getAccount().getName(),
+                                        t.getAccount().getType())))
                 .toList();
     }
 

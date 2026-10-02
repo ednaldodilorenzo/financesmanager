@@ -154,9 +154,9 @@ async function loadData() {
   try {
     const [transactions, planning, yearly] = 
       await Promise.all([transactionService.findAll(params), planningService.findAll(params), transactionService.getAllByYear(params.year)]);
-    transactionsList.value = transactions.data;
-    plannedList.value = planning.data;
-    transactionYearSummaryList.value = yearly.data;
+    transactionsList.value = transactions;
+    plannedList.value = planning;
+    transactionYearSummaryList.value = yearly;
   } catch (error) { 
     router.push({ name: "denied" }); 
   }

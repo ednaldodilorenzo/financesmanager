@@ -1,10 +1,31 @@
 spring:
   application:
     name: api
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 20000
+      idle-timeout: 300000
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 500
+        prepStmtCacheSqlLimit: 2048
   jpa:
     properties:
       hibernate:
         default_schema: public
+  threads:
+    virtual:
+      enabled: true
+
 server:
   servlet:
     context-path: /api
+  http2:
+    enabled: true
+  compression:
+    enabled: true
+    min-response-size: 1KB
+    mime-types: application/json
