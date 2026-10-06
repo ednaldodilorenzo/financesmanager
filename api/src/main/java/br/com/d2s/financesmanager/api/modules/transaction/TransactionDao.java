@@ -2,12 +2,16 @@ package br.com.d2s.financesmanager.api.modules.transaction;
 
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.model.Transaction;
+import br.com.d2s.financesmanager.api.model.TransactionId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface TransactionDao extends JpaRepository<Transaction, Long> {
+public interface TransactionDao extends JpaRepository<Transaction, TransactionId> {
+
+    @Query(value = "select nextval('transaction_id_seq')", nativeQuery = true)
+    Long nextId();
 
     @Query("""
         select t from Transaction t

@@ -16,10 +16,11 @@ public class Budget {
     @Column(nullable = false)
     private Long value;
 
+    @Column(name = "category_id", nullable = false)
+    private Long categoryId;
+
     @ManyToOne
     @JoinColumns({
-            // 'name' is the column in the transaction table
-            // 'referencedColumnName' is the column name in the referenced table
             @JoinColumn(name = "category_id", referencedColumnName = "id", insertable = false, updatable = false),
             @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     })

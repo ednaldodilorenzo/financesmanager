@@ -1,11 +1,28 @@
 package br.com.d2s.financesmanager.api.dto;
 
 import br.com.d2s.financesmanager.api.model.CategoryType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 
 public class TransactionDto {
+    public record Request(
+            @NotBlank(message = "Description must be provided.")
+            String description,
+            @NotNull(message = "Category must my provided")
+            Long categoryId,
+            @NotNull(message = "Value must be provided")
+            Long value,
+            @NotNull(message = "Account must be provided")
+            Long accountId,
+            @NotNull(message = "Transaction date must be provided")
+            Instant transactionDate,
+            String detail
+    ){}
+
     public record Response(
+            Long id,
             String description,
             Long value,
             Instant paymentDate,

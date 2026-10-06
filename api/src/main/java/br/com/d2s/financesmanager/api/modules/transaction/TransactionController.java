@@ -2,6 +2,7 @@ package br.com.d2s.financesmanager.api.modules.transaction;
 
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.modules.transaction.service.TransactionService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -20,6 +21,11 @@ public class TransactionController {
     @GetMapping("/")
     public List<TransactionDto.Response> getTransactions(@RequestParam Integer month, @RequestParam Integer year, @AuthenticationPrincipal Jwt jwt) {
         return transactionService.getTransactions(month, year, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    }
+
+    @PostMapping("/")
+    public void post(@RequestBody @Valid TransactionDto.Request dto, @AuthenticationPrincipal Jwt jwt) {
+        transactionService.create(dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
     @GetMapping("/summary/{year}")

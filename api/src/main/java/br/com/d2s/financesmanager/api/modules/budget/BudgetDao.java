@@ -2,12 +2,13 @@ package br.com.d2s.financesmanager.api.modules.budget;
 
 import br.com.d2s.financesmanager.api.dto.PlanningDto;
 import br.com.d2s.financesmanager.api.model.Budget;
+import br.com.d2s.financesmanager.api.model.BudgetId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface BudgetDao extends JpaRepository<Budget, Long> {
+public interface BudgetDao extends JpaRepository<Budget, BudgetId> {
 
     @Query("""
     select new br.com.d2s.financesmanager.api.dto.PlanningDto(

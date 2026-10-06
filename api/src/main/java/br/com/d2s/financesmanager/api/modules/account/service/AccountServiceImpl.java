@@ -22,7 +22,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public void create(AccountDto.Request dto, Long userId) {
         var account = accountMapper.toEntity(dto);
-        account.setId(new AccountId(userId,null));
+        account.setId(new AccountId(userId,accountDao.nextId()));
         accountDao.save(account);
     }
 

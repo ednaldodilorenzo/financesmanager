@@ -2,11 +2,15 @@ package br.com.d2s.financesmanager.api.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+
+import java.io.Serializable;
 
 @Embeddable
 @Getter
-public class BudgetId {
+@EqualsAndHashCode
+public class BudgetId implements Serializable {
 
     @Column(nullable = false)
     private Long id;

@@ -2,11 +2,13 @@ package br.com.d2s.financesmanager.api.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 public class Account {
     @EmbeddedId
     private AccountId id;
@@ -16,4 +18,10 @@ public class Account {
 
     @Column(nullable = false)
     private String type;
+
+    private Integer dueDay;
+
+    public Account(AccountId id) {
+        this.id = id;
+    }
 }

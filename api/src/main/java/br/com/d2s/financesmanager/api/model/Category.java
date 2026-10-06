@@ -2,11 +2,13 @@ package br.com.d2s.financesmanager.api.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 public class Category {
     @EmbeddedId
     private CategoryId categoryId;
@@ -20,4 +22,8 @@ public class Category {
 
     @Column(nullable = false)
     private String filter;
+
+    public Category(CategoryId categoryId) {
+        this.categoryId = categoryId;
+    }
 }

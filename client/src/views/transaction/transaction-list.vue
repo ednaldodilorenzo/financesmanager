@@ -211,9 +211,9 @@ async function loadData() {
       categoryService.findAll({ paginate: false }),
       accountService.findAll(),
     ]);
-    transactions.value = mapTransactions(tx.data);
-    categories.value = cats.data;
-    accounts.value = accs.data;
+    transactions.value = mapTransactions(tx);
+    categories.value = cats;
+    accounts.value = accs;
   } catch (error) {
     router.push({ name: "denied" });
   } finally {
@@ -225,7 +225,7 @@ async function getList() {
   loading.show();
   try {
     const response = await transactionService.findAll({ month: currentDate.value.getMonth() + 1, year: currentDate.value.getFullYear() });
-    transactions.value = mapTransactions(response.data);
+    transactions.value = mapTransactions(response);
   } finally { loading.hide(); }
 }
 

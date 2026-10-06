@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void create(CategoryDto.Request dto, Long userId) {
         var category = categoryMapper.toEntity(dto);
-        category.setCategoryId(new CategoryId(null, userId));
+        category.setCategoryId(new CategoryId(categoryDao.nextId(), userId));
         category.setFilter(dto.name());
         categoryDao.save(category);
     }

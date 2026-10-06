@@ -204,24 +204,24 @@ function getDependencies() {
   ]).then((results) => {
     const [respCategories, respAccounts] = results;
 
-    allCategories.value = respCategories.value.data;
-    allAccounts.value = respAccounts.value.data;
+    allCategories.value = respCategories.value;
+    allAccounts.value = respAccounts.value;
     if (props.item.id) {
       transactionService.findById(props.item.id).then((resp) => {
         let itemMonthYear = formatDateUTC(resp.data.paymentDate, "MM/yyyy");
         itemMonthYear =
           itemMonthYear[0] === "0" ? itemMonthYear.substring(1) : itemMonthYear;
         form.value = {
-          ...resp.data,
-          value: formatCurrency("" + resp.data.value),
-          tags: resp.data.tags.map((value) => value.tag),
+          ...resp,
+          value: formatCurrency("" + resp.value),
+          tags: resp.tags.map((value) => value.tag),
           transactionDate: formatDateUTC(
-            resp.data.transactionDate,
+            resp.transactionDate,
             "yyyy-MM-dd"
           ),
           monthYear: itemMonthYear,
         };
-        expense.value = resp.data.value < 0;
+        expense.value = resp.value < 0;
       });
     } else {
       form.value = props.item;
