@@ -6,12 +6,15 @@ import br.com.d2s.financesmanager.api.model.TransactionId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface TransactionDao extends JpaRepository<Transaction, TransactionId> {
 
     @Query(value = "select nextval('transaction_id_seq')", nativeQuery = true)
     Long nextId();
+
+    Boolean existsByValueAndPaymentDateAndTransactionDateAndId_UserId(Long value, Instant paymentDate, Instant transactionDate, Long userId);
 
     @Query("""
         select t from Transaction t

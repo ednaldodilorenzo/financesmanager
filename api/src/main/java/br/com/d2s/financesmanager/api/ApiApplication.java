@@ -1,9 +1,12 @@
 package br.com.d2s.financesmanager.api;
 
+import br.com.d2s.financesmanager.api.config.parser.csv.CsvProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties(CsvProperties.class)
 public class ApiApplication {
 
     static void main(String[] args) {

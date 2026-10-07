@@ -10,6 +10,9 @@ import java.util.List;
 
 public interface BudgetDao extends JpaRepository<Budget, BudgetId> {
 
+    @Query(value = "select nextval('budget_id_seq')", nativeQuery = true)
+    Long nextId();
+
     @Query("""
     select new br.com.d2s.financesmanager.api.dto.PlanningDto(
         c.name,
@@ -30,4 +33,6 @@ public interface BudgetDao extends JpaRepository<Budget, BudgetId> {
       and b.id.userId = :userId
     """)
     List<PlanningDto> findPlanningByMonthAndYearBudget(Integer month, Integer year, Long userId);
+
+    List<Budget> findAllByYearAndId_UserId(Integer year, Long userId);
 }

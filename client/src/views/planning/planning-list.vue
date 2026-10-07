@@ -154,7 +154,7 @@ async function getData(month, year) {
   loading.show();
   try {
     const response = await planningService.findAll({ month, year });
-    fullList.value = response.data;
+    fullList.value = response;
     updateState();
   } finally {
     loading.hide();

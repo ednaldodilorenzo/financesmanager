@@ -29,3 +29,23 @@ server:
     enabled: true
     min-response-size: 1KB
     mime-types: application/json
+csv:
+  layouts:
+    BBCA:
+      header-lines: 2
+      footer-lines: 1
+      payment-date-column: 0
+      transaction-date-column: 0
+      ammount-column: 4
+      date-pattern: dd/MM/yyyy
+      delimiter: ","
+      description-column: 1
+    C6CC:
+      header-lines: 1
+      footer-lines: 0
+      payment-date-column: 0
+      transaction-date-column: 0
+      ammount-column: 8
+      date-pattern: dd/MM/yyyy
+      delimiter: ";"
+      description-column: 4

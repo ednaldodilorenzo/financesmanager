@@ -18,4 +18,6 @@ public interface TransactionService {
     void update(Long id, TransactionDto.Request dto, Long userId);
 
     TransactionDto.Response getOne(Long id, Long userId);
+
+    List<TransactionDto.UploadResponse> parseTransactionImport(TransactionDto.UploadRequest dto, Long userId);
 }

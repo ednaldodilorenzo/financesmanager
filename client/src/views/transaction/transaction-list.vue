@@ -226,7 +226,9 @@ async function getList() {
   try {
     const response = await transactionService.findAll({ month: currentDate.value.getMonth() + 1, year: currentDate.value.getFullYear() });
     transactions.value = mapTransactions(response);
-  } finally { loading.hide(); }
+  } finally { 
+    loading.hide(); 
+  }
 }
 
 const onChangeDebounced = debounce((date) => { currentDate.value = date; getList(); }, 500);

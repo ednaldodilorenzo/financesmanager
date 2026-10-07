@@ -4,6 +4,7 @@ import br.com.d2s.financesmanager.api.dto.CategoryDto;
 import br.com.d2s.financesmanager.api.modules.category.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ public class CategoryController {
     }
 
     @PostMapping("/")
+    @ResponseStatus(HttpStatus.CREATED)
     public void post(@RequestBody @Valid CategoryDto.Request dto, @AuthenticationPrincipal Jwt jwt) {
         categoryService.create(dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }

@@ -226,8 +226,8 @@ async function getDependencies() {
       categoryService.findAll({ paginate: false }),
       accountService.findAll({ paginate: false }),
     ]);
-    categories.value = categoryResponse.data;
-    accounts.value = accountResponse.data;
+    categories.value = categoryResponse;
+    accounts.value = accountResponse;
   } finally { loading.hide(); }
 }
 
@@ -310,7 +310,7 @@ async function submitForm() {
   loading.show();
   try {
     const response = await transactionService.prepareForImport(payload);
-    state.value.collection = response.data.map((item, index) => ({
+    state.value.collection = response.map((item, index) => ({
       ...item,
       _key: `${item.transactionDate}-${item.description}-${index}`,
       formatted_date: formatDateUTC(item.paymentDate, "yyyy-MM-dd"),

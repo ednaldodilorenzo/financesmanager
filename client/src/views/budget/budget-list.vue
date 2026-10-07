@@ -130,7 +130,7 @@ async function getData() {
       categoryService.findAll({ paginate: false }),
       budgetService.findAll({ year: currentYear.value }),
     ]);
-    allCategories.value = categoriesResponse.data;
+    allCategories.value = categoriesResponse;
     parseBudgetResponse(budgetResponse);
   } finally {
     loading.hide();
@@ -146,7 +146,8 @@ function clickNew() {
 }
 
 function parseBudgetResponse(response) {
-  filteredItems.value = response.data.map((item) => new BudgetItem(item, allCategories.value));
+  console.log("Budget response:", response);
+  filteredItems.value = response.map((item) => new BudgetItem(item, allCategories.value));
 }
 
 async function getBudget(year) {
