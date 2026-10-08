@@ -14,7 +14,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -31,14 +30,13 @@ public class ConfigurableCsvBankParser implements ExtractParser{
     public List<TransactionDto.UploadResponse> parse(InputStream inputStream, String bank, Long accountId,
                                                      Long userId, Predicate<TransactionGenericIdentity> isDuplicate,
                                                      Instant fixedPaymentDate) throws IOException {
-        try(Reader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            var layout = csvProperties.layouts().get(bank);
+        var layout = csvProperties.layouts().get(bank);
+        try(Reader reader = new BufferedReader(new InputStreamReader(inputStream, layout.charset()))) {
             CSVParser parser = new CSVParserBuilder()
                     .withSeparator(layout.delimiter().charAt(0))
                     .build();
             CSVReader csvReader = new CSVReaderBuilder(reader)
                     .withCSVParser(parser)
-                    .withSkipLines(layout.headerLines())
                     .build();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(layout.datePattern());
 

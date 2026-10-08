@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TransactionDto {
     public record Request(
@@ -19,8 +21,16 @@ public class TransactionDto {
             Long accountId,
             @NotNull(message = "Transaction date must be provided")
             Instant transactionDate,
-            String detail
-    ){}
+            Instant paymentDate,
+            String detail,
+            List<TransactionTagDto> tags
+    ){
+        public Request {
+            if (tags == null) {
+                tags = new ArrayList<>();
+            }
+        }
+    }
 
     public record Response(
             Long id,
@@ -31,6 +41,24 @@ public class TransactionDto {
             String detail,
             CategoryDto.Response category,
             AccountDto.Response account) {}
+
+    public record IndividualResponse(
+            Long id,
+            String description,
+            Long value,
+            Instant paymentDate,
+            Instant transactionDate,
+            String detail,
+            CategoryDto.Response category,
+            AccountDto.Response account,
+            List<TransactionTagDto> tags) {
+
+        public IndividualResponse {
+            if (tags == null) {
+                tags = new ArrayList<>();
+            }
+        }
+    }
 
     public record UploadRequest(
             @NotNull(message = "File must be provided")

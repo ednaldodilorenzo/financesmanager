@@ -20,8 +20,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
@@ -32,7 +30,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionDao transactionDao;
     private final TransactionMapper transactionMapper;
     private final AccountDao accountDao;
-    private final CategoryDao categoryDao;
     private final ExtractParser extractParser;
 
     @Override
@@ -44,6 +41,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public TransactionDto.IndividualResponse getTransaction(Long id, Long userId) {
+        return transactionMapper.toIndividualDto(transactionDao.findById(new TransactionId(userId, id)).orElseThrow(
+                () -> new ApiException(ApiExceptionType.NOT_FOUND, "Transaction not found")
+        ));
+    }
+
+    @Override
     public List<TransactionDto.TransactionYearlySummary> getSummaryByYear(Integer year, Long userId) {
         return transactionDao.getSummaryByYear(year, userId);
     }
@@ -52,29 +56,22 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public void create(TransactionDto.Request dto, Long userId) {
         Transaction transaction = transactionMapper.toEntity(dto);
-        transaction.setPaymentDate(dto.transactionDate());
+        if (dto.paymentDate() == null) {
+            transaction.setPaymentDate(dto.transactionDate());
+        }
         transaction.setId(new TransactionId(userId, transactionDao.nextId()));
         // Ensures the account and category exist and belong to the user
-        Account account = accountDao.findById(new AccountId(userId, dto.accountId())).orElseThrow();
-        transaction.setAccount(account);
-        Category category = categoryDao.findById(new CategoryId(dto.categoryId(), userId)).orElseThrow();
-        transaction.setCategory(category);
         transactionDao.save(transaction);
     }
 
     @Override
-    public List<TransactionDto.Response> getAll(Long userId) {
-        return List.of();
-    }
-
-    @Override
+    @Transactional
     public void update(Long id, TransactionDto.Request dto, Long userId) {
+        var transaction = transactionDao.findById(new TransactionId(userId, id)).orElseThrow(
+                () -> new ApiException(ApiExceptionType.NOT_FOUND, "Transaction not found")
+        );
 
-    }
-
-    @Override
-    public TransactionDto.Response getOne(Long id, Long userId) {
-        return null;
+        transactionMapper.updateEntityFromDto(dto, transaction);
     }
 
     @Override
@@ -98,5 +95,19 @@ public class TransactionServiceImpl implements TransactionService {
         } catch (IOException ioex) {
             throw new ApiException(ApiExceptionType.UNPROCESSABLE_ENTITY,  "Failed to process file.", ioex);
         }
+    }
+
+    @Override
+    @Transactional
+    public void createAll(List<TransactionDto.Request> dtos, Long userId) {
+        transactionDao.saveAll(dtos.stream().map(dto -> {
+            Transaction transaction = transactionMapper.toEntity(dto);
+            if (dto.paymentDate() == null) {
+                transaction.setPaymentDate(dto.transactionDate());
+            }
+            transaction.setId(new TransactionId(userId, transactionDao.nextId()));
+            // Ensures the account and category exist and belong to the user
+            return transaction;
+        }).toList());
     }
 }

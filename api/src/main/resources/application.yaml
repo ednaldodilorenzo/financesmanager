@@ -16,6 +16,7 @@ spring:
     properties:
       hibernate:
         default_schema: public
+        show_sql: true
   threads:
     virtual:
       enabled: true

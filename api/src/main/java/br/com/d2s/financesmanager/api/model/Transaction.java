@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -49,4 +51,14 @@ public class Transaction {
             @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     })
     private Account account;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "transaction_tag",
+            joinColumns = {
+                    @JoinColumn(name = "transaction_id", referencedColumnName = "id"),
+                    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+            })
+    @Column(name = "tag", nullable = false)
+    private Set<String> tags = new HashSet<>();
 }

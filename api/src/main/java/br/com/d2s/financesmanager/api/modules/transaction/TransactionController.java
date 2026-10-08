@@ -9,7 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +31,11 @@ public class TransactionController {
         transactionService.create(dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
+    @GetMapping("/{id}")
+    public TransactionDto.IndividualResponse get(@PathVariable("id") Long id, @AuthenticationPrincipal Jwt jwt) {
+        return transactionService.getTransaction(id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    }
+
     @GetMapping("/summary/{year}")
     public List<TransactionDto.TransactionYearlySummary> getSummary(@PathVariable("year") Integer year, @AuthenticationPrincipal Jwt jwt) {
         return transactionService.getSummaryByYear(year, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
@@ -40,7 +44,16 @@ public class TransactionController {
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<TransactionDto.UploadResponse> uploadImportFile(@ModelAttribute TransactionDto.UploadRequest dto,
                                     @AuthenticationPrincipal Jwt jwt) {
-        IO.println("Uploading file...");
         return transactionService.parseTransactionImport(dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    }
+
+    @PostMapping("/list")
+    public void postList(@RequestBody List<TransactionDto.Request> dtos, @AuthenticationPrincipal Jwt jwt) {
+        transactionService.createAll(dtos, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    }
+
+    @PatchMapping("/{id}")
+    public void patch(@PathVariable Long id, @RequestBody @Valid TransactionDto.Request dto, @AuthenticationPrincipal Jwt jwt) {
+        transactionService.update(id, dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 }

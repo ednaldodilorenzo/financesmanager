@@ -208,7 +208,7 @@ function getDependencies() {
     allAccounts.value = respAccounts.value;
     if (props.item.id) {
       transactionService.findById(props.item.id).then((resp) => {
-        let itemMonthYear = formatDateUTC(resp.data.paymentDate, "MM/yyyy");
+        let itemMonthYear = formatDateUTC(resp.paymentDate, "MM/yyyy");
         itemMonthYear =
           itemMonthYear[0] === "0" ? itemMonthYear.substring(1) : itemMonthYear;
         form.value = {
@@ -234,7 +234,7 @@ getDependencies();
 const searchTags = (filter) => {
   return tagService
     .findAll({ filter: filter })
-    .then((resp) => resp.data.map((item) => item.tag));
+    .then((resp) => resp.map((item) => item.tag));
 };
 
 const onSubmit = () => {
