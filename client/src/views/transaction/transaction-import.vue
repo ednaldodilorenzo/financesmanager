@@ -23,16 +23,17 @@
             <select id="fileType" v-model="fileType" class="form-select mb-3">
               <option value="BBCA">Conta Corrente BB</option>
               <option value="C6CC">Cartão de Crédito C6</option>
+              <option value="BBMF">Minhas Finanças BB</option>
               <option value="CUAL">Arquivo customizado</option>
             </select>
 
             <label v-if="requiresAccount" for="accountId" class="form-label small fw-semibold">Conta de destino</label>
             <select v-if="requiresAccount" id="accountId" v-model="currentAccount" class="form-select mb-3">
               <option :value="null" disabled>Selecione uma conta</option>
-              <option v-for="account in accounts" :key="account.id" :value="account.id">{{ account.name }}</option>
+              <option v-for="account in accounts" :key="account.id" :value="account">{{ account.name }}</option>
             </select>
 
-            <template v-if="fileType === 'C6CC'">
+            <template v-if="currentAccount?.type === 'C'">
               <label for="paymentDate" class="form-label small fw-semibold">Mês da fatura</label>
               <input id="paymentDate" v-model="paymentDate" type="month" class="form-control mb-3" />
             </template>
@@ -138,10 +139,14 @@
                           <BootstrapSelectTag v-model="item.tags" :options="searchTags" :id="`tags-${item._key}`"
                             name="tags" />
                         </div>
-                        <div class="col-sm-6 col-lg-4">
-                          <label class="form-label small fw-semibold">Data</label>
-                          <input v-model="v.formatted_date.$model" type="date" class="form-control" disabled />
+                        <div class="col-sm-4 col-lg-2">
+                          <label class="form-label small fw-semibold">Data da Transação</label>
+                          <input v-model="v.formatted_transaction_date.$model" type="date" class="form-control" disabled/>
                         </div>
+                        <div class="col-sm-4 col-lg-2">
+                          <label class="form-label small fw-semibold">Data do Pagamento</label>
+                          <input v-model="v.formatted_date.$model" type="date" class="form-control" disabled />
+                        </div>                        
                         <div class="col-sm-6 col-lg-4">
                           <label class="form-label small fw-semibold">Valor</label>
                           <div class="input-group">
@@ -209,11 +214,12 @@ const v$ = useVuelidate();
 const collection = computed(() => state.value.collection);
 const selectedCount = computed(() => collection.value.filter(({ checked }) => checked).length);
 const duplicatedCount = computed(() => collection.value.filter(({ duplicated }) => duplicated).length);
-const requiresAccount = computed(() => ["BBCA", "C6CC"].includes(fileType.value));
+const requiresAccount = computed(() => ["BBCA", "C6CC", "BBMF"].includes(fileType.value));
 const canPrepare = computed(() => Boolean(formData.value.file && (!requiresAccount.value || currentAccount.value) && (fileType.value !== "C6CC" || paymentDate.value)));
 
 const rules = {
   formatted_date: { required },
+  formatted_transaction_date: { required },
   description: { required },
   category: { required },
   formatted_value: { required },
@@ -267,7 +273,7 @@ function toPayload(item) {
   const payment = new Date(item.paymentDate);
   return {
     categoryId: item.category,
-    accountId: currentAccount.value,
+    accountId: currentAccount.value?.id || null,
     detail: item.detail,
     description: item.description,
     tags: (item.tags || []).map((tag) => ({ tag })),
@@ -301,8 +307,8 @@ async function submitForm() {
   const payload = new FormData();
   payload.append("file", formData.value.file);
   payload.append("fileType", fileType.value);
-  if (requiresAccount.value) payload.append("accountId", currentAccount.value);
-  if (fileType.value === "C6CC") {
+  if (requiresAccount.value) payload.append("accountId", currentAccount.value?.id || null);
+  if (currentAccount.value?.type === "C" && paymentDate.value) {
     const [year, month] = paymentDate.value.split("-");
     payload.append("paymentMonth", month);
     payload.append("paymentYear", year);
@@ -314,6 +320,7 @@ async function submitForm() {
       ...item,
       _key: `${item.transactionDate}-${item.description}-${index}`,
       formatted_date: formatDateUTC(item.paymentDate, "yyyy-MM-dd"),
+      formatted_transaction_date: formatDateUTC(item.transactionDate, "yyyy-MM-dd"),
       formatted_value: currencyBRL(item.value),
       category: item.categoryId || "",
       checked: false,

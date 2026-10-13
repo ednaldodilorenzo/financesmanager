@@ -20,7 +20,6 @@ public interface TransactionMapper {
     TransactionDto.IndividualResponse toIndividualDto(Transaction transaction);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "paymentDate", ignore = true)
     @Mapping(target = "account", ignore = true)
     @Mapping(target = "category", ignore = true)
     Transaction toEntity(TransactionDto.Request request);

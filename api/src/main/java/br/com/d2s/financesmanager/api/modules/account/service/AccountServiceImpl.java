@@ -43,6 +43,7 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new ApiException(ApiExceptionType.NOT_FOUND, "Account not found."));
         account.setType(dto.type());
         account.setName(dto.name());
+        account.setDueDay(dto.dueDay());
     }
 
     @Override

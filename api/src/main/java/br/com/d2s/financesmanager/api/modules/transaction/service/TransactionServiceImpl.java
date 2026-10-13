@@ -6,11 +6,8 @@ import br.com.d2s.financesmanager.api.infra.exception.ApiException;
 import br.com.d2s.financesmanager.api.infra.exception.ApiExceptionType;
 import br.com.d2s.financesmanager.api.model.*;
 import br.com.d2s.financesmanager.api.modules.account.AccountDao;
-import br.com.d2s.financesmanager.api.modules.category.CategoryDao;
 import br.com.d2s.financesmanager.api.modules.transaction.TransactionDao;
 import br.com.d2s.financesmanager.api.modules.transaction.TransactionMapper;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -59,6 +56,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (dto.paymentDate() == null) {
             transaction.setPaymentDate(dto.transactionDate());
         }
+        IO.println(transaction.getPaymentDate());
         transaction.setId(new TransactionId(userId, transactionDao.nextId()));
         // Ensures the account and category exist and belong to the user
         transactionDao.save(transaction);
