@@ -45,21 +45,17 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 147.93.35.35 >> ~/.ssh/known_hosts
         
-    - name: Build Api Image
+    - name: Build Images on Remote
+      env:
+        DOCKER_HOST: ssh://root@147.93.35.35
       run: |
         docker build -t financemanager-api ./api/
         docker build -t financemanager-client ./client/
         docker build -t financemanager-taskexecutor ./taskexecutor/
-        docker save financemanager-api financemanager-client financemanager-taskexecutor \
-          | gzip | ssh root@147.93.35.35 'gunzip | docker load'
 
-    - name: Execute Docker Compose Down
+    - name: Deploy
       env:
         DOCKER_HOST: ssh://root@147.93.35.35
       run: |
         docker compose down
-        docker compose up -d
-
-    - name: Execute Docker Compose Up
-      run: |
-        docker-compose -H "ssh://root@147.93.35.35" up -d
+        docker compose up -d    
