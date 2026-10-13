@@ -8,7 +8,7 @@ services:
       - "6379"
 
   worker:
-    build: ./taskexecutor
+    image: financemanager-taskexecutor
     depends_on:
       - redis
     environment:
@@ -21,7 +21,7 @@ services:
 
   app:
     build:
-      context: ./api
+      image: financemanager-api
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
@@ -57,7 +57,7 @@ services:
 
   client:
     build:
-      context: ./client
+      image: financemanager-client
     ports:
       - "443:443"
     volumes:

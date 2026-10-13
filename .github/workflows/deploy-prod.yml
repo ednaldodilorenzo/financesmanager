@@ -44,6 +44,12 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 147.93.35.35 >> ~/.ssh/known_hosts
+        
+    - name: Build Api Image
+      run: |
+        docker build -t financemanager-api ./api/
+        docker build -t financemanager-client ./client/
+        docker build -t financemanager-taskexecutor ./taskexecutor/
 
     - name: Execute Docker Compose Down
       run: |
@@ -51,4 +57,4 @@ jobs:
 
     - name: Execute Docker Compose Up
       run: |
-        docker-compose -H "ssh://root@147.93.35.35" up --build -d
+        docker-compose -H "ssh://root@147.93.35.35" up -d
