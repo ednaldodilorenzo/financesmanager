@@ -64,7 +64,7 @@ services:
     volumes:
       - ${CERT_PATH}:/certs:ro
     depends_on:
-      - api
+      - app
 
   migrate:
     image: migrate/migrate
