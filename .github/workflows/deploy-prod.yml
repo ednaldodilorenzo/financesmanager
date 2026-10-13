@@ -50,10 +50,15 @@ jobs:
         docker build -t financemanager-api ./api/
         docker build -t financemanager-client ./client/
         docker build -t financemanager-taskexecutor ./taskexecutor/
+        docker save financemanager-api financemanager-client financemanager-taskexecutor \
+          | gzip | ssh root@147.93.35.35 'gunzip | docker load'
 
     - name: Execute Docker Compose Down
+      env:
+        DOCKER_HOST: ssh://root@147.93.35.35
       run: |
-        docker-compose -H "ssh://root@147.93.35.35" down --rmi all
+        docker compose down
+        docker compose up -d
 
     - name: Execute Docker Compose Up
       run: |
