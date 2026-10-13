@@ -28,31 +28,32 @@ services:
       - APP_JWT_KEY=${JWT_KEY}
     depends_on:
       - db
+      - migrate
     expose:
       - "8080"
 
-  api:
-    build:
-      context: ./server
-    environment:
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - MB_HOST=${MB_HOST}
-      - MB_PORT=${MB_PORT}
-      - APP_URL=${APP_URL}
-      - APP_JWT_KEY=${JWT_KEY}
-      - APP_ENVIRONMENT=PRODUCTION
-      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-    depends_on:
-      - db
-      - migrate
-    expose:
-      - "5000"
+  #api:
+  #  build:
+  #    context: ./server
+  #  environment:
+  #    - DB_USERNAME=${DB_USERNAME}
+  #    - DB_PASSWORD=${DB_PASSWORD}
+  #    - DB_HOST=${DB_HOST}
+  #    - DB_PORT=${DB_PORT}
+  #    - DB_NAME=${DB_NAME}
+  #    - MB_HOST=${MB_HOST}
+  #    - MB_PORT=${MB_PORT}
+  #    - APP_URL=${APP_URL}
+  #    - APP_JWT_KEY=${JWT_KEY}
+  #    - APP_ENVIRONMENT=PRODUCTION
+  #    - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}
+  #    - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+  #    - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+  #  depends_on:
+  #    - db
+  #    - migrate
+  #  expose:
+  #    - "5000"
 
   client:
     image: financemanager-client
