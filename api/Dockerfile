@@ -4,7 +4,7 @@
 FROM eclipse-temurin:25-jdk-jammy AS builder
 
 # Set working directory inside the container
-WORKDIR /build
+WORKDIR /app
 
 # Install xargs (part of findutils) so the gradlew script can run
 #RUN microdnf install -y findutils && microdnf clean all
