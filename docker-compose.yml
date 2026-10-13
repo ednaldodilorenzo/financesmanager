@@ -20,8 +20,7 @@ services:
       - MB_PORT=${MB_PORT}
 
   app:
-    build:
-      image: financemanager-api
+    image: financemanager-api
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
@@ -56,8 +55,7 @@ services:
       - "5000"
 
   client:
-    build:
-      image: financemanager-client
+    image: financemanager-client
     ports:
       - "443:443"
     volumes:
