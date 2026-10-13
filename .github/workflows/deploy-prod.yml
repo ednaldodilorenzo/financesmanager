@@ -45,17 +45,11 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H 147.93.35.35 >> ~/.ssh/known_hosts
         
-    - name: Build Images on Remote
-      env:
-        DOCKER_HOST: ssh://root@147.93.35.35
-      run: |
-        docker build -t financemanager-api ./api/
-        docker build -t financemanager-client ./client/
-        docker build -t financemanager-taskexecutor ./taskexecutor/
-
     - name: Deploy
       env:
         DOCKER_HOST: ssh://root@147.93.35.35
       run: |
-        docker compose down
-        docker compose up -d    
+        docker compose down --remove-orphans
+        docker compose up -d redis db migrate 
+        docker compose build --pull app worker client
+        docker compose up -d app worker client
