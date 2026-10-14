@@ -98,7 +98,8 @@ services:
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=15d
     volumes:
-      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      # This file is copied to VPS as part of github action.
+      - /opt/financemanager/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
 
   grafana:

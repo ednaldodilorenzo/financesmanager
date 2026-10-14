@@ -75,6 +75,19 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H 147.93.35.35 >> ~/.ssh/known_hosts
 
+      - name: Copy Prometheus configuration to VPS
+        run: |
+          test -f observability/prometheus.yml
+
+          ssh root@147.93.35.35 \
+            'mkdir -p /opt/financemanager/observability'
+
+          scp observability/prometheus.yml \
+            root@147.93.35.35:/opt/financemanager/observability/prometheus.yml
+
+          ssh root@147.93.35.35 \
+            'test -f /opt/financemanager/observability/prometheus.yml'
+      
       - name: Deploy
         run: |
           docker compose pull
