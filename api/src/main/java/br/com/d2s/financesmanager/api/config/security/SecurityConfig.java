@@ -70,7 +70,10 @@ public class SecurityConfig {
                                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/auth/**", "/error")
+                                auth.requestMatchers(
+                                        "/auth/**",
+                                                "/error",
+                                                "/actuator/prometheus")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
