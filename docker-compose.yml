@@ -114,7 +114,7 @@ services:
     ports:
       - "3000:3000" # 3000 is default, remap to avoid clash with app
     volumes:
-      - grafana-data:/var/lib/grafana
+      - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
 
