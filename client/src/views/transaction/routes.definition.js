@@ -5,6 +5,7 @@ const ROUTE_NAMES = {
   ADD: `${namespace}-add`,
   EDIT: `${namespace}-edit`,
   UPLOAD: `${namespace}-upload`,
+  REPORT: `${namespace}-report`
 };
 
 const ROUTES_DEFINITIONS = [
@@ -26,6 +27,15 @@ const ROUTES_DEFINITIONS = [
       icon: "bi bi-file-arrow-up-fill",
     },
   },
+  {
+    path: "/transaction-reports",
+    name: ROUTE_NAMES.REPORT,
+    component: () => import("./transaction-report.vue"),
+    meta: {
+      label: "Relatórios",
+      icon: "bi bi-file-earmark-text-fill",
+    },
+  }
 ];
 
 export { ROUTE_NAMES, ROUTES_DEFINITIONS };

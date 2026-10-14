@@ -30,11 +30,11 @@ public class TransactionServiceImpl implements TransactionService {
     private final ExtractParser extractParser;
 
     @Override
-    public List<TransactionDto.Response> getTransactions(Integer month, Integer year, Long userId) {
-        return transactionDao.findByMonthAndYear(month, year, userId)
+    public List<TransactionDto.Response> getTransactions(TransactionDto.SearchFilter filter, Long userId) {
+        return transactionDao
+                .findAll(TransactionSpecs.from(filter, userId))
                 .stream()
-                .map(transactionMapper::toDto)
-                .toList();
+                .map(transactionMapper::toDto).toList();
     }
 
     @Override

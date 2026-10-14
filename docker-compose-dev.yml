@@ -1,17 +1,18 @@
 services:
-  api:
-    build:
-      dockerfile: Dockerfile-dev
-    volumes:
-      - ./server:/app
-      - go-mod-cache:/go/pkg/mod
-      - go-build-cache:/root/.cache/go-build
-    ports:
-      - "5000:5000"
-      - "2345:2345"
+#  api:
+#    build:
+#      dockerfile: Dockerfile-dev
+#    volumes:
+#      - ./server:/app
+#      - go-mod-cache:/go/pkg/mod
+#      - go-build-cache:/root/.cache/go-build
+#    ports:
+#      - "5000:5000"
+#      - "2345:2345"
 
   app:
     build:
+      context: ./api
       dockerfile: Dockerfile-dev
     volumes:
       - ./api/src/main:/workspace/src/main
@@ -26,12 +27,17 @@ services:
 
   client:
     build:
+      context: ./client
       dockerfile: Dockerfile-dev
     ports:
       - "8180:8080"
     volumes:
       - ./client:/app
       - /app/node_modules
+
+  worker:
+    build:
+      context: ./taskexecutor
 
   db:
     ports:

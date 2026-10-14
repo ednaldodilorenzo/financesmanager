@@ -3,13 +3,17 @@ package br.com.d2s.financesmanager.api.modules.transaction;
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.model.Transaction;
 import br.com.d2s.financesmanager.api.model.TransactionId;
+import br.com.d2s.financesmanager.api.model.TransactionSpecs;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
 import java.util.List;
 
-public interface TransactionDao extends JpaRepository<Transaction, TransactionId> {
+public interface TransactionDao extends JpaRepository<Transaction, TransactionId>, JpaSpecificationExecutor<Transaction> {
 
     @Query(value = "select nextval('transaction_id_seq')", nativeQuery = true)
     Long nextId();

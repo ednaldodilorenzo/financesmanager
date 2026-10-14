@@ -21,8 +21,8 @@ public class TransactionController {
     private TransactionService transactionService;
 
     @GetMapping("/")
-    public List<TransactionDto.Response> getTransactions(@RequestParam Integer month, @RequestParam Integer year, @AuthenticationPrincipal Jwt jwt) {
-        return transactionService.getTransactions(month, year, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    public List<TransactionDto.Response> getTransactions(@ModelAttribute TransactionDto.SearchFilter filter, @AuthenticationPrincipal Jwt jwt) {
+        return transactionService.getTransactions(filter, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
     @PostMapping("/")

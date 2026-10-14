@@ -87,4 +87,13 @@ public class TransactionDto {
             Integer year,
             Long total,
             CategoryType type) {}
+
+    public record SearchFilter(
+            Instant startDate,
+            Instant endDate,
+            Integer month,
+            Integer year,
+            String description,
+            List<String> tags
+    ){}
 }

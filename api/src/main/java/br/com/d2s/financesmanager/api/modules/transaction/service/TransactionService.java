@@ -6,7 +6,7 @@ import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import java.util.List;
 
 public interface TransactionService {
-    List<TransactionDto.Response> getTransactions(Integer month, Integer year, Long userId);
+    List<TransactionDto.Response> getTransactions(TransactionDto.SearchFilter filter, Long userId);
 
     TransactionDto.IndividualResponse getTransaction(Long id, Long userId);
 
