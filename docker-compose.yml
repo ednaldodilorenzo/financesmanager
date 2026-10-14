@@ -8,7 +8,7 @@ services:
       - "6379"
 
   worker:
-    image: ednaldodilorenzo/financemanager-worker:latest
+    image: ednaldodilorenzo/financemanager-worker:${IMAGE_TAG:-latest}
     depends_on:
       - redis
     environment:
@@ -20,7 +20,7 @@ services:
       - MB_PORT=${MB_PORT}
 
   app:
-    image: ednaldodilorenzo/financemanager-api:latest
+    image: ednaldodilorenzo/financemanager-api:${IMAGE_TAG:-latest}
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
@@ -55,7 +55,7 @@ services:
   #    - "5000"
 
   client:
-    image: ednaldodilorenzo/financemanager-web:latest
+    image: ednaldodilorenzo/financemanager-web:${IMAGE_TAG:-latest}
     ports:
       - "443:443"
     volumes:

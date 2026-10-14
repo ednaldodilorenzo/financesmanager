@@ -31,14 +31,26 @@ RUN ./gradlew nativeCompile --no-daemon
 
 
 # ==============================================================================
-# STAGE 2: Run the Application (Minimal lightweight environment)
+# STAGE 2: Collect shared libraries missing from distroless (zlib)
+# ==============================================================================
+FROM debian:12-slim AS libs
+
+# Resolve the symlink so the real library file is copied (works on amd64 and arm64)
+RUN mkdir /out && cp -L /lib/$(uname -m)-linux-gnu/libz.so.1 /out/
+
+
+# ==============================================================================
+# STAGE 3: Run the Application (Minimal lightweight environment)
 # ==============================================================================
 FROM gcr.io/distroless/base-debian12:latest
 
 WORKDIR /app
 
+# The native binary links against libz.so.1, which distroless/base doesn't ship
+COPY --from=libs /out/libz.so.1 /app/lib/libz.so.1
+ENV LD_LIBRARY_PATH=/app/lib
+
 # Copy the compiled native binary from the builder stage
-# (Adjust 'my-app' to match your actual artifact name)
 COPY --from=builder /build/build/native/nativeCompile/api /app/server
 
 # Expose your Spring Boot port
