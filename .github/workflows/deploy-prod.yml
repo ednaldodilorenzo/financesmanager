@@ -64,6 +64,7 @@ jobs:
       JWT_KEY: ${{ secrets.JWT_KEY }}
       MB_HOST: ${{ secrets.MB_HOST }}
       MB_PORT: ${{ secrets.MB_PORT }}
+      GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 

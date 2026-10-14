@@ -41,6 +41,21 @@ server:
     enabled: true
     min-response-size: 1KB
     mime-types: application/json
+
+management:
+  server:
+    port: 8280
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+
 csv:
   layouts:
     BBCA:
