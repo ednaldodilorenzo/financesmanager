@@ -8,8 +8,7 @@ services:
       - "6379"
 
   worker:
-    build: 
-      context: ./taskexecutor
+    image: ednaldodilorenzo/financemanager-worker:latest
     depends_on:
       - redis
     environment:
@@ -21,8 +20,7 @@ services:
       - MB_PORT=${MB_PORT}
 
   app:
-    build:
-      context: ./api
+    image: ednaldodilorenzo/financemanager-api:latest
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
@@ -57,8 +55,7 @@ services:
   #    - "5000"
 
   client:
-    build:
-      context: ./client
+    image: ednaldodilorenzo/financemanager-web:latest
     ports:
       - "443:443"
     volumes:
