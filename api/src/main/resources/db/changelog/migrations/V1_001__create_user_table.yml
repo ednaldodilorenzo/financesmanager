@@ -1,4 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: V1_001
-      author: Ednaldo Dilorenzo

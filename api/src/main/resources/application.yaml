@@ -18,11 +18,13 @@ spring:
   jackson:
     parser:
       allow-non-numeric-numbers: true
-#  jpa:
-#    properties:
-#      hibernate:
-#        default_schema: public
-#        show_sql: true
+  jpa:
+    properties:
+      hibernate:
+        default_schema: public
+        show_sql: true
+    hibernate:
+      ddl-auto: none
   threads:
     virtual:
       enabled: true

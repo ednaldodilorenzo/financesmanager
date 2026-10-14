@@ -32,17 +32,17 @@ const evolution = computed(() => {
     const day = new Date(item.paymentDate).getUTCDate();
     const entry = daily.get(day);
     if (!entry) return;
-    const value = Math.abs(Number(item.value) || 0);
-    if (item.category?.type === "R") entry.earns += value;
-    if (item.category?.type === "D") entry.expenses += value;
+    
+    if (item.category?.type === "R") entry.earns += (item.value || 0);
+    if (item.category?.type === "D") entry.expenses += (item.value || 0);
   });
   let earns = 0, expenses = 0;
   return days.value.map((day) => { const item = daily.get(day); earns += item.earns; expenses += item.expenses; return { day, earns, expenses }; });
 });
 const chartData = computed(() => ({
   labels: days.value, datasets: [
-    { label: "Receitas", data: evolution.value.map((item) => item.earns), borderColor: "#10b981", backgroundColor: "rgba(16,185,129,.1)", fill: true, tension: .35, pointRadius: 1.5 },
-    { label: "Despesas", data: evolution.value.map((item) => item.expenses), borderColor: "#ef4444", backgroundColor: "rgba(239,68,68,.08)", fill: true, tension: .35, pointRadius: 1.5 },
+    { label: "Receitas", data: evolution.value.map((item) => Math.abs(item.earns)), borderColor: "#10b981", backgroundColor: "rgba(16,185,129,.1)", fill: true, tension: .35, pointRadius: 1.5 },
+    { label: "Despesas", data: evolution.value.map((item) => Math.abs(item.expenses)), borderColor: "#ef4444", backgroundColor: "rgba(239,68,68,.08)", fill: true, tension: .35, pointRadius: 1.5 },
   ]
 }));
 const chartOptions = { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, plugins: { legend: { position: "bottom", labels: { usePointStyle: true } }, tooltip: { callbacks: { label: (context) => ` ${context.dataset.label}: ${currencyBRL(context.raw)}` } } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: (value) => currencyBRL(value) } } } };
