@@ -65,6 +65,7 @@ jobs:
       MB_HOST: ${{ secrets.MB_HOST }}
       MB_PORT: ${{ secrets.MB_PORT }}
       GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+      PROMETHEUS_CONFIG_PATH: /opt/financemanager/observability/prometheus.yml
     steps:
       - uses: actions/checkout@v4
 

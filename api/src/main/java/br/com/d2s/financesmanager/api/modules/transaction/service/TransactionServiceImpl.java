@@ -1,6 +1,7 @@
 package br.com.d2s.financesmanager.api.modules.transaction.service;
 
 import br.com.d2s.financesmanager.api.config.parser.csv.ExtractParser;
+import br.com.d2s.financesmanager.api.config.parser.csv.TransactionGenericIdentity;
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.infra.exception.ApiException;
 import br.com.d2s.financesmanager.api.infra.exception.ApiExceptionType;
@@ -17,8 +18,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 
 
 @Service
@@ -88,11 +91,17 @@ public class TransactionServiceImpl implements TransactionService {
         }
         try(InputStream inputStream = dto.file().getInputStream()) {
             return extractParser.parse(inputStream, dto.fileType(), dto.accountId(), userId,
-                    t -> transactionDao.existsByValueAndPaymentDateAndTransactionDateAndId_UserId(t.value(),
-                            t.paymentDate(), t.transactionDate(), t.userId()), fixedPaymentDate);
+                    identities -> findExisting(identities, userId), fixedPaymentDate);
         } catch (IOException ioex) {
-            throw new ApiException(ApiExceptionType.UNPROCESSABLE_ENTITY,  "Failed to process file.", ioex);
+            throw new ApiException(ApiExceptionType.BUSINESS_ERROR,  "Failed to process file.", ioex);
         }
+    }
+
+    private Set<TransactionGenericIdentity> findExisting(List<TransactionGenericIdentity> identities, Long userId) {
+        if (identities.isEmpty()) return Set.of();
+        var dates = identities.stream().map(TransactionGenericIdentity::transactionDate).toList();
+        var values = identities.stream().map(TransactionGenericIdentity::value).toList();
+        return new HashSet<>(transactionDao.findIdentities(userId, Collections.min(dates), Collections.max(dates), values));
     }
 
     @Override

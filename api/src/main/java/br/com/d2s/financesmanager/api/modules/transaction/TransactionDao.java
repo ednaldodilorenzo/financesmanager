@@ -1,16 +1,15 @@
 package br.com.d2s.financesmanager.api.modules.transaction;
 
+import br.com.d2s.financesmanager.api.config.parser.csv.TransactionGenericIdentity;
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.model.Transaction;
 import br.com.d2s.financesmanager.api.model.TransactionId;
-import br.com.d2s.financesmanager.api.model.TransactionSpecs;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 
 public interface TransactionDao extends JpaRepository<Transaction, TransactionId>, JpaSpecificationExecutor<Transaction> {
@@ -27,6 +26,17 @@ public interface TransactionDao extends JpaRepository<Transaction, TransactionId
           and t.id.userId = :userId
     """)
     List<Transaction> findByMonthAndYear(Integer month, Integer year, Long userId);
+
+    @Query("""
+        select new br.com.d2s.financesmanager.api.config.parser.csv.TransactionGenericIdentity(
+            t.value, t.paymentDate, t.transactionDate, t.id.userId
+        )
+        from Transaction t
+        where t.value in :values
+          and t.id.userId = :userId
+          and t.transactionDate between :from and :to
+    """)
+    List<TransactionGenericIdentity> findIdentities(Long userId, Instant from, Instant to, Collection<Long> values);
 
     @Query("""
         select

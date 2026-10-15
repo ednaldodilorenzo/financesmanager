@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface ExtractParser {
@@ -16,6 +18,6 @@ public interface ExtractParser {
             String bank,
             Long accountId,
             Long userId,
-            Predicate<TransactionGenericIdentity> isDuplicate,
+            Function<List<TransactionGenericIdentity>, Set<TransactionGenericIdentity>> findDuplicates,
             Instant fixedPaymentDate) throws IOException;
 }
