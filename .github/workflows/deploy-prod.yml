@@ -69,7 +69,7 @@ jobs:
       LOKI_CONFIG_PATH: /opt/financemanager/observability/loki.yml
       ALLOY_CONFIG_PATH: /opt/financemanager/observability/config.alloy
       ALLOY_VERSION: v1.20.1
-      APP_VERSION: ${{ env.RELEASE_TAG }}
+      APP_VERSION: ${{ RELEASE_TAG }}
     steps:
       - uses: actions/checkout@v4
 
