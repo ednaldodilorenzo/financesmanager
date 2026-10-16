@@ -1,6 +1,10 @@
 package br.com.d2s.financesmanager.api.infra.exception;
 
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -8,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -20,6 +25,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             case CONFLICT -> HttpStatus.CONFLICT;
         };
 
+        log.warn("ApiException [{}]: {}", exception.getType(), exception.getMessage());
         return ProblemDetail.forStatusAndDetail(statusCode, exception.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnexpectedException(Exception exception) {
+        log.error("Unexpected error", exception);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal error");
+    }
+
+    @Override
+    protected @Nullable ResponseEntity<Object> handleExceptionInternal(
+            Exception ex, @Nullable Object body, HttpHeaders headers,
+            HttpStatusCode statusCode, WebRequest request) {
+
+        if (statusCode.is5xxServerError()) {
+            log.error("Error processing {}: {}", request.getDescription(false), ex.getMessage(), ex);
+        } else {
+            log.warn("Invalid request {}: {}", request.getDescription(false), ex.getMessage());
+        }
+
+        return super.handleExceptionInternal(ex, body, headers, statusCode, request);
     }
 }
