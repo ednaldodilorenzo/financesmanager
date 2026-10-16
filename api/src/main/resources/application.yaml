@@ -23,6 +23,7 @@ spring:
       hibernate:
         default_schema: public
         show_sql: true
+        default_batch_fetch_size: 50
     hibernate:
       ddl-auto: none
   threads:

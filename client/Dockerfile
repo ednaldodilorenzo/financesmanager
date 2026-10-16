@@ -8,6 +8,9 @@ RUN npm install
 
 COPY . .
 
+ARG VUE_APP_VERSION
+ENV VUE_APP_VERSION=$APP_VERSION
+
 RUN npm run build
 
 

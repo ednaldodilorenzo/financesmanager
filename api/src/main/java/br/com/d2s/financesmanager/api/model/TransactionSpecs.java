@@ -2,6 +2,7 @@ package br.com.d2s.financesmanager.api.model;
 
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
@@ -11,6 +12,10 @@ import jakarta.persistence.criteria.Predicate;
 public final class TransactionSpecs {
     public static Specification<Transaction> from(TransactionDto.SearchFilter filter, Long userId) {
         return (root, query, cb) -> {
+            if (query.getResultType() != long.class && query.getResultType() != Long.class) {
+                root.fetch("category", JoinType.LEFT);
+                root.fetch("account", JoinType.LEFT);
+            }
             var predicates = new ArrayList<Predicate>();
             predicates.add(cb.equal(root.get("id").get("userId"), userId));
             Expression<Instant> paymentDate = root.get("paymentDate");
