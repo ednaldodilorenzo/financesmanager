@@ -7,6 +7,37 @@ services:
     expose:
       - "6379"
 
+  loki:
+    image: grafana/loki:3.7.0
+    restart: unless-stopped
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - type: bind
+        source: ${LOKI_CONFIG_PATH:-./observability/loki.yml}
+        target: /etc/loki/config.yml
+        read_only: true
+        bind:
+          create_host_path: false
+      - loki_data:/loki
+
+  alloy:
+    image: grafana/alloy:${ALLOY_VERSION}
+    restart: unless-stopped
+    user: "0:0"
+    command:
+      - run
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - type: bind
+        source: ${ALLOY_CONFIG_PATH:-./observability/config.alloy}
+        target: /etc/alloy/config.alloy
+        read_only: true
+        bind:
+          create_host_path: false
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+
   worker:
     image: ednaldodilorenzo/financemanager-worker:${IMAGE_TAG:-latest}
     depends_on:
@@ -21,6 +52,8 @@ services:
 
   app:
     image: ednaldodilorenzo/financemanager-api:${IMAGE_TAG:-latest}
+    labels:
+      logging: "enabled"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
@@ -124,3 +157,5 @@ volumes:
   redis_data:
   prometheus_data:
   grafana_data:
+  loki_data:
+  alloy_data:

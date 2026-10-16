@@ -51,3 +51,11 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+// Remote debugging for the dev container: set DEBUG_PORT to open a JDWP socket on bootRun.
+// Binds to *:port so it is reachable through Docker's port mapping.
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    System.getenv("DEBUG_PORT")?.let { port ->
+        jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:$port")
+    }
+}
