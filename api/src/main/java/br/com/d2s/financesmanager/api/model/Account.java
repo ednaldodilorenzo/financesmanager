@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Account {
+public class Account extends AssignedIdEntity<AccountId> {
     @EmbeddedId
     private AccountId id;
 

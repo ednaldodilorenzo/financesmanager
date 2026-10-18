@@ -10,10 +10,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
 public interface CategoryMapper {
 
-    @Mapping(target = "categoryId", ignore = true)
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "filter", ignore = true)
     Category toEntity(CategoryDto.Request dto);
 
-    @Mapping(source = "categoryId.id", target = "id")
+    @Mapping(source = "id.id", target = "id")
     CategoryDto.Response toDto(Category category);
 }

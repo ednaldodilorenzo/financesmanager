@@ -11,12 +11,12 @@ import org.mapstruct.MappingTarget;
 public interface TransactionMapper {
     @Mapping(source = "id.id", target = "id")
     @Mapping(source = "account.id.id", target="account.id")
-    @Mapping(source = "category.categoryId.id", target="category.id")
+    @Mapping(source = "category.id.id", target="category.id")
     TransactionDto.Response toDto(Transaction transaction);
 
     @Mapping(source = "id.id", target = "id")
     @Mapping(source = "account.id.id", target="account.id")
-    @Mapping(source = "category.categoryId.id", target="category.id")
+    @Mapping(source = "category.id.id", target="category.id")
     TransactionDto.IndividualResponse toIndividualDto(Transaction transaction);
 
     @Mapping(target = "id", ignore = true)

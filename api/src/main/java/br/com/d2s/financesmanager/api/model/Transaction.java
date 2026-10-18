@@ -11,7 +11,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-public class Transaction {
+public class Transaction extends AssignedIdEntity<TransactionId> {
     @EmbeddedId
     private TransactionId id;
 

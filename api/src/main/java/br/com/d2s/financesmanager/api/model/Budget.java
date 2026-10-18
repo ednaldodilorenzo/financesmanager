@@ -7,7 +7,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Budget {
+public class Budget extends AssignedIdEntity<BudgetId> {
 
     @EmbeddedId
     private BudgetId id;

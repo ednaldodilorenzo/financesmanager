@@ -24,14 +24,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void create(CategoryDto.Request dto, Long userId) {
         var category = categoryMapper.toEntity(dto);
-        category.setCategoryId(new CategoryId(categoryDao.nextId(), userId));
+        category.setId(new CategoryId(categoryDao.nextId(), userId));
         category.setFilter(dto.name());
         categoryDao.save(category);
     }
 
     @Override
     public List<CategoryDto.Response> getAll(Long userId) {
-        return categoryDao.findAllByCategoryId_UserId(userId).stream().map(categoryMapper::toDto).toList();
+        return categoryDao.findAllById_UserId(userId).stream().map(categoryMapper::toDto).toList();
     }
 
     @Override

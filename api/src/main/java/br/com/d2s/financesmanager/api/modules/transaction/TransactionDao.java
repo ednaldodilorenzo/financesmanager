@@ -17,6 +17,11 @@ public interface TransactionDao extends JpaRepository<Transaction, TransactionId
     @Query(value = "select nextval('transaction_id_seq')", nativeQuery = true)
     Long nextId();
 
+    // TransactionDao
+    @Query(value = "select nextval('transaction_id_seq') from generate_series(1, :count)", nativeQuery = true)
+    List<Long> nextIds(int count);
+
+
     Boolean existsByValueAndPaymentDateAndTransactionDateAndId_UserId(Long value, Instant paymentDate, Instant transactionDate, Long userId);
 
     @Query("""

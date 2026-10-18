@@ -8,10 +8,12 @@ spring:
       minimum-idle: 1
       connection-timeout: 20000
       idle-timeout: 300000
+      auto-commit: false
       data-source-properties:
-        cachePrepStmts: true
-        prepStmtCacheSize: 500
-        prepStmtCacheSqlLimit: 2048
+        prepareThreshold: 5                # padrão; servidor prepara após 5 execuções
+        preparedStatementCacheQueries: 256
+        preparedStatementCacheSizeMiB: 5
+        reWriteBatchedInserts: true
   mvc:
     converters:
       preferred-json-mapper: jackson
@@ -21,11 +23,17 @@ spring:
   jpa:
     properties:
       hibernate:
+        #generate_statistics: true
         default_schema: public
-#        show_sql: true
+        #show_sql: true
         default_batch_fetch_size: 50
+        jdbc.batch_size: 50
+        order_inserts: true
+        connection:
+          provider_disables_autocommit: true
     hibernate:
       ddl-auto: none
+    open-in-view: false
   threads:
     virtual:
       enabled: true
@@ -42,6 +50,10 @@ server:
     enabled: true
     min-response-size: 1KB
     mime-types: application/json
+
+logging:
+  level:
+    org.hibernate.stat: DEBUG
 
 management:
   server:

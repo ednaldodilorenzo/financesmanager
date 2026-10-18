@@ -50,7 +50,7 @@ public class AccountServiceImpl implements AccountService {
     public AccountDto.Response getOne(Long id, Long userId) {
         return accountMapper
                 .toDto(accountDao
-                        .findById(new AccountId(id, userId))
+                        .findById(new AccountId(userId, id))
                         .orElseThrow(() -> new ApiException(ApiExceptionType.NOT_FOUND, "Account not found.")));
     }
 }

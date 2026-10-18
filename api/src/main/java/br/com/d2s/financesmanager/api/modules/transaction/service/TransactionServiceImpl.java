@@ -9,9 +9,9 @@ import br.com.d2s.financesmanager.api.model.*;
 import br.com.d2s.financesmanager.api.modules.account.AccountDao;
 import br.com.d2s.financesmanager.api.modules.transaction.TransactionDao;
 import br.com.d2s.financesmanager.api.modules.transaction.TransactionMapper;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.time.Instant;
@@ -59,7 +59,6 @@ public class TransactionServiceImpl implements TransactionService {
         if (dto.paymentDate() == null) {
             transaction.setPaymentDate(dto.transactionDate());
         }
-        IO.println(transaction.getPaymentDate());
         transaction.setId(new TransactionId(userId, transactionDao.nextId()));
         // Ensures the account and category exist and belong to the user
         transactionDao.save(transaction);
@@ -76,6 +75,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TransactionDto.UploadResponse> parseTransactionImport(TransactionDto.UploadRequest dto, Long userId) {
         var account =  accountDao.findById(new AccountId(userId, dto.accountId())).orElseThrow();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -107,12 +107,14 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public void createAll(List<TransactionDto.Request> dtos, Long userId) {
+        if (dtos.isEmpty()) return;
+        var ids = transactionDao.nextIds(dtos.size()).iterator();
         transactionDao.saveAll(dtos.stream().map(dto -> {
             Transaction transaction = transactionMapper.toEntity(dto);
             if (dto.paymentDate() == null) {
                 transaction.setPaymentDate(dto.transactionDate());
             }
-            transaction.setId(new TransactionId(userId, transactionDao.nextId()));
+            transaction.setId(new TransactionId(userId, ids.next()));
             // Ensures the account and category exist and belong to the user
             return transaction;
         }).toList());

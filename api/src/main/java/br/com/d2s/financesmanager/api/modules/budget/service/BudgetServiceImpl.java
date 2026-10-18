@@ -50,7 +50,7 @@ public class BudgetServiceImpl implements BudgetService {
     public BudgetDto.Response findById(Long id, Long userId) {
         return budgetMapper
                 .toDto(budgetDao
-                        .findById(new BudgetId(id, id))
+                        .findById(new BudgetId(id, userId))
                         .orElseThrow( () -> new ApiException(ApiExceptionType.NOT_FOUND, "BUDGET_NOT_FOUND")));
     }
 }

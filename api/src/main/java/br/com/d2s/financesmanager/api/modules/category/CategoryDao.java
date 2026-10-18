@@ -13,5 +13,5 @@ public interface CategoryDao extends JpaRepository<Category, CategoryId> {
     @Query(value = "select nextval('category_id_seq')", nativeQuery = true)
     Long nextId();
 
-    List<Category> findAllByCategoryId_UserId(Long userId);
+    List<Category> findAllById_UserId(Long userId);
 }
