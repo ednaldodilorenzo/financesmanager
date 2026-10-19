@@ -4,6 +4,7 @@ import br.com.d2s.financesmanager.api.config.parser.csv.TransactionGenericIdenti
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.model.Transaction;
 import br.com.d2s.financesmanager.api.model.TransactionId;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface TransactionDao extends JpaRepository<Transaction, TransactionId>, JpaSpecificationExecutor<Transaction> {
 
@@ -21,6 +23,10 @@ public interface TransactionDao extends JpaRepository<Transaction, TransactionId
     @Query(value = "select nextval('transaction_id_seq') from generate_series(1, :count)", nativeQuery = true)
     List<Long> nextIds(int count);
 
+
+    // Loads tags with the transaction so they can be mapped after the transaction closes (open-in-view is off).
+    @EntityGraph(attributePaths = {"tags", "category", "account"})
+    Optional<Transaction> findWithTagsById(TransactionId id);
 
     Boolean existsByValueAndPaymentDateAndTransactionDateAndId_UserId(Long value, Instant paymentDate, Instant transactionDate, Long userId);
 

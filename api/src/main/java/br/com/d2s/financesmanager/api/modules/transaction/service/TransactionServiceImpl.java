@@ -42,7 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionDto.IndividualResponse getTransaction(Long id, Long userId) {
-        return transactionMapper.toIndividualDto(transactionDao.findById(new TransactionId(userId, id)).orElseThrow(
+        return transactionMapper.toIndividualDto(transactionDao.findWithTagsById(new TransactionId(userId, id)).orElseThrow(
                 () -> new ApiException(ApiExceptionType.NOT_FOUND, "Transaction not found")
         ));
     }
