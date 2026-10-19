@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.modules.auth.service;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicId;
 import br.com.d2s.financesmanager.api.dto.LoginDto;
 import br.com.d2s.financesmanager.api.dto.RegisterDto;
 import br.com.d2s.financesmanager.api.infra.token.JwtManager;
@@ -20,7 +21,7 @@ public class AuthServiceImpl implements AuthService {
         Authentication auth =  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginReq.email(), loginReq.password()));
 
         String token = jwtManager.generateAccessToken(auth);
-        return new LoginDto.Response(Long.parseLong(auth.getName()), "", token);
+        return new LoginDto.Response(new PublicId(Long.parseLong(auth.getName())), "", token);
     }
 
     @Override

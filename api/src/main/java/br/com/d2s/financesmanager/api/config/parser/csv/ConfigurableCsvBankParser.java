@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.config.parser.csv;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicId;
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.model.Transaction;
 import com.opencsv.CSVParser;
@@ -67,8 +68,8 @@ public class ConfigurableCsvBankParser implements ExtractParser{
                     findDuplicates.apply(parsedRows.stream().map(ParsedRow::identity).toList());
 
             return parsedRows.stream().map(p -> new TransactionDto.UploadResponse(
-                0L,
-                accountId,
+                null,
+                PublicId.of(accountId),
                 p.description(),
                 p.identity().value(),
                 p.identity().paymentDate(),

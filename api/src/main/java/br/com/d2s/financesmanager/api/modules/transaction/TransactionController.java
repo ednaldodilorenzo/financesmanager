@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.modules.transaction;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicId;
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.modules.transaction.service.TransactionService;
 import jakarta.validation.Valid;
@@ -32,8 +33,8 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public TransactionDto.IndividualResponse get(@PathVariable("id") Long id, @AuthenticationPrincipal Jwt jwt) {
-        return transactionService.getTransaction(id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    public TransactionDto.IndividualResponse get(@PathVariable("id") PublicId id, @AuthenticationPrincipal Jwt jwt) {
+        return transactionService.getTransaction(id.value(), Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
     @GetMapping("/summary/{year}")
@@ -53,7 +54,7 @@ public class TransactionController {
     }
 
     @PatchMapping("/{id}")
-    public void patch(@PathVariable Long id, @RequestBody @Valid TransactionDto.Request dto, @AuthenticationPrincipal Jwt jwt) {
-        transactionService.update(id, dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    public void patch(@PathVariable PublicId id, @RequestBody @Valid TransactionDto.Request dto, @AuthenticationPrincipal Jwt jwt) {
+        transactionService.update(id.value(), dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 }

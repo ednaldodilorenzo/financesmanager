@@ -1,7 +1,9 @@
 package br.com.d2s.financesmanager.api.infra.exception;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicId;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -33,6 +35,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ProblemDetail handleUnexpectedException(Exception exception) {
         log.error("Unexpected error", exception);
         return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal error");
+    }
+
+    @Override
+    protected @Nullable ResponseEntity<Object> handleTypeMismatch(
+            TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+
+        // An undecodable id in the URL can't match any resource; answer the same as an id owned by another user.
+        if (ex.getRequiredType() == PublicId.class) {
+            var body = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Resource not found");
+            return handleExceptionInternal(ex, body, headers, HttpStatus.NOT_FOUND, request);
+        }
+        return super.handleTypeMismatch(ex, headers, status, request);
     }
 
     @Override

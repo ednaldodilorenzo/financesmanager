@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.modules.account;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicId;
 import br.com.d2s.financesmanager.api.dto.AccountDto;
 import br.com.d2s.financesmanager.api.dto.CategoryDto;
 import br.com.d2s.financesmanager.api.modules.account.service.AccountService;
@@ -25,8 +26,8 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public AccountDto.Response findById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        return accountService.getOne(id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    public AccountDto.Response findById(@PathVariable PublicId id, @AuthenticationPrincipal Jwt jwt) {
+        return accountService.getOne(id.value(), Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
     @PostMapping("/")
@@ -36,8 +37,8 @@ public class AccountController {
     }
 
     @PatchMapping("/{id}")
-    public void patch(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt,
+    public void patch(@PathVariable PublicId id, @AuthenticationPrincipal Jwt jwt,
                       @RequestBody @Valid AccountDto.Request dto) {
-        accountService.update(id, dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+        accountService.update(id.value(), dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 }

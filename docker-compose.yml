@@ -59,6 +59,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - APP_JWT_KEY=${JWT_KEY}
+      - APP_PUBLIC_ID_ALPHABET=${PUBLIC_ID_ALPHABET}
     depends_on:
       - db
     expose:

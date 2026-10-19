@@ -33,7 +33,7 @@ public class BudgetServiceImpl implements BudgetService {
         var budget = budgetDao.findById(new BudgetId(id, userId)).orElseThrow(() ->
                 new ApiException(ApiExceptionType.NOT_FOUND, "Budget not found!"));
         budget.setYear(dto.year());
-        budget.setCategoryId(dto.categoryId());
+        budget.setCategoryId(dto.categoryId().value());
         budget.setValue(dto.value());
     }
 

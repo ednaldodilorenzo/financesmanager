@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.dto;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicId;
 import br.com.d2s.financesmanager.api.model.CategoryType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,11 +15,11 @@ public class TransactionDto {
             @NotBlank(message = "Description must be provided.")
             String description,
             @NotNull(message = "Category must my provided")
-            Long categoryId,
+            PublicId categoryId,
             @NotNull(message = "Value must be provided")
             Long value,
             @NotNull(message = "Account must be provided")
-            Long accountId,
+            PublicId accountId,
             @NotNull(message = "Transaction date must be provided")
             Instant transactionDate,
             Instant paymentDate,
@@ -33,7 +34,7 @@ public class TransactionDto {
     }
 
     public record Response(
-            Long id,
+            PublicId id,
             String description,
             Long value,
             Instant paymentDate,
@@ -43,7 +44,7 @@ public class TransactionDto {
             AccountDto.Response account) {}
 
     public record IndividualResponse(
-            Long id,
+            PublicId id,
             String description,
             Long value,
             Instant paymentDate,
@@ -64,7 +65,7 @@ public class TransactionDto {
             @NotNull(message = "File must be provided")
             MultipartFile file,
             @NotNull(message = "Account must be provided")
-            Long accountId,
+            PublicId accountId,
             @NotNull(message = "Payment month must be provided")
             Integer paymentMonth,
             @NotNull(message = "Payment year must be provided")
@@ -73,8 +74,8 @@ public class TransactionDto {
             String fileType) {}
 
     public record UploadResponse(
-            Long categoryId,
-            Long accountId,
+            PublicId categoryId,
+            PublicId accountId,
             String description,
             Long value,
             Instant paymentDate,

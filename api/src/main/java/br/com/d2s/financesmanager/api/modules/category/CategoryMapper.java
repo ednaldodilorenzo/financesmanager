@@ -1,12 +1,13 @@
 package br.com.d2s.financesmanager.api.modules.category;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicIdMapper;
 import br.com.d2s.financesmanager.api.dto.CategoryDto;
 import br.com.d2s.financesmanager.api.model.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring",
+@Mapper(componentModel = "spring", uses = PublicIdMapper.class,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
 public interface CategoryMapper {
 

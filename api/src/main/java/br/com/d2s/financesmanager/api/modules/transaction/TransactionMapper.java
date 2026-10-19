@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.modules.transaction;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicIdMapper;
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.dto.TransactionTagDto;
 import br.com.d2s.financesmanager.api.model.Transaction;
@@ -7,7 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = PublicIdMapper.class)
 public interface TransactionMapper {
     @Mapping(source = "id.id", target = "id")
     @Mapping(source = "account.id.id", target="account.id")

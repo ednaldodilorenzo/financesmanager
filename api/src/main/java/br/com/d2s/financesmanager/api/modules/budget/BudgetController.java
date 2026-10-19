@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.modules.budget;
 
+import br.com.d2s.financesmanager.api.infra.publicid.PublicId;
 import br.com.d2s.financesmanager.api.dto.BudgetDto;
 import br.com.d2s.financesmanager.api.modules.budget.service.BudgetService;
 import jakarta.validation.Valid;
@@ -24,8 +25,8 @@ public class BudgetController {
     }
 
     @GetMapping("/{id}")
-    public BudgetDto.Response getById(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        return budgetService.findById(id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    public BudgetDto.Response getById(@PathVariable PublicId id, @AuthenticationPrincipal Jwt jwt) {
+        return budgetService.findById(id.value(), Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
     @PostMapping("/")
@@ -35,13 +36,13 @@ public class BudgetController {
     }
 
     @PatchMapping("/{id}")
-    public void patch(@PathVariable Long id, @RequestBody @Valid BudgetDto.Request budgetDto, @AuthenticationPrincipal Jwt jwt) {
-        budgetService.update(id, budgetDto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    public void patch(@PathVariable PublicId id, @RequestBody @Valid BudgetDto.Request budgetDto, @AuthenticationPrincipal Jwt jwt) {
+        budgetService.update(id.value(), budgetDto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        budgetService.delete(id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    public void delete(@PathVariable PublicId id, @AuthenticationPrincipal Jwt jwt) {
+        budgetService.delete(id.value(), Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 }
 

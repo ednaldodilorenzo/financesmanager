@@ -77,7 +77,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public List<TransactionDto.UploadResponse> parseTransactionImport(TransactionDto.UploadRequest dto, Long userId) {
-        var account =  accountDao.findById(new AccountId(userId, dto.accountId())).orElseThrow();
+        var account =  accountDao.findById(new AccountId(userId, dto.accountId().value())).orElseThrow();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         Instant fixedPaymentDate = null;
         if (account.getType().equals("C")) {
@@ -90,7 +90,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         }
         try(InputStream inputStream = dto.file().getInputStream()) {
-            return extractParser.parse(inputStream, dto.fileType(), dto.accountId(), userId,
+            return extractParser.parse(inputStream, dto.fileType(), dto.accountId().value(), userId,
                     identities -> findExisting(identities, userId), fixedPaymentDate);
         } catch (IOException ioex) {
             throw new ApiException(ApiExceptionType.BUSINESS_ERROR,  "Failed to process file.", ioex);

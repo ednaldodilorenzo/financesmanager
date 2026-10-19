@@ -70,7 +70,8 @@ jobs:
       PROMETHEUS_CONFIG_PATH: /opt/financemanager/observability/prometheus.yml
       LOKI_CONFIG_PATH: /opt/financemanager/observability/loki.yml
       ALLOY_CONFIG_PATH: /opt/financemanager/observability/config.alloy
-      ALLOY_VERSION: v1.20.1      
+      ALLOY_VERSION: v1.20.1
+      PUBLIC_ID_ALPHABET: ${{ secrets.PUBLIC_ID_ALPHABET }}
     steps:
       - uses: actions/checkout@v4
 

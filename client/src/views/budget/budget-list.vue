@@ -141,7 +141,7 @@ function clickNew() {
   filteredItems.value.unshift(new BudgetItem({
     year: currentYear.value,
     value: 0,
-    categoryId: 0,
+    categoryId: null,
   }, allCategories.value));
 }
 
