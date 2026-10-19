@@ -18,6 +18,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginDto.Response login(LoginDto.Request loginReq) {
         Authentication auth =  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginReq.email(), loginReq.password()));
+
         String token = jwtManager.generateAccessToken(auth);
         return new LoginDto.Response(Long.parseLong(auth.getName()), "", token);
     }
