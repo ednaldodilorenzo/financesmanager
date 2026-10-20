@@ -60,6 +60,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
       - APP_JWT_KEY=${JWT_KEY}
       - APP_PUBLIC_ID_ALPHABET=${PUBLIC_ID_ALPHABET}
+      - SPRINT_DATA_REDIS_HOST=${MB_HOST}
+      - SPRINT_DATA_REDIS_PORT=${MB_PORT}
     depends_on:
       - db
     expose:

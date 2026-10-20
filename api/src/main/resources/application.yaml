@@ -17,6 +17,10 @@ spring:
   mvc:
     converters:
       preferred-json-mapper: jackson
+  data:
+    redis:
+      host: ${MB_HOST:redis}
+      port: ${MB_PORT:6379}
   jackson:
     parser:
       allow-non-numeric-numbers: true

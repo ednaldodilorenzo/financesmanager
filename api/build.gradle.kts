@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("com.opencsv:opencsv:5.12.0")
     implementation("org.sqids:sqids:0.1.0")
     compileOnly("org.projectlombok:lombok")
