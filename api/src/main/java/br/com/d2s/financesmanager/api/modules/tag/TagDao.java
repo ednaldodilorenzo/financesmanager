@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TagDao extends Repository<Transaction, TransactionId> {
-    @Query("select distinct tg from Transaction t join t.tags tg where t.id.userId = :userId and lower(tg) like concat('%', lower(:filter), '%')")
+    @Query("select distinct tg from TransactionSplit ts join ts.tags tg where ts.id.userId = :userId and lower(tg) " +
+            "like concat('%', lower(:filter), '%')")
     List<String> findByUserIdAndTagLike(@Param("filter") String filter, @Param("userId") Long userId);
 }

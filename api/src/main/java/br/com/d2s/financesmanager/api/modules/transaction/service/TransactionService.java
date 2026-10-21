@@ -19,4 +19,6 @@ public interface TransactionService {
     List<TransactionDto.UploadResponse> parseTransactionImport(TransactionDto.UploadRequest dto, Long userId);
 
     void createAll(List<TransactionDto.Request> dtos, Long userId);
+
+    void delete(Long id, Long userId);
 }

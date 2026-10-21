@@ -9,6 +9,8 @@ import br.com.d2s.financesmanager.api.model.*;
 import br.com.d2s.financesmanager.api.modules.account.AccountDao;
 import br.com.d2s.financesmanager.api.modules.transaction.TransactionDao;
 import br.com.d2s.financesmanager.api.modules.transaction.TransactionMapper;
+import br.com.d2s.financesmanager.api.modules.transactionsplit.TransactionSplitDao;
+import br.com.d2s.financesmanager.api.modules.transactionsplit.TransactionSplitMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,50 +30,55 @@ import java.util.Set;
 @AllArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionDao transactionDao;
+    private final TransactionSplitDao transactionSplitDao;
     private final TransactionMapper transactionMapper;
+    private final TransactionSplitMapper transactionSplitMapper;
     private final AccountDao accountDao;
     private final ExtractParser extractParser;
 
     @Override
     public List<TransactionDto.Response> getTransactions(TransactionDto.SearchFilter filter, Long userId) {
-        return transactionDao
+        return transactionSplitDao
                 .findAll(TransactionSpecs.from(filter, userId))
                 .stream()
-                .map(transactionMapper::toDto).toList();
+                .map(transactionSplitMapper::toDto).toList();
     }
 
     @Override
     public TransactionDto.IndividualResponse getTransaction(Long id, Long userId) {
-        return transactionMapper.toIndividualDto(transactionDao.findWithTagsById(new TransactionId(userId, id)).orElseThrow(
+        return transactionSplitMapper.toIndividualDto(transactionSplitDao.findWithTagsById(new TransactionSplitId(id, userId)).orElseThrow(
                 () -> new ApiException(ApiExceptionType.NOT_FOUND, "Transaction not found")
         ));
     }
 
     @Override
     public List<TransactionDto.TransactionYearlySummary> getSummaryByYear(Integer year, Long userId) {
-        return transactionDao.getSummaryByYear(year, userId);
+        return transactionSplitDao.getSummaryByYear(year, userId);
     }
 
     @Override
     @Transactional
     public void create(TransactionDto.Request dto, Long userId) {
-        Transaction transaction = transactionMapper.toEntity(dto);
+        TransactionSplit transactionSplit = transactionSplitMapper.toEntity(dto);
         if (dto.paymentDate() == null) {
-            transaction.setPaymentDate(dto.transactionDate());
+            transactionSplit.getTransaction().setPaymentDate(dto.transactionDate());
         }
-        transaction.setId(new TransactionId(userId, transactionDao.nextId()));
-        // Ensures the account and category exist and belong to the user
-        transactionDao.save(transaction);
+        transactionSplit.setId(new TransactionSplitId(transactionSplitDao.nextId(), userId));
+        long nextTransactionId = transactionDao.nextId();
+        transactionSplit.setTransactionId(nextTransactionId);
+        transactionSplit.getTransaction().setId(new TransactionId(userId, nextTransactionId));
+
+        transactionSplitDao.save(transactionSplit);
     }
 
     @Override
     @Transactional
     public void update(Long id, TransactionDto.Request dto, Long userId) {
-        var transaction = transactionDao.findById(new TransactionId(userId, id)).orElseThrow(
+        var transactionSplit = transactionSplitDao.findById(new TransactionSplitId(id, userId)).orElseThrow(
                 () -> new ApiException(ApiExceptionType.NOT_FOUND, "Transaction not found")
         );
 
-        transactionMapper.updateEntityFromDto(dto, transaction);
+        transactionSplitMapper.updateEntityFromDto(dto, transactionSplit);
     }
 
     @Override
@@ -109,14 +116,29 @@ public class TransactionServiceImpl implements TransactionService {
     public void createAll(List<TransactionDto.Request> dtos, Long userId) {
         if (dtos.isEmpty()) return;
         var ids = transactionDao.nextIds(dtos.size()).iterator();
-        transactionDao.saveAll(dtos.stream().map(dto -> {
-            Transaction transaction = transactionMapper.toEntity(dto);
+        var splitIds = transactionSplitDao.nextIds(dtos.size()).iterator();
+        transactionSplitDao.saveAll(dtos.stream().map(dto -> {
+            TransactionSplit transactionSplit = transactionSplitMapper.toEntity(dto);
             if (dto.paymentDate() == null) {
-                transaction.setPaymentDate(dto.transactionDate());
+                transactionSplit.getTransaction().setPaymentDate(dto.transactionDate());
             }
-            transaction.setId(new TransactionId(userId, ids.next()));
+            transactionSplit.setId(new TransactionSplitId(splitIds.next(), userId));
+            long nextTransactionId = ids.next();
+            transactionSplit.setTransactionId(nextTransactionId);
+            transactionSplit.getTransaction().setId(new TransactionId(userId, nextTransactionId));
+
             // Ensures the account and category exist and belong to the user
-            return transaction;
+            return transactionSplit;
         }).toList());
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id, Long userId) {
+        var transactionSplit = transactionSplitDao.findById(new TransactionSplitId(id, userId)).orElseThrow(
+                () -> new ApiException(ApiExceptionType.NOT_FOUND, "Transaction not found")
+        );
+
+        transactionSplitDao.delete(transactionSplit);
     }
 }

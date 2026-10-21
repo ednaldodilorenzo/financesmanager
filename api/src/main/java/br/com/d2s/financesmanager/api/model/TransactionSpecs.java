@@ -10,15 +10,15 @@ import java.util.ArrayList;
 import jakarta.persistence.criteria.Predicate;
 
 public final class TransactionSpecs {
-    public static Specification<Transaction> from(TransactionDto.SearchFilter filter, Long userId) {
+    public static Specification<TransactionSplit> from(TransactionDto.SearchFilter filter, Long userId) {
         return (root, query, cb) -> {
             if (query.getResultType() != long.class && query.getResultType() != Long.class) {
-                root.fetch("category", JoinType.LEFT);
-                root.fetch("account", JoinType.LEFT);
+                root.fetch("category", JoinType.INNER);
+                root.fetch("transaction", JoinType.INNER).fetch("account", JoinType.INNER);
             }
             var predicates = new ArrayList<Predicate>();
             predicates.add(cb.equal(root.get("id").get("userId"), userId));
-            Expression<Instant> paymentDate = root.get("paymentDate");
+            Expression<Instant> paymentDate = root.get("transaction").get("paymentDate");
             if (filter.year() != null)
                 predicates.add(cb.equal(cb.function("date_part", Integer.class, cb.literal("year"), paymentDate), filter.year()));
             if (filter.month() != null)

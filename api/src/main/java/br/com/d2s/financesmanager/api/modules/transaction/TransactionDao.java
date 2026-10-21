@@ -25,18 +25,18 @@ public interface TransactionDao extends JpaRepository<Transaction, TransactionId
 
 
     // Loads tags with the transaction so they can be mapped after the transaction closes (open-in-view is off).
-    @EntityGraph(attributePaths = {"tags", "category", "account"})
-    Optional<Transaction> findWithTagsById(TransactionId id);
+//    @EntityGraph(attributePaths = {"tags", "category", "account"})
+//    Optional<Transaction> findWithTagsById(TransactionId id);
 
-    Boolean existsByValueAndPaymentDateAndTransactionDateAndId_UserId(Long value, Instant paymentDate, Instant transactionDate, Long userId);
+//    Boolean existsByValueAndPaymentDateAndTransactionDateAndId_UserId(Long value, Instant paymentDate, Instant transactionDate, Long userId);
 
-    @Query("""
-        select t from Transaction t
-        where EXTRACT(YEAR FROM t.paymentDate) = :year
-          and EXTRACT(MONTH FROM t.paymentDate) = :month
-          and t.id.userId = :userId
-    """)
-    List<Transaction> findByMonthAndYear(Integer month, Integer year, Long userId);
+//    @Query("""
+//        select t from Transaction t
+//        where EXTRACT(YEAR FROM t.paymentDate) = :year
+//          and EXTRACT(MONTH FROM t.paymentDate) = :month
+//          and t.id.userId = :userId
+//    """)
+//    List<Transaction> findByMonthAndYear(Integer month, Integer year, Long userId);
 
     @Query("""
         select new br.com.d2s.financesmanager.api.config.parser.csv.TransactionGenericIdentity(
@@ -49,20 +49,20 @@ public interface TransactionDao extends JpaRepository<Transaction, TransactionId
     """)
     List<TransactionGenericIdentity> findIdentities(Long userId, Instant from, Instant to, Collection<Long> values);
 
-    @Query("""
-        select
-            new br.com.d2s.financesmanager.api.dto.TransactionDto$TransactionYearlySummary(
-            EXTRACT(MONTH FROM t.paymentDate),
-            EXTRACT(YEAR FROM t.paymentDate),
-            SUM(t.value),
-            t.category.type)
-        from Transaction t
-        where EXTRACT(YEAR FROM t.paymentDate) = :year
-          and t.id.userId = :userId
-          group by EXTRACT(MONTH FROM t.paymentDate),
-                       EXTRACT(YEAR FROM t.paymentDate),
-                       t.category.type
-          order by EXTRACT(MONTH FROM t.paymentDate)
-    """)
-    List<TransactionDto.TransactionYearlySummary> getSummaryByYear(Integer year, Long userId);
+//    @Query("""
+//        select
+//            new br.com.d2s.financesmanager.api.dto.TransactionDto$TransactionYearlySummary(
+//            EXTRACT(MONTH FROM t.paymentDate),
+//            EXTRACT(YEAR FROM t.paymentDate),
+//            SUM(t.value),
+//            t.category.type)
+//        from Transaction t
+//        where EXTRACT(YEAR FROM t.paymentDate) = :year
+//          and t.id.userId = :userId
+//          group by EXTRACT(MONTH FROM t.paymentDate),
+//                       EXTRACT(YEAR FROM t.paymentDate),
+//                       t.category.type
+//          order by EXTRACT(MONTH FROM t.paymentDate)
+//    """)
+//    List<TransactionDto.TransactionYearlySummary> getSummaryByYear(Integer year, Long userId);
 }

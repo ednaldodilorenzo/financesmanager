@@ -57,4 +57,9 @@ public class TransactionController {
     public void patch(@PathVariable PublicId id, @RequestBody @Valid TransactionDto.Request dto, @AuthenticationPrincipal Jwt jwt) {
         transactionService.update(id.value(), dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable PublicId id, @AuthenticationPrincipal Jwt jwt) {
+
+    }
 }

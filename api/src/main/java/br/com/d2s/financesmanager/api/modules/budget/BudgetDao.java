@@ -17,13 +17,17 @@ public interface BudgetDao extends JpaRepository<Budget, BudgetId> {
     select new br.com.d2s.financesmanager.api.dto.PlanningDto(
         c.name,
         c.type,
-        coalesce((select sum(t.value) from Transaction t
-                  where t.category = c
+        coalesce((select sum(t.value)
+                  from TransactionSplit ts
+                      join ts.transaction t
+                  where ts.category = c
                     and extract(year from t.paymentDate) = :year
                     and extract(month from t.paymentDate) = :month), 0L),
         b.value,
-        coalesce((select sum(t.value) from Transaction t
-                  where t.category = c
+        coalesce((select sum(t.value)
+                  from TransactionSplit ts
+                          join ts.transaction t
+                  where ts.category = c
                     and extract(year from t.paymentDate) = :year
                     and extract(month from t.paymentDate) <= :month), 0L)
     )
