@@ -34,6 +34,12 @@ public class TransactionController {
 
     @GetMapping("/{id}")
     public TransactionDto.IndividualResponse get(@PathVariable("id") PublicId id, @AuthenticationPrincipal Jwt jwt) {
+        return transactionService.getTransactionSplit(id.value(), Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    }
+
+    @GetMapping("/{id}/split")
+    public TransactionDto.SplitIndividualResponse getSplit(@PathVariable("id") PublicId id,
+                                                       @AuthenticationPrincipal Jwt jwt) {
         return transactionService.getTransaction(id.value(), Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
@@ -49,13 +55,26 @@ public class TransactionController {
     }
 
     @PostMapping("/list")
+    @ResponseStatus(HttpStatus.CREATED)
     public void postList(@RequestBody List<TransactionDto.Request> dtos, @AuthenticationPrincipal Jwt jwt) {
         transactionService.createAll(dtos, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    }
+
+    @PostMapping("/split")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void postSplit(@RequestBody @Valid TransactionDto.SplitedRequest dtos, @AuthenticationPrincipal Jwt jwt) {
+        transactionService.createSplitedTransactions(dtos, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
     @PatchMapping("/{id}")
     public void patch(@PathVariable PublicId id, @RequestBody @Valid TransactionDto.Request dto, @AuthenticationPrincipal Jwt jwt) {
         transactionService.update(id.value(), dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
+    }
+
+    @PutMapping("/{id}/split")
+    public void putSplit(@PathVariable PublicId id, @RequestBody @Valid TransactionDto.SplitedRequest dto,
+                  @AuthenticationPrincipal Jwt jwt) {
+        transactionService.updateSplitedTransaction(id.value(), dto, Long.parseLong(Objects.requireNonNull(jwt.getSubject())));
     }
 
     @DeleteMapping("/{id}")

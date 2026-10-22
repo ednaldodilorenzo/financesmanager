@@ -38,6 +38,7 @@
           {{ option[displayField] }}
         </li>
       </ul>
+      <div class="invalid-feedback">{{ requiredMessage }}</div>
     </div>
     <!-- <div v-if="!isValid" class="text-danger mt-2">
       Please select a valid option from the list.
@@ -73,6 +74,10 @@ const props = defineProps({
   test: {
     type: Number,
     required: false,
+  },
+  requiredMessage: {
+    type: String,
+    default: "Campo obrigatório",
   },
 });
 

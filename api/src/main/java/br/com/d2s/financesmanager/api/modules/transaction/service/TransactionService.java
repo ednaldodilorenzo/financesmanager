@@ -8,11 +8,17 @@ import java.util.List;
 public interface TransactionService {
     List<TransactionDto.Response> getTransactions(TransactionDto.SearchFilter filter, Long userId);
 
-    TransactionDto.IndividualResponse getTransaction(Long id, Long userId);
+    TransactionDto.IndividualResponse getTransactionSplit(Long id, Long userId);
+
+    TransactionDto.SplitIndividualResponse getTransaction(Long id, Long userId);
 
     List<TransactionDto.TransactionYearlySummary> getSummaryByYear(Integer year, Long userId);
 
     void create(TransactionDto.Request dto, Long userId);
+
+    void createSplitedTransactions(TransactionDto.SplitedRequest dto, Long userId);
+
+    void updateSplitedTransaction(Long id, TransactionDto.SplitedRequest dto, Long userId);
 
     void update(Long id, TransactionDto.Request dto, Long userId);
 

@@ -1,11 +1,13 @@
 package br.com.d2s.financesmanager.api.model;
 
+import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -36,4 +38,7 @@ public class Transaction extends AssignedIdEntity<TransactionId> {
             @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     })
     private Account account;
+
+    @OneToMany(mappedBy = "transaction")
+    private List<TransactionSplit>  splits;
 }

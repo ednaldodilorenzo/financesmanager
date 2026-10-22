@@ -4,9 +4,12 @@ import br.com.d2s.financesmanager.api.model.Category;
 import br.com.d2s.financesmanager.api.model.CategoryId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface CategoryDao extends JpaRepository<Category, CategoryId> {
@@ -14,4 +17,10 @@ public interface CategoryDao extends JpaRepository<Category, CategoryId> {
     Long nextId();
 
     List<Category> findAllById_UserId(Long userId);
+
+    @Query("SELECT c.id.id FROM Category c WHERE c.id.id IN :categoryIds AND c.id.userId = :userId")
+    Set<Long> findExistingIdsByIdInAndUserId(
+            @Param("categoryIds") Set<Long> categoryIds,
+            @Param("userId") Long userId
+    );
 }

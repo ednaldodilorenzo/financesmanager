@@ -4,6 +4,8 @@ import br.com.d2s.financesmanager.api.config.parser.csv.TransactionGenericIdenti
 import br.com.d2s.financesmanager.api.dto.TransactionDto;
 import br.com.d2s.financesmanager.api.model.Transaction;
 import br.com.d2s.financesmanager.api.model.TransactionId;
+import br.com.d2s.financesmanager.api.model.TransactionSplit;
+import br.com.d2s.financesmanager.api.model.TransactionSplitId;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -23,10 +25,9 @@ public interface TransactionDao extends JpaRepository<Transaction, TransactionId
     @Query(value = "select nextval('transaction_id_seq') from generate_series(1, :count)", nativeQuery = true)
     List<Long> nextIds(int count);
 
-
     // Loads tags with the transaction so they can be mapped after the transaction closes (open-in-view is off).
-//    @EntityGraph(attributePaths = {"tags", "category", "account"})
-//    Optional<Transaction> findWithTagsById(TransactionId id);
+    @EntityGraph(attributePaths = {"account", "splits", "splits.category", "splits.tags"})
+    Optional<Transaction> findWithSplitsById(TransactionId id);
 
 //    Boolean existsByValueAndPaymentDateAndTransactionDateAndId_UserId(Long value, Instant paymentDate, Instant transactionDate, Long userId);
 

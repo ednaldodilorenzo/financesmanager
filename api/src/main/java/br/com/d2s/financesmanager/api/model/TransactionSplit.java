@@ -37,7 +37,8 @@ public class TransactionSplit extends AssignedIdEntity<TransactionSplitId> {
     @Column(nullable = false)
     private Long value;
 
-    @ManyToOne(cascade = {CascadeType.ALL})
+    // No REMOVE cascade: deleting a split must not delete a transaction that still has other splits.
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumns({
             @JoinColumn(name = "transaction_id", referencedColumnName = "id", insertable = false, updatable = false),
             @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)

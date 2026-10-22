@@ -14,10 +14,6 @@ public interface TransactionMapper {
     @Mapping(source = "account.id.id", target="account.id")
     TransactionDto.Response toDto(Transaction transaction);
 
-    @Mapping(source = "id.id", target = "id")
-    @Mapping(source = "account.id.id", target="account.id")
-    TransactionDto.IndividualResponse toIndividualDto(Transaction transaction);
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "account", ignore = true)
     Transaction toEntity(TransactionDto.Request request);
@@ -30,5 +26,10 @@ public interface TransactionMapper {
         return tagDto.tag();
     }
 
-    void updateEntityFromDto(TransactionDto.Request request, @MappingTarget Transaction transaction);
+    // Splits are synchronized by the service, since they need ids and may be added or removed.
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "account", ignore = true)
+    @Mapping(target = "splits", ignore = true)
+    @Mapping(target = "paymentDate", defaultExpression = "java(request.transactionDate())")
+    void updateEntityFromDto(TransactionDto.SplitedRequest request, @MappingTarget Transaction transaction);
 }

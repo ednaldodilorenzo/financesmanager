@@ -22,6 +22,20 @@ class TransactionService extends GenericService {
     return requester.post(`${this.url}/list`, items).then((resp) => resp.data);
   }
 
+  findWithSplits(transactionId) {
+    return requester.get(`${this.url}/${transactionId}/split`).then((resp) => resp.data);
+  }
+
+  createSplit(item) {
+    return requester.post(`${this.url}/split`, item).then((resp) => resp.data);
+  }
+
+  modifySplit(transactionId, item) {
+    return requester
+      .put(`${this.url}/${transactionId}/split`, item)
+      .then((resp) => resp.data);
+  }
+
   getAllByYear(year) {
     return requester.get(`${this.url}/summary/${year}`).then((resp) => resp.data);
   }

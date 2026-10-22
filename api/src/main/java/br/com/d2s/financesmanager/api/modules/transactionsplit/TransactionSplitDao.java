@@ -23,6 +23,8 @@ public interface TransactionSplitDao extends JpaRepository<TransactionSplit, Tra
     @Query(value = "select nextval('transaction_split_id_seq') from generate_series(1, :count)", nativeQuery = true)
     List<Long> nextIds(int count);
 
+    boolean existsByTransactionIdAndId_UserId(Long transactionId, Long userId);
+
     @EntityGraph(attributePaths = {"tags", "category", "transaction", "transaction.account"})
     Optional<TransactionSplit> findWithTagsById(TransactionSplitId id);
 
