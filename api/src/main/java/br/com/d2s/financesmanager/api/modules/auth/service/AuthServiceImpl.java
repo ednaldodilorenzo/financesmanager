@@ -56,7 +56,6 @@ public class AuthServiceImpl implements AuthService {
                 .payload(("Clique no link abaixo para confirmar seu email<br><br><a href=\"%s/register/%s\">Clique " +
                         "aqui").formatted(appProperties.webUrl(), token))
                 .build();
-        log.info("%s/register/%s".formatted(appProperties.webUrl(), token));
         queueProducer.sendToQueue("email:send", outboxEvent);
     }
 
