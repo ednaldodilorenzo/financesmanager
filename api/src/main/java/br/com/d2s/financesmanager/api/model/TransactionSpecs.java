@@ -6,6 +6,8 @@ import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import jakarta.persistence.criteria.Predicate;
 
@@ -19,9 +21,15 @@ public final class TransactionSpecs {
             var predicates = new ArrayList<Predicate>();
             predicates.add(cb.equal(root.get("id").get("userId"), userId));
             Expression<Instant> paymentDate = root.get("transaction").get("paymentDate");
-            if (filter.year() != null)
-                predicates.add(cb.equal(cb.function("date_part", Integer.class, cb.literal("year"), paymentDate), filter.year()));
-            if (filter.month() != null)
+            // Date ranges instead of date_part so the payment_date index can be used.
+            // payment_date is stored in the JVM local time zone, so boundaries are computed in it too.
+            if (filter.year() != null) {
+                ZoneId zone = ZoneId.systemDefault();
+                LocalDate start = LocalDate.of(filter.year(), filter.month() != null ? filter.month() : 1, 1);
+                LocalDate end = filter.month() != null ? start.plusMonths(1) : start.plusYears(1);
+                predicates.add(cb.greaterThanOrEqualTo(paymentDate, start.atStartOfDay(zone).toInstant()));
+                predicates.add(cb.lessThan(paymentDate, end.atStartOfDay(zone).toInstant()));
+            } else if (filter.month() != null)
                 predicates.add(cb.equal(cb.function("date_part", Integer.class, cb.literal("month"), paymentDate), filter.month()));
             if (filter.startDate() != null)
                 predicates.add(cb.greaterThanOrEqualTo(paymentDate, filter.startDate()));

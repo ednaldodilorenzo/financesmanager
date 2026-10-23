@@ -18,14 +18,6 @@ public interface TransactionMapper {
     @Mapping(target = "account", ignore = true)
     Transaction toEntity(TransactionDto.Request request);
 
-    default TransactionTagDto toTagDto(String tag) {
-        return new TransactionTagDto(tag);
-    }
-
-    default String toTag(TransactionTagDto tagDto) {
-        return tagDto.tag();
-    }
-
     // Splits are synchronized by the service, since they need ids and may be added or removed.
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "account", ignore = true)
