@@ -35,6 +35,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     annotationProcessor("org.projectlombok:lombok")
     implementation("org.mapstruct:mapstruct:1.6.3")
+    implementation("org.springframework.boot:spring-boot-starter-liquibase")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
     annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")

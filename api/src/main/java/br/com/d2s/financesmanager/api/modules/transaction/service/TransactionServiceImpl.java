@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.*;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -177,22 +178,17 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<TransactionDto.UploadResponse> parseTransactionImport(TransactionDto.UploadRequest dto, Long userId) {
-        if (!accountDao.existsById(new AccountId(userId, dto.accountId().value()))) {
-            throw new ApiException(ApiExceptionType.NOT_FOUND, "Account %d not found".formatted(dto.accountId().value()));
-        }
-        var account =  accountDao.findById(new AccountId(userId, dto.accountId().value())).orElseThrow();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        Instant fixedPaymentDate = null;
-        if (account.getType().equals("C")) {
-            fixedPaymentDate = LocalDate
-                    .parse((account.getDueDay() < 10 ? "0"+account.getDueDay(): account.getDueDay())
-                                    + "/" +dto.paymentMonth() + "/" + dto.paymentYear(),
-                            formatter)
-                    .atStartOfDay(ZoneOffset.UTC)
-                    .toInstant();
+        var account =  accountDao.findById(new AccountId(userId, dto.accountId().value())).orElseThrow(
+                () -> new ApiException(ApiExceptionType.NOT_FOUND,
+                        "Account id %s not found".formatted(dto.accountId()))
+        );
 
+        Instant fixedPaymentDate = null;
+        if ("C".equals(account.getType())) {
+            YearMonth ym = YearMonth.of(dto.paymentYear(), dto.paymentMonth());
+            int day = Math.min(account.getDueDay(), ym.lengthOfMonth());
+            fixedPaymentDate = ym.atDay(day).atStartOfDay(ZoneOffset.UTC).toInstant();
         }
         try(InputStream inputStream = dto.file().getInputStream()) {
             return extractParser.parse(inputStream, dto.fileType(), dto.accountId().value(), userId,

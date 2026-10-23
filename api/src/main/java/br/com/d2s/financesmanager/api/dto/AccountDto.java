@@ -10,6 +10,6 @@ public class AccountDto {
             @NotBlank(message = "Account name must be provided.")
             String name,
             @NotBlank(message = "Account type must be provided.")
-            String type,
+            Character type,
             Integer dueDay) {}
 }
