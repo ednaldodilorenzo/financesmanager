@@ -22,7 +22,7 @@ var settings *MailSettings
 var brokerSettings *MessageBrokerSettings
 
 func ReadMailSettings() (*MailSettings, error) {
-	mailPort, err := strconv.Atoi(os.Getenv("MAIL_PORT"))
+	mailPort, err := strconv.Atoi(os.Getenv("EMAIL_PORT"))
 
 	if err != nil {
 		return nil, err
@@ -30,10 +30,10 @@ func ReadMailSettings() (*MailSettings, error) {
 
 	if settings == nil {
 		settings = &MailSettings{
-			Host:     os.Getenv("MAIL_HOST"),
+			Host:     os.Getenv("EMAIL_HOST"),
 			Port:     mailPort,
-			Username: os.Getenv("MAIL_USERNAME"),
-			Password: os.Getenv("MAIL_PASSWORD"),
+			Username: os.Getenv("EMAIL_USERNAME"),
+			Password: os.Getenv("EMAIL_PASSWORD"),
 		}
 	}
 

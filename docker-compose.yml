@@ -40,6 +40,8 @@ services:
 
   worker:
     image: ednaldodilorenzo/financemanager-worker:${IMAGE_TAG:-latest}
+    labels:
+      logging: "enabled"
     depends_on:
       - redis
     environment:

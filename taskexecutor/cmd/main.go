@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
@@ -32,8 +32,7 @@ type EmailPayload struct {
 func sendEmailSMTP(to, subject, body string) error {
 	mailSettings, err := config.ReadMailSettings()
 	if err != nil {
-		fmt.Printf("Failed to read mail settings.")
-		return err
+		return fmt.Errorf("read mail settings: %w", err)
 	}
 	smtpHost := mailSettings.Host // Change to "smtp.office365.com" for Outlook
 	smtpPort := mailSettings.Port
@@ -52,7 +51,6 @@ func sendEmailSMTP(to, subject, body string) error {
 	if err := d.DialAndSend(m); err != nil {
 		return err
 	}
-	fmt.Printf("Email sent to %s\n", to)
 	return nil
 }
 
@@ -62,14 +60,16 @@ func handleEmailMessage(msg redis.XMessage) error {
 	body, _ := msg.Values["body"].(string)
 	email := EmailPayload{To: to, Subject: subject, Body: body}
 
-	fmt.Printf("Sending email to %s with subject: %s\n", email.To, email.Subject)
+	logger := slog.With("message_id", msg.ID, "to", email.To, "subject", email.Subject)
+	logger.Info("Sending email")
 
 	err := sendEmailSMTP(email.To, email.Subject, email.Body)
 	if err != nil {
-		log.Printf("Failed to send email: %v", err)
+		logger.Error("Failed to send email", "err", err)
 		return err
 	}
 
+	logger.Info("Email sent")
 	return nil
 }
 
@@ -77,14 +77,14 @@ func processMessages(ctx context.Context, rdb *redis.Client, messages []redis.XM
 	for _, msg := range messages {
 		if _, ok := msg.Values["to"].(string); !ok {
 			// Malformed message: acknowledge it so it is not retried forever.
-			log.Printf("Discarding malformed message %s: %v", msg.ID, msg.Values)
+			slog.Warn("Discarding malformed message", "message_id", msg.ID, "values", msg.Values)
 		} else if err := handleEmailMessage(msg); err != nil {
 			// Left pending; it will be claimed again after retryAfter.
 			continue
 		}
 
 		if err := rdb.XAck(ctx, emailStream, consumerGroup, msg.ID).Err(); err != nil {
-			log.Printf("Failed to ack message %s: %v", msg.ID, err)
+			slog.Error("Failed to ack message", "message_id", msg.ID, "err", err)
 		}
 	}
 }
@@ -108,16 +108,20 @@ func claimStaleMessages(ctx context.Context, rdb *redis.Client, consumer string)
 		Count:    10,
 	}).Result()
 	if err != nil {
-		log.Printf("Failed to claim pending messages: %v", err)
+		slog.Error("Failed to claim pending messages", "err", err)
 		return nil
 	}
 	return messages
 }
 
 func main() {
+	// JSON on stdout, collected by Alloy and shipped to Loki.
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
 	mbSettings, err := config.ReadMessageBrokerSettings()
 	if err != nil {
-		log.Fatalf("Failed to read message broker settings: %v", err)
+		slog.Error("Failed to read message broker settings", "err", err)
+		os.Exit(1)
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -127,12 +131,13 @@ func main() {
 	defer rdb.Close()
 
 	if err := createConsumerGroup(ctx, rdb); err != nil {
-		log.Fatalf("Failed to create consumer group: %v", err)
+		slog.Error("Failed to create consumer group", "err", err)
+		os.Exit(1)
 	}
 
 	consumer, _ := os.Hostname()
 
-	fmt.Println("Worker started...")
+	slog.Info("Worker started", "consumer", consumer)
 	for ctx.Err() == nil {
 		processMessages(ctx, rdb, claimStaleMessages(ctx, rdb, consumer))
 
@@ -147,7 +152,7 @@ func main() {
 			continue
 		}
 		if err != nil {
-			log.Printf("Failed to read from stream: %v", err)
+			slog.Error("Failed to read from stream", "err", err)
 			time.Sleep(time.Second)
 			continue
 		}
@@ -157,5 +162,5 @@ func main() {
 		}
 	}
 
-	fmt.Println("Worker stopped.")
+	slog.Info("Worker stopped")
 }
