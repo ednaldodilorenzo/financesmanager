@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.config.security;
 
+import br.com.d2s.financesmanager.api.config.app.AppProperties;
 import br.com.d2s.financesmanager.api.infra.security.CookieBearerTokenResolver;
 import br.com.d2s.financesmanager.api.infra.token.JwtManager;
 import br.com.d2s.financesmanager.api.infra.token.JwtManagerImpl;
@@ -8,7 +9,7 @@ import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,12 +35,13 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 @EnableWebSecurity
+@AllArgsConstructor
 public class SecurityConfig {
-    @Value("${APP_JWT_KEY}")
-    private String jwtSecret;
+
+    private final AppProperties appProperties;
 
     private SecretKey getSecretKey() {
-        return new SecretKeySpec(jwtSecret.getBytes(), "HmacSHA256");
+        return new SecretKeySpec(appProperties.jwtKey().getBytes(), "HmacSHA256");
     }
 
     @Bean
@@ -118,6 +120,6 @@ public class SecurityConfig {
 
     @Bean
     public JwtManager jwtManager() {
-        return new JwtManagerImpl(jwtEncoder());
+        return new JwtManagerImpl(jwtEncoder(), jwtDecoder());
     }
 }

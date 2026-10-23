@@ -28,11 +28,6 @@ const ROUTES_DEFINITIONS = [
         component: () => import("./confirmation-page.vue"),
       },
       {
-        path: "/registration",
-        name: ROUTE_NAMES.SEND_MAIL,
-        component: () => import("./send-mail.vue"),
-      },
-      {
         path: "/redefine/:token",
         name: ROUTE_NAMES.REDEFINE,
         component: () => import("./redefine-password.vue"),
@@ -54,6 +49,11 @@ const ROUTES_DEFINITIONS = [
     name: ROUTE_NAMES.RECOVER,
     component: () => import("./new-send-email.vue"),
   },
+  {
+    path: "/registration",
+    name: ROUTE_NAMES.SEND_MAIL,
+    component: () => import("./new-send-email.vue"),
+  },      
 ];
 
 export { ROUTE_NAMES, ROUTES_DEFINITIONS };

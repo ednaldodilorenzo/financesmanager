@@ -2,16 +2,14 @@ package br.com.d2s.financesmanager.api.modules.auth;
 
 import br.com.d2s.financesmanager.api.dto.LoginDto;
 import br.com.d2s.financesmanager.api.dto.RegisterDto;
+import br.com.d2s.financesmanager.api.dto.SignupDto;
 import br.com.d2s.financesmanager.api.modules.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -37,7 +35,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public void register(@RequestBody RegisterDto dto) {
+    public void register(@RequestBody @Valid RegisterDto dto) {
+        authService.startRegistrationProcess(dto);
+    }
 
+    @PostMapping("/signup")
+    public void signup(@RequestBody @Valid SignupDto dto) {
+        authService.registerWithToken(dto);
     }
 }
