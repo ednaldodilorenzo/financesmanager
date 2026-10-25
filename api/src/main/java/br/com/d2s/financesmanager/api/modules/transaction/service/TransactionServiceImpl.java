@@ -185,7 +185,7 @@ public class TransactionServiceImpl implements TransactionService {
         );
 
         Instant fixedPaymentDate = null;
-        if ("C".equals(account.getType())) {
+        if (Objects.equals(account.getType(), 'C')) {
             YearMonth ym = YearMonth.of(dto.paymentYear(), dto.paymentMonth());
             int day = Math.min(account.getDueDay(), ym.lengthOfMonth());
             fixedPaymentDate = ym.atDay(day).atStartOfDay(ZoneOffset.UTC).toInstant();
