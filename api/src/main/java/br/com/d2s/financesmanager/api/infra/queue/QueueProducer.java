@@ -17,6 +17,7 @@ public class QueueProducer {
         MapRecord<String, String, String> record = StreamRecords.newRecord()
                 .in(queueName)
                 .ofMap(Map.of(
+                        "idempotencyKey", event.idempotencyKey(),
                         "to", event.email(),
                         "subject", event.subject(),
                         "body", event.payload()));

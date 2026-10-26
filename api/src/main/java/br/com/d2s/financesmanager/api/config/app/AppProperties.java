@@ -3,5 +3,5 @@ package br.com.d2s.financesmanager.api.config.app;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app")
-public record AppProperties(String webUrl, String jwtKey) {
+public record AppProperties(String webUrl, String jwtKey, String publicIdAlphabet) {
 }

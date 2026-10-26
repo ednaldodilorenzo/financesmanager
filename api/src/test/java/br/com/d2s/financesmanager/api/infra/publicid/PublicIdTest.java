@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.infra.publicid;
 
+import br.com.d2s.financesmanager.api.config.app.AppProperties;
 import org.junit.jupiter.api.Test;
 import org.sqids.Sqids;
 import tools.jackson.databind.DatabindException;
@@ -11,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PublicIdTest {
     private static final String ALPHABET = "KIHZiM4R6o1p2hDOf8YXLeAJjw0UnPkgzdQaTGsNWmFyBcVqEr7uv5t3S9Clbx";
-
-    private final PublicIdCodec codec = new PublicIdCodec(ALPHABET);
+    AppProperties appProperties = new AppProperties("xx", "xx", "xxxxxxxx");
+    private final PublicIdCodec codec = new PublicIdCodec(appProperties);
     private final PublicIdConfig config = new PublicIdConfig();
     private final JsonMapper mapper = JsonMapper.builder().addModule(config.publicIdModule(codec)).build();
 

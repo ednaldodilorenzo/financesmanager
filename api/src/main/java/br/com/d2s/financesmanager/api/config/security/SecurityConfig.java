@@ -2,6 +2,8 @@ package br.com.d2s.financesmanager.api.config.security;
 
 import br.com.d2s.financesmanager.api.config.app.AppProperties;
 import br.com.d2s.financesmanager.api.infra.security.CookieBearerTokenResolver;
+import br.com.d2s.financesmanager.api.infra.security.RevokedTokenValidator;
+import br.com.d2s.financesmanager.api.infra.security.TokenRevocationStore;
 import br.com.d2s.financesmanager.api.infra.token.JwtManager;
 import br.com.d2s.financesmanager.api.infra.token.JwtManagerImpl;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -20,11 +22,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
@@ -100,10 +100,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withSecretKey(getSecretKey())
+    public JwtDecoder jwtDecoder(TokenRevocationStore revocationStore) {
+        var decoder = NimbusJwtDecoder.withSecretKey(getSecretKey())
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefault(),          // keep exp/nbf checks
+                new RevokedTokenValidator(revocationStore)));
+        return decoder;
     }
 
     @Bean
@@ -119,7 +123,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtManager jwtManager() {
-        return new JwtManagerImpl(jwtEncoder(), jwtDecoder());
+    public JwtManager jwtManager(TokenRevocationStore revocationStore) {
+        return new JwtManagerImpl(jwtEncoder(), jwtDecoder(revocationStore));
     }
 }

@@ -10,9 +10,9 @@ public class CookieBearerTokenResolver implements BearerTokenResolver {
 
     @Override
     public String resolve(HttpServletRequest request) {
-        if (request.getServletPath().startsWith("/auth/")) {
-            return null;
-        }
+//        if (request.getServletPath().startsWith("/auth/")) {
+//            return null;
+//        }
 
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {

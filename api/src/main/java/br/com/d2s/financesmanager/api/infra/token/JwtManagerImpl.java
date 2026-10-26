@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.jwt.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 @AllArgsConstructor
 public class JwtManagerImpl implements JwtManager {
@@ -18,6 +19,7 @@ public class JwtManagerImpl implements JwtManager {
         Instant now = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
+                .id(UUID.randomUUID().toString())
                 .issuer("self")
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.HOURS))

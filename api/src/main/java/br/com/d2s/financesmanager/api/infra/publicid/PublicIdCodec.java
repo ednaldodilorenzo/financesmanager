@@ -1,5 +1,6 @@
 package br.com.d2s.financesmanager.api.infra.publicid;
 
+import br.com.d2s.financesmanager.api.config.app.AppProperties;
 import org.sqids.Sqids;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -13,8 +14,8 @@ public class PublicIdCodec {
     private final Sqids sqids;
 
     // The alphabet must never change once ids are published: every link and stored id would stop decoding.
-    public PublicIdCodec(@Value("${APP_PUBLIC_ID_ALPHABET}") String alphabet) {
-        this.sqids = Sqids.builder().alphabet(alphabet).minLength(MIN_LENGTH).build();
+    public PublicIdCodec(AppProperties appProperties) {
+        this.sqids = Sqids.builder().alphabet(appProperties.publicIdAlphabet()).minLength(MIN_LENGTH).build();
     }
 
     public String encode(long id) {

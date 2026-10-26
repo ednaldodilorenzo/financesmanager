@@ -21,7 +21,18 @@ const (
 	consumerGroup = "taskexecutor"
 	// Pending messages idle for longer than this are claimed again (retry after a failure or a crash).
 	retryAfter = time.Minute
+
+	idempotencyPrefix = "email:idem:"
+	stateProcessing   = "processing"
+	stateSent         = "sent"
+	// Must exceed the longest SMTP send, otherwise a slow send could be duplicated.
+	processingTTL = 5 * time.Minute
+	// Window during which messages with the same idempotency key are dropped.
+	// Kept short so a user can still request a new confirmation email afterwards.
+	sentTTL = 15 * time.Minute
 )
+
+var errInProgress = errors.New("message is being processed by another consumer")
 
 type EmailPayload struct {
 	To      string
@@ -54,19 +65,52 @@ func sendEmailSMTP(to, subject, body string) error {
 	return nil
 }
 
-func handleEmailMessage(msg redis.XMessage) error {
+func handleEmailMessage(ctx context.Context, rdb *redis.Client, msg redis.XMessage) error {
 	to, _ := msg.Values["to"].(string)
 	subject, _ := msg.Values["subject"].(string)
 	body, _ := msg.Values["body"].(string)
 	email := EmailPayload{To: to, Subject: subject, Body: body}
 
-	logger := slog.With("message_id", msg.ID, "to", email.To, "subject", email.Subject)
+	key, _ := msg.Values["idempotencyKey"].(string)
+	if key == "" {
+		// Older producers: at least protect against redelivery of the same stream entry.
+		key = msg.ID
+	}
+	idemKey := idempotencyPrefix + key
+
+	logger := slog.With("message_id", msg.ID, "idempotency_key", key, "to", email.To, "subject", email.Subject)
+
+	acquired, err := rdb.SetNX(ctx, idemKey, stateProcessing, processingTTL).Result()
+	if err != nil {
+		logger.Error("Failed to acquire idempotency key", "err", err)
+		return err
+	}
+	if !acquired {
+		state, err := rdb.Get(ctx, idemKey).Result()
+		if err == nil && state == stateSent {
+			logger.Info("Duplicate message, skipping")
+			return nil
+		}
+		// Another consumer is sending it (or the key just expired); retry later.
+		logger.Info("Message is being processed elsewhere, leaving it pending")
+		return errInProgress
+	}
+
 	logger.Info("Sending email")
 
-	err := sendEmailSMTP(email.To, email.Subject, email.Body)
+	err = sendEmailSMTP(email.To, email.Subject, email.Body)
 	if err != nil {
 		logger.Error("Failed to send email", "err", err)
+		// Release the key so the retry is not mistaken for a duplicate.
+		if delErr := rdb.Del(ctx, idemKey).Err(); delErr != nil {
+			logger.Error("Failed to release idempotency key", "err", delErr)
+		}
 		return err
+	}
+
+	if err := rdb.Set(ctx, idemKey, stateSent, sentTTL).Err(); err != nil {
+		// The email went out; the processing key still blocks duplicates until it expires.
+		logger.Error("Failed to mark email as sent", "err", err)
 	}
 
 	logger.Info("Email sent")
@@ -78,7 +122,7 @@ func processMessages(ctx context.Context, rdb *redis.Client, messages []redis.XM
 		if _, ok := msg.Values["to"].(string); !ok {
 			// Malformed message: acknowledge it so it is not retried forever.
 			slog.Warn("Discarding malformed message", "message_id", msg.ID, "values", msg.Values)
-		} else if err := handleEmailMessage(msg); err != nil {
+		} else if err := handleEmailMessage(ctx, rdb, msg); err != nil {
 			// Left pending; it will be claimed again after retryAfter.
 			continue
 		}

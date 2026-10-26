@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record OutboxMessageEvent(
+        String idempotencyKey,
         String email,
         String subject,
         String payload

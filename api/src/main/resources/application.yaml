@@ -1,6 +1,7 @@
 app:
   webUrl: ${APP_URL}
   jwt-key: ${APP_JWT_KEY}
+  public-id-alphabet: ${APP_PUBLIC_ID_ALPHABET}
 spring:
   application:
     name: api

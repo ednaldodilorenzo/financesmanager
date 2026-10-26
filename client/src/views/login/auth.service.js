@@ -28,7 +28,8 @@ const authService = {
       name: name,
       token: "newToken",
     }),
-  logout: () => store.dispatch("currentUser/setUser", null),
+  logout: () =>  
+    requester.post("/auth/logout").then(() => store.dispatch("currentUser/setUser", null)),
   signup: (user) =>
     requester.post("/auth/signup", user).then((resp) => resp.data),
   confirmAccount: (token) =>

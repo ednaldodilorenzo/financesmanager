@@ -51,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtManager.generateRegistrationToken(dto.email());
         var outboxEvent = OutboxMessageEvent
                 .builder()
+                .idempotencyKey("registration:" + dto.email().toLowerCase().trim())
                 .subject("Confirmação de email")
                 .email(dto.email())
                 .payload(("Clique no link abaixo para confirmar seu email<br><br><a href=\"%s/register/%s\">Clique " +
