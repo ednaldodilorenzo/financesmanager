@@ -10,7 +10,7 @@ import java.util.Map;
 public record CsvProperties(Map<String, Layout> layouts) {
     public record Layout(int headerLines, int footerLines, int paymentDateColumn,
         int transactionDateColumn, int ammountColumn, String datePattern, String delimiter,
-        int descriptionColumn, Charset charset){
+        int descriptionColumn, Charset charset, Boolean invertSign){
         public Layout {
             if (charset == null) {
                 charset = StandardCharsets.ISO_8859_1;

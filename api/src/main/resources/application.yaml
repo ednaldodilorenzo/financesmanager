@@ -88,6 +88,7 @@ csv:
       date-pattern: dd/MM/yyyy
       delimiter: ","
       description-column: 1
+      invert-sign: false
     C6CC:
       header-lines: 1
       footer-lines: 0
@@ -97,6 +98,7 @@ csv:
       date-pattern: dd/MM/yyyy
       delimiter: ";"
       description-column: 4
+      invert-sign: true
     BBMF:
       header-lines: 1
       footer-lines: 0
@@ -106,3 +108,4 @@ csv:
       date-pattern: dd/MM/yyyy
       delimiter: ";"
       description-column: 0
+      invert-sign: false

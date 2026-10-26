@@ -58,7 +58,8 @@ public class ConfigurableCsvBankParser implements ExtractParser{
                                 LocalDate.parse(row[layout.paymentDateColumn()], formatter).atStartOfDay(ZoneOffset.UTC).toInstant();
                         Instant transactionDate =
                                 LocalDate.parse(row[layout.paymentDateColumn()], formatter).atStartOfDay(ZoneOffset.UTC).toInstant();
-                        Long value = Long.parseLong(row[layout.ammountColumn()].replace(".", "").replace(",", ""));
+                        var value = Long.parseLong(row[layout.ammountColumn()].replace(".", "").replace(",", ""));
+                        value = layout.invertSign() ? -value : value;
 
                         return new ParsedRow(row[layout.descriptionColumn()],
                                 new TransactionGenericIdentity(value, paymentDate, transactionDate, userId));
