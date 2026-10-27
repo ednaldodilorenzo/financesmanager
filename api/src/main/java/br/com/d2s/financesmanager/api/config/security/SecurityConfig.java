@@ -123,7 +123,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtManager jwtManager(TokenRevocationStore revocationStore) {
-        return new JwtManagerImpl(jwtEncoder(), jwtDecoder(revocationStore));
+    public JwtManager jwtManager(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
+        return new JwtManagerImpl(jwtEncoder, jwtDecoder);
     }
 }
